@@ -14,7 +14,7 @@ supports floating point numbers.
 The :class:`SliderSpinPanel` class is a panel containing a :class:`FloatSlider`
 and a :class:`wx.SpinCtrlDouble`, linked such that changes in one are reflected
 in the other. The :class:`SliderSpinPanel` class also allows the user to change
-the slider limits, via the :class:`~fsl.gui.numberdialog.NumberDialog` class.
+the slider limits, via the :class:`~pwidgets.numberdialog.NumberDialog` class.
 """
 
 import wx

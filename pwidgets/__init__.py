@@ -4,4 +4,4 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""Various custom :mod:`wx` widgets used by the props package."""
+"""Various custom :mod:`wx` widgets used by the :mod:`props` package."""

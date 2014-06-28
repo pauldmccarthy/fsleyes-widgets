@@ -53,7 +53,7 @@ containing the new minimum/maximum range limits.
 
 class RangePanel(wx.Panel):
     """A :class:`wx.Panel` containing two widgets (either
-    :class:`~fsl.gui.floatslider.FloatSlider`, or
+    :class:`~pwidgets.floatslider.FloatSlider`, or
     :class:`wx.SpinCtrlDouble`), representing the 'low'
     and 'high' values of a range, respectively. When the
     user changes the low slider to a value beyond the
@@ -76,7 +76,7 @@ class RangePanel(wx.Panel):
         
         :param parent:             The :mod:`wx` parent object.
 
-        :param str widgetType:     Widget type - either 'slider' or 'spin'.
+        :param str widgetType:     Widget type - either ``slider`` or ``spin``.
         
         :param number minValue:    Minimum range value.
         
@@ -319,7 +319,7 @@ class RangeSliderSpinPanel(wx.Panel):
                                    slider, containing the label.
 
         :param str highLabel:      If not ``None``, a :class:`wx.StaticText`
-                                    widget is placed to the left of the high 
+                                   widget is placed to the left of the high 
                                    slider, containing the label. 
         
         :param bool showLimits:    If ``True``, a button will be shown on
@@ -328,7 +328,7 @@ class RangeSliderSpinPanel(wx.Panel):
         
         :param bool editLimits:    If ``True``, when aforementioned buttons are
                                    clicked, a
-                                   :class:~fsl.gui.numberdialog.NumberDialog`
+                                   :class:`~pwidgets.numberdialog.NumberDialog`
                                    window will pop up, allowing the user to
                                    edit the min/max limits.
         """
