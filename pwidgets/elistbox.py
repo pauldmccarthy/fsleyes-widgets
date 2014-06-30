@@ -413,7 +413,9 @@ class EditableListBox(wx.Panel):
 
         pos = self._fixIndex(pos)
 
-        widget = wx.StaticText(self._listPanel, label=label)
+        widget = wx.StaticText(self._listPanel,
+                               label=label,
+                               style=wx.ST_ELLIPSIZE_MIDDLE)
         widget.SetBackgroundColour(EditableListBox._defaultBG)
         
         widget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
