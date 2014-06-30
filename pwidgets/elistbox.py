@@ -157,7 +157,7 @@ class EditableListBox(wx.Panel):
     def __init__(
             self,
             parent,
-            labels,
+            labels=None,
             clientData=None,
             tooltips=None,
             style=0):
@@ -169,6 +169,9 @@ class EditableListBox(wx.Panel):
         :type  labels:     list of strings
         
         :param clientData: List of data associated with the list items.
+
+        :param tooltips:   List of strings, tooltips for each item.
+        :type  tooltips:   list of strings 
 
         :param int style:  Style bitmask - accepts :data:`ELB_NO_ADD`,
                            :data:`ELB_NO_REMOVE`, :data:`ELB_NO_MOVE`,
@@ -187,6 +190,7 @@ class EditableListBox(wx.Panel):
         self._reverseOrder = reverseOrder
         self._showTooltips = showTooltips
 
+        if labels     is None: labels     = []
         if clientData is None: clientData = [None] * len(labels)
         if tooltips   is None: tooltips   = [None] * len(labels)
 
