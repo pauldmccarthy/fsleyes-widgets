@@ -65,6 +65,7 @@ class RangePanel(wx.Panel):
     def __init__(self,
                  parent,
                  widgetType,
+                 real=True,
                  minValue=None,
                  maxValue=None,
                  lowValue=None,
@@ -76,7 +77,13 @@ class RangePanel(wx.Panel):
         
         :param parent:             The :mod:`wx` parent object.
 
-        :param str widgetType:     Widget type - either ``slider`` or ``spin``.
+        :param str widgetType:     Widget type - either ``slider`` or ``spin``. 
+
+        :param real:               If ``False``, :class:`wx.Slider` and
+                                   :class:`wx.SpinCtrl` widgets are used
+                                   instead of
+                                   :class:`~pwidgets.floatslider.FloatSlider`
+                                   and :class:`wx.SpinCtrlDouble`.
         
         :param number minValue:    Minimum range value.
         
@@ -103,25 +110,34 @@ class RangePanel(wx.Panel):
 
         wx.Panel.__init__(self, parent)
 
+        if real:
+            sliderType = floatslider.FloatSlider
+            spinType   = wx.SpinCtrlDouble
+            spinEvType = wx.EVT_SPINCTRLDOUBLE
+        else:
+            sliderType = wx.Slider
+            spinType   = wx.SpinCtrl
+            spinEvType = wx.EVT_SPINCTRL
+
         if minValue    is None: minValue    = 0
-        if maxValue    is None: maxValue    = 1
+        if maxValue    is None: maxValue    = 100
         if lowValue    is None: lowValue    = 0
-        if highValue   is None: highValue   = 1
-        if minDistance is None: minDistance = 0.01
+        if highValue   is None: highValue   = 100
+        if minDistance is None: minDistance = 0
 
         self._minDistance = minDistance
 
         if widgetType == 'slider':
-            self._lowWidget  = floatslider.FloatSlider(self)
-            self._highWidget = floatslider.FloatSlider(self)
+            self._lowWidget  = sliderType(self)
+            self._highWidget = sliderType(self)
             self._lowWidget .Bind(wx.EVT_SLIDER, self._onLowChange)
             self._highWidget.Bind(wx.EVT_SLIDER, self._onHighChange)
             
         elif widgetType == 'spin':
-            self._lowWidget  = wx.SpinCtrlDouble(self)
-            self._highWidget = wx.SpinCtrlDouble(self)
-            self._lowWidget .Bind(wx.EVT_SPINCTRLDOUBLE, self._onLowChange)
-            self._highWidget.Bind(wx.EVT_SPINCTRLDOUBLE, self._onHighChange)
+            self._lowWidget  = spinType(self)
+            self._highWidget = spinType(self)
+            self._lowWidget .Bind(spinEvType, self._onLowChange)
+            self._highWidget.Bind(spinEvType, self._onHighChange)
 
         self._sizer = wx.GridBagSizer(1, 1)
         self._sizer.SetEmptyCellSize((0, 0))
@@ -290,6 +306,7 @@ class RangeSliderSpinPanel(wx.Panel):
     
     def __init__(self,
                  parent,
+                 real=True,
                  minValue=None,
                  maxValue=None,
                  lowValue=None,
@@ -302,6 +319,12 @@ class RangeSliderSpinPanel(wx.Panel):
         """Initialise a :class:`RangeSliderSpinPanel`.
         
         :param parent:             The :mod:`wx` parent object.
+
+        :param real:               If ``False``, :class:`wx.Slider` and
+                                   :class:`wx.SpinCtrl` widgets are used
+                                   instead of
+                                   :class:`~pwidgets.floatslider.FloatSlider`
+                                   and :class:`wx.SpinCtrlDouble`.
         
         :param number minValue:    Minimum low value.
         
@@ -345,7 +368,11 @@ class RangeSliderSpinPanel(wx.Panel):
         
         self._showLimits = showLimits
 
+        if real: self._fmt = '{: 0.3G}'
+        else:    self._fmt = '{}'
+
         params = {
+            'real'        : real,
             'minValue'    : minValue,
             'maxValue'    : maxValue,
             'lowValue'    : lowValue,
@@ -367,11 +394,11 @@ class RangeSliderSpinPanel(wx.Panel):
         self._sizer.Add(self._spinPanel,   flag=wx.EXPAND)
 
         self._sliderPanel.Bind(EVT_RANGE, self._onRangeChange)
-        self._spinPanel  .Bind(EVT_RANGE, self._onRangeChange) 
+        self._spinPanel  .Bind(EVT_RANGE, self._onRangeChange)
 
         if showLimits:
-            self._minButton = wx.Button(self, label='{}'.format(minValue))
-            self._maxButton = wx.Button(self, label='{}'.format(maxValue))
+            self._minButton = wx.Button(self, label=self._fmt.format(minValue))
+            self._maxButton = wx.Button(self, label=self._fmt.format(maxValue))
 
             self._sizer.Insert(0, self._minButton, flag=wx.EXPAND | wx.ALL)
             self._sizer.Add(      self._maxButton, flag=wx.EXPAND | wx.ALL)
@@ -461,7 +488,7 @@ class RangeSliderSpinPanel(wx.Panel):
         self._spinPanel  .SetMin(minValue)
 
         if self._showLimits:
-            self._minButton.SetLabel('{}'.format(minValue))
+            self._minButton.SetLabel(self._fmt.format(minValue))
 
             
     def SetMax(self, maxValue):
@@ -470,7 +497,7 @@ class RangeSliderSpinPanel(wx.Panel):
         self._spinPanel  .SetMax(maxValue)
         
         if self._showLimits:
-            self._maxButton.SetLabel('{}'.format(maxValue))
+            self._maxButton.SetLabel(self._fmt.format(maxValue))
 
             
     def GetMin(self):

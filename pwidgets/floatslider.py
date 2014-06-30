@@ -246,6 +246,9 @@ class SliderSpinPanel(wx.Panel):
         
         self._showLimits = showLimits
 
+        if real: self._fmt = '{}'
+        else:    self._fmt = '{: 0.3G}'
+
         if real:
             self._slider = FloatSlider(
                 self,
@@ -256,7 +259,7 @@ class SliderSpinPanel(wx.Panel):
                 self,
                 min=minValue,
                 max=maxValue,
-                value='{}'.format(value),
+                value=self._fmt.format(value),
                 initial=value)
         else:
             self._slider = wx.Slider(
@@ -268,7 +271,7 @@ class SliderSpinPanel(wx.Panel):
                 self,
                 min=minValue,
                 max=maxValue,
-                value='{}'.format(value),
+                value=self._fmt.format(value),
                 initial=value)
  
 
@@ -286,8 +289,8 @@ class SliderSpinPanel(wx.Panel):
         self._spinbox.Bind(wx.EVT_SPINCTRLDOUBLE, self._onSpin)
 
         if showLimits:
-            self._minButton = wx.Button(self, label='{}'.format(minValue))
-            self._maxButton = wx.Button(self, label='{}'.format(maxValue))
+            self._minButton = wx.Button(self, label=self._fmt.format(minValue))
+            self._maxButton = wx.Button(self, label=self._fmt.format(maxValue))
 
             self._sizer.Insert(0, self._minButton, flag=wx.EXPAND)
             self._sizer.Add(      self._maxButton, flag=wx.EXPAND)
@@ -395,7 +398,7 @@ class SliderSpinPanel(wx.Panel):
         self._spinbox.SetMin(minValue)
 
         if self._showLimits:
-            self._minButton.SetLabel('{}'.format(minValue))
+            self._minButton.SetLabel(self._fmt.format(minValue))
 
             
     def SetMax(self, maxValue):
@@ -404,7 +407,7 @@ class SliderSpinPanel(wx.Panel):
         self._spinbox.SetMax(maxValue)
 
         if self._showLimits:
-            self._maxButton.SetLabel('{}'.format(maxValue)) 
+            self._maxButton.SetLabel(self._fmt.format(maxValue)) 
 
             
     def SetValue(self, value):
