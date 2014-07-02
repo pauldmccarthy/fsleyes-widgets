@@ -368,6 +368,14 @@ class EditableListBox(wx.Panel):
         return len(self._listItems)
 
 
+    def Clear(self):
+        """Removes all items from the list."""
+
+        nitems = len(self._listItems)
+        for i in range(nitems):
+            self.Delete(0)
+
+
     def ClearSelection(self):
         """Ensures that no items are selected."""
         
