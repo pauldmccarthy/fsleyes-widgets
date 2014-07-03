@@ -204,6 +204,13 @@ class EditableListBox(wx.Panel):
         self._listPanel.SetSizer(self._listSizer)
         self._listPanel.SetBackgroundColour(EditableListBox._defaultBG)
 
+        # The list panel width doesn't seem to be
+        # automatically sized correctly, (probably
+        # because of my scrollbar hackery in the
+        # _updateScrollBar method). So I'm explicitly
+        # setting a minimum width to overcome this.
+        self._listPanel.SetMinSize((250, -1)) 
+
         self._scrollbar = wx.ScrollBar(self, style=wx.SB_VERTICAL)
 
         # A panel containing buttons for doing stuff with the list
