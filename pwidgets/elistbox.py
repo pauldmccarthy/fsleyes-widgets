@@ -518,6 +518,19 @@ class EditableListBox(wx.Panel):
         self._updateScrollbar()
         self.Refresh()
 
+        
+    def SetString(self, n, s):
+        """Sets the label of the item at index ``n`` to the string ``s``.
+        
+        :param int n: Index of the item.
+        :param str s: New label for the item.
+        """
+
+        if n < 0 or n >= self.GetCount():
+            raise IndexError('Index {} is out of bounds'.format(n))
+        
+        self._listItems[n].widget.SetLabel(s)
+
             
     def _getSelection(self, fix=False):
         """Returns a 3-tuple containing the (uncorrected) index, label,
