@@ -528,8 +528,11 @@ class EditableListBox(wx.Panel):
 
         if n < 0 or n >= self.GetCount():
             raise IndexError('Index {} is out of bounds'.format(n))
+
+        n = self._fixIndex(n)
         
         self._listItems[n].widget.SetLabel(s)
+        self._listItems[n].label = s
 
             
     def _getSelection(self, fix=False):
