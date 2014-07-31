@@ -116,7 +116,7 @@ on mouse-over."""
 class _ListItem(object):
     """Internal class used to represent items in the list."""
     
-    def __init__(self, label, data, tooltip, widget):
+    def __init__(self, label, data, tooltip, widget, container):
         """Create a _ListItem object.
 
         :param str label:   The item label which will be displayed.
@@ -128,11 +128,15 @@ class _ListItem(object):
         
         :param widget:      The :mod:`wx` object which represents the list
                             item.
+        
+        :param container:   The :mod:`wx` object used as a container for 
+                            the ``widget``.
         """
-        self.label   = label
-        self.data    = data
-        self.widget  = widget
-        self.tooltip = tooltip
+        self.label     = label
+        self.data      = data
+        self.widget    = widget
+        self.container = container
+        self.tooltip   = tooltip
 
 
 class EditableListBox(wx.Panel):
@@ -387,7 +391,8 @@ class EditableListBox(wx.Panel):
         """Ensures that no items are selected."""
         
         for item in self._listItems:
-            item.widget.SetBackgroundColour(EditableListBox._defaultBG)
+            item.widget   .SetBackgroundColour(EditableListBox._defaultBG)
+            item.container.SetBackgroundColour(EditableListBox._defaultBG)
         self._selection = wx.NOT_FOUND
 
         
@@ -403,8 +408,10 @@ class EditableListBox(wx.Panel):
 
         self._selection = self._fixIndex(n)
 
-        widget = self._listItems[self._selection].widget
-        widget.SetBackgroundColour(EditableListBox._selectedBG)
+        widget    = self._listItems[self._selection].widget
+        container = self._listItems[self._selection].container
+        widget   .SetBackgroundColour(EditableListBox._selectedBG)
+        container.SetBackgroundColour(EditableListBox._selectedBG)
         
         
     def GetSelection(self):
@@ -432,14 +439,25 @@ class EditableListBox(wx.Panel):
 
         pos = self._fixIndex(pos)
 
-        widget = wx.StaticText(self._listPanel,
-                               label=label,
-                               style=wx.ST_ELLIPSIZE_MIDDLE)
-        widget.SetBackgroundColour(EditableListBox._defaultBG)
-        
-        widget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
+        # StaticText under Linux/GTK poses problems - 
+        # we cannot set background colour, nor can we
+        # intercept mouse motion events. So we embed
+        # the StaticText widget within a wx.Panel.
 
-        item = _ListItem(label, clientData, tooltip, widget)
+        widget     = wx.Panel(self._listPanel)
+        realWidget = wx.StaticText(widget,
+                                   label=label,
+                                   style=wx.ST_ELLIPSIZE_MIDDLE)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        widget.SetSizer(sizer)
+        sizer.Add(realWidget, flag=wx.EXPAND, proportion=1)
+                
+        widget    .SetBackgroundColour(EditableListBox._defaultBG)
+        realWidget.SetBackgroundColour(EditableListBox._defaultBG)
+        
+        realWidget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
+
+        item = _ListItem(label, clientData, tooltip, realWidget, widget)
 
         log.debug('Inserting item ({}) at index {}'.format(label, pos))
 
@@ -473,8 +491,10 @@ class EditableListBox(wx.Panel):
             if listItem.tooltip is not None:
                 listItem.widget.SetLabel(listItem.label)
 
-        listItem.widget.Bind(wx.EVT_ENTER_WINDOW, mouseOver)
-        listItem.widget.Bind(wx.EVT_LEAVE_WINDOW, mouseOut)
+        # Register motion listeners on the widget
+        # container so it works under GTK
+        listItem.container.Bind(wx.EVT_ENTER_WINDOW, mouseOver)
+        listItem.container.Bind(wx.EVT_LEAVE_WINDOW, mouseOut) 
                 
             
     def Append(self, label, clientData, tooltip=None):
