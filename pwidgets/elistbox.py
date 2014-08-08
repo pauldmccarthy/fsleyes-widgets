@@ -522,7 +522,8 @@ class EditableListBox(wx.Panel):
 
         self._listSizer.Remove(n)
 
-        item.widget.Destroy()
+        item.widget   .Destroy()
+        item.container.Destroy()
         
         self._listSizer.Layout()
 
