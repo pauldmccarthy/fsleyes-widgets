@@ -704,9 +704,10 @@ class EditableListBox(wx.Panel):
 
     def _updateMoveButtons(self):
         if self._moveSupport:
-            self._upButton  .Enable(self._selection != 0) 
-            self._downButton.Enable(self._selection != self.GetCount() - 1)
-            
+            self._upButton  .Enable((self._selection != wx.NOT_FOUND) and
+                                    (self._selection != 0))
+            self._downButton.Enable((self._selection != wx.NOT_FOUND) and
+                                    (self._selection != self.GetCount() - 1))
 
 
 def _testEListBox():
