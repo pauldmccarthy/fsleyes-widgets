@@ -193,6 +193,7 @@ class EditableListBox(wx.Panel):
 
         self._reverseOrder = reverseOrder
         self._showTooltips = showTooltips
+        self._moveSupport  = moveSupport
 
         if labels     is None: labels     = []
         if clientData is None: clientData = [None] * len(labels)
@@ -412,6 +413,8 @@ class EditableListBox(wx.Panel):
         container = self._listItems[self._selection].container
         widget   .SetBackgroundColour(EditableListBox._selectedBG)
         container.SetBackgroundColour(EditableListBox._selectedBG)
+
+        self._updateMoveButtons()
         
         
     def GetSelection(self):
@@ -471,6 +474,7 @@ class EditableListBox(wx.Panel):
         if self._selection != wx.NOT_FOUND and pos < self._selection:
             self._selection = self._selection + 1
 
+        self._updateMoveButtons()
         self._configTooltip(item)
         self._updateScrollbar()
         self.Refresh()
@@ -536,6 +540,7 @@ class EditableListBox(wx.Panel):
         elif self._selection > n:
             self._selection = self._selection - 1
 
+        self._updateMoveButtons()
         self._updateScrollbar()
         self.Refresh()
 
@@ -696,6 +701,12 @@ class EditableListBox(wx.Panel):
         ev = ListRemoveEvent(idx=idx, label=label, data=data)
         
         wx.PostEvent(self, ev)
+
+    def _updateMoveButtons(self):
+        if self._moveSupport:
+            self._upButton  .Enable(self._selection != 0) 
+            self._downButton.Enable(self._selection != self.GetCount() - 1)
+            
 
 
 def _testEListBox():
