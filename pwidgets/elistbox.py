@@ -116,7 +116,7 @@ on mouse-over."""
 class _ListItem(object):
     """Internal class used to represent items in the list."""
     
-    def __init__(self, label, data, tooltip, widget, container):
+    def __init__(self, label, data, tooltip, widget, container, enabled=True):
         """Create a _ListItem object.
 
         :param str label:   The item label which will be displayed.
@@ -131,12 +131,15 @@ class _ListItem(object):
         
         :param container:   The :mod:`wx` object used as a container for 
                             the ``widget``.
+        
+        :param enabled:     Show the item as 'enabled' or 'disabled'.
         """
         self.label     = label
         self.data      = data
         self.widget    = widget
         self.container = container
         self.tooltip   = tooltip
+        self.enabled   = enabled
 
 
 class EditableListBox(wx.Panel):
@@ -156,6 +159,14 @@ class EditableListBox(wx.Panel):
     
     _defaultBG  = '#FFFFFF'
     """Background colour for the unselected items."""
+
+
+    _enabledFG  = '#000000'
+    """Foreground colour for 'enabled' list items."""
+
+    
+    _disabledFG = '#CCCCCC'
+    """Foreground colour for 'disabled' list items."""
 
     
     def __init__(
@@ -547,8 +558,30 @@ class EditableListBox(wx.Panel):
         
     def GetWidget(self, n):
         """Returns the widget which represents the item at index ``n``."""
+        n = self._fixIndex(n)
         return self._listItems[n].widget
+
+
+    def EnableItem(self, n):
+        """'Enables the list item at the given index.
+
+        This basically amounts to changing the foreground colour.
+        """
         
+        li = self._listItems[self._fixIndex(n)]
+        li.enabled = True
+        li.widget.   SetForegroundColour(EditableListBox._enabledFG)
+        li.container.SetForegroundColour(EditableListBox._enabledFG)
+
+        
+    def DisableItem(self, n):
+        """'Disables the list item at the given index."""
+        
+        li = self._listItems[self._fixIndex(n)]
+        li.enabled = False
+        li.widget.   SetForegroundColour(EditableListBox._disabledFG)
+        li.container.SetForegroundColour(EditableListBox._disabledFG) 
+
         
     def SetString(self, n, s):
         """Sets the label of the item at index ``n`` to the string ``s``.
