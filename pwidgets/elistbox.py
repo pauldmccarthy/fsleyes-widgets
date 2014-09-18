@@ -825,9 +825,8 @@ class EditableListBox(wx.Panel):
         style.
 
         Creates and displays a :class:`wx.TextCtrl` allowing the user to edit
-        the item label. When the edit is complete, posts a
-        :class:`ListEditEvent`.
-
+        the item label. A :class:`ListEditEvent` is posted every time the text
+        changes.
         """
         idx      = self._listItems.index(listItem)
         idx      = self._fixIndex(idx) 
@@ -842,18 +841,20 @@ class EditableListBox(wx.Panel):
         def onKey(ev):
             ev.Skip()
             key = ev.GetKeyCode()
-            if key == wx.WXK_ESCAPE: wx.CallAfter(onFinish)
+            if key == wx.WXK_ESCAPE: onFinish()
 
         # Destroyes the textctrl, and re-shows the item label.
-        def onFinish():
-            sizer.Detach(editCtrl)
-            editCtrl.Destroy()
-            sizer.Show(listItem.labelWidget, True)
-            sizer.Layout()
+        def onFinish(ev=None):
+            def _onFinish():
+                sizer.Detach(editCtrl)
+                editCtrl.Destroy()
+                sizer.Show(listItem.labelWidget, True)
+                sizer.Layout()
+            wx.CallAfter(_onFinish)
 
         # Sets the list item label to the new
         # value, and posts a ListEditEvent.
-        def editDone(ev):
+        def onText(ev):
             newLabel       = editCtrl.GetValue()
             listItem.label = newLabel
             listItem.labelWidget.SetLabel(newLabel)
@@ -861,11 +862,10 @@ class EditableListBox(wx.Panel):
             ev = ListEditEvent(idx=idx, label=newLabel, data=listItem.data)
             wx.PostEvent(self, ev)
 
-            wx.CallAfter(onFinish)
-
+        editCtrl.Bind(wx.EVT_TEXT,       onText)
         editCtrl.Bind(wx.EVT_KEY_DOWN,   onKey)
-        editCtrl.Bind(wx.EVT_TEXT_ENTER, editDone)
-        editCtrl.Bind(wx.EVT_KILL_FOCUS, editDone)
+        editCtrl.Bind(wx.EVT_TEXT_ENTER, onFinish)
+        editCtrl.Bind(wx.EVT_KILL_FOCUS, onFinish)
         
         sizer.Add(editCtrl, flag=wx.EXPAND, proportion=1)
         sizer.Show(listItem.labelWidget, False)
