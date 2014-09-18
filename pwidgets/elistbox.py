@@ -28,6 +28,7 @@ _ListAddEvent,    _EVT_ELB_ADD_EVENT    = wxevent.NewEvent()
 _ListRemoveEvent, _EVT_ELB_REMOVE_EVENT = wxevent.NewEvent()
 _ListMoveEvent,   _EVT_ELB_MOVE_EVENT   = wxevent.NewEvent()
 _ListEnableEvent, _EVT_ELB_ENABLE_EVENT = wxevent.NewEvent()
+_ListEditEvent,   _EVT_ELB_EDIT_EVENT   = wxevent.NewEvent()
 
 
 EVT_ELB_SELECT_EVENT = _EVT_ELB_SELECT_EVENT
@@ -47,6 +48,9 @@ EVT_ELB_MOVE_EVENT = _EVT_ELB_MOVE_EVENT
 
 EVT_ELB_ENABLE_EVENT = _EVT_ELB_ENABLE_EVENT
 """Identifier for the :data:`ListEnableEvent` event."""
+
+EVT_ELB_EDIT_EVENT = _EVT_ELB_EDIT_EVENT
+"""Identifier for the :data:`ListEditEvent` event."""
 
 
 ListSelectEvent = _ListSelectEvent
@@ -107,6 +111,17 @@ style). A ``ListEnableEvent`` has the following attributes:
 """
 
 
+ListEditEvent = _ListEditEvent
+"""Event emitted when a list item is edited by the user (see the
+:data:`ELB_EDITABLE` style). A ``ListEditEvent`` has the following
+attributes:
+
+  - ``idx``:   Index of edited item
+  - ``label``: New label of edited item
+  - ``data``:  Client data associated with edited item.
+"""
+
+
 ELB_NO_ADD    = 1
 """Style flag - if enabled, there will be no 'add item' button."""
 
@@ -136,11 +151,10 @@ each list item, allowing items to be enabled/disabled.
 """
 
 
-# ELB_EDITABLE = 32
+ELB_EDITABLE = 64
 """Style flag - if enabled, double clicking a list item will allow the
 user to edit the item value.
 """
-
 
 
 class _ListItem(object):
@@ -230,7 +244,7 @@ class EditableListBox(wx.Panel):
         :param int style:  Style bitmask - accepts :data:`ELB_NO_ADD`,
                            :data:`ELB_NO_REMOVE`, :data:`ELB_NO_MOVE`,
                            :data:`ELB_REVERSE`, :data:`ELB_TOOLTIP`,
-                           :data:`ELB_ENABLEABLE`.
+                           :data:`ELB_ENABLEABLE`, and :data:`ELB_EDITABLE`.
         """
 
         wx.Panel.__init__(self, parent)
@@ -240,6 +254,7 @@ class EditableListBox(wx.Panel):
         removeSupport = not (style & ELB_NO_REMOVE)
         moveSupport   = not (style & ELB_NO_MOVE)
         enableSupport =      style & ELB_ENABLEABLE
+        editSupport   =      style & ELB_EDITABLE
         showTooltips  =      style & ELB_TOOLTIP
         noButtons     = not any((addSupport, removeSupport, moveSupport))
 
@@ -247,6 +262,7 @@ class EditableListBox(wx.Panel):
         self._showTooltips  = showTooltips
         self._moveSupport   = moveSupport
         self._enableSupport = enableSupport
+        self._editSupport   = editSupport
 
         if labels     is None: labels     = []
         if clientData is None: clientData = [None] * len(labels)
@@ -531,6 +547,10 @@ class EditableListBox(wx.Panel):
             enableWidget.Bind(
                 wx.EVT_CHECKBOX,
                 lambda ev: self._onEnable(ev, item))
+        if self._editSupport:
+            labelWidget.Bind(
+                wx.EVT_LEFT_DCLICK,
+                lambda ev: self._onEdit(ev, item))
 
         log.debug('Inserting item ({}) at index {}'.format(label, pos))
 
@@ -800,6 +820,60 @@ class EditableListBox(wx.Panel):
         wx.PostEvent(self, ev)
 
 
+    def _onEdit(self, ev, listItem):
+        """Called when an item is double clicked. See the :data:`ELB_EDITABLE`
+        style.
+
+        Creates and displays a :class:`wx.TextCtrl` allowing the user to edit
+        the item label. When the edit is complete, posts a
+        :class:`ListEditEvent`.
+
+        """
+        idx      = self._listItems.index(listItem)
+        idx      = self._fixIndex(idx) 
+
+        sizer    = listItem.container.GetSizer()
+        editCtrl = wx.TextCtrl(listItem.container, style=wx.TE_PROCESS_ENTER)
+        
+        editCtrl.SetValue(listItem.label)
+
+        # Listens to key presses. The edit is
+        # cancelled if the escape key is pressed.
+        def onKey(ev):
+            ev.Skip()
+            key = ev.GetKeyCode()
+            if key == wx.WXK_ESCAPE: wx.CallAfter(onFinish)
+
+        # Destroyes the textctrl, and re-shows the item label.
+        def onFinish():
+            sizer.Detach(editCtrl)
+            editCtrl.Destroy()
+            sizer.Show(listItem.labelWidget, True)
+            sizer.Layout()
+
+        # Sets the list item label to the new
+        # value, and posts a ListEditEvent.
+        def editDone(ev):
+            newLabel       = editCtrl.GetValue()
+            listItem.label = newLabel
+            listItem.labelWidget.SetLabel(newLabel)
+
+            ev = ListEditEvent(idx=idx, label=newLabel, data=listItem.data)
+            wx.PostEvent(self, ev)
+
+            wx.CallAfter(onFinish)
+
+        editCtrl.Bind(wx.EVT_KEY_DOWN,   onKey)
+        editCtrl.Bind(wx.EVT_TEXT_ENTER, editDone)
+        editCtrl.Bind(wx.EVT_KILL_FOCUS, editDone)
+        
+        sizer.Add(editCtrl, flag=wx.EXPAND, proportion=1)
+        sizer.Show(listItem.labelWidget, False)
+        sizer.Layout()
+
+        editCtrl.SetFocus()
+
+
     def _onEnable(self, ev, listItem):
         """Called when a checkbox is clicked to enable/disable a list item.
 
@@ -854,7 +928,10 @@ def _testEListBox():
     frame   = wx.Frame(None)
     panel   = wx.Panel(frame)
     listbox = EditableListBox(panel, items, tooltips=tips,
-                              style=ELB_REVERSE | ELB_TOOLTIP | ELB_ENABLEABLE)
+                              style=(ELB_REVERSE    |
+                                     ELB_TOOLTIP    |
+                                     ELB_ENABLEABLE |
+                                     ELB_EDITABLE))
 
     panelSizer = wx.BoxSizer(wx.HORIZONTAL)
     panel.SetSizer(panelSizer)
