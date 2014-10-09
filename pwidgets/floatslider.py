@@ -246,8 +246,8 @@ class SliderSpinPanel(wx.Panel):
         
         self._showLimits = showLimits
 
-        if real: self._fmt = '{}'
-        else:    self._fmt = '{: 0.3G}'
+        if real: self._fmt = '{: 0.3G}'
+        else:    self._fmt = '{}'
 
         if real:
             self._slider = FloatSlider(
