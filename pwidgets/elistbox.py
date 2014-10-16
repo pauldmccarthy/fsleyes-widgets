@@ -463,6 +463,15 @@ class EditableListBox(wx.Panel):
         for item in self._listItems:
             item.labelWidget.SetBackgroundColour(EditableListBox._defaultBG)
             item.container.  SetBackgroundColour(EditableListBox._defaultBG)
+
+            item.labelWidget.Refresh()
+            item.container  .Refresh()
+            
+            if self._enableSupport:
+                item.enableWidget.SetBackgroundColour(
+                    EditableListBox._defaultBG)
+                item.enableWidget.Refresh()
+                
         self._selection = wx.NOT_FOUND
 
         
@@ -478,10 +487,20 @@ class EditableListBox(wx.Panel):
 
         self._selection = self._fixIndex(n)
 
-        labelWidget = self._listItems[self._selection].labelWidget
-        container   = self._listItems[self._selection].container
+        enableWidget = self._listItems[self._selection].enableWidget
+        labelWidget  = self._listItems[self._selection].labelWidget
+        container    = self._listItems[self._selection].container
+        
         labelWidget.SetBackgroundColour(EditableListBox._selectedBG)
         container.  SetBackgroundColour(EditableListBox._selectedBG)
+
+        labelWidget.Refresh()
+        container  .Refresh()
+        
+        if self._enableSupport:
+            enableWidget.SetBackgroundColour(
+                EditableListBox._selectedBG)
+            enableWidget.Refresh()
 
         self._updateMoveButtons()
         
@@ -533,6 +552,11 @@ class EditableListBox(wx.Panel):
                 
         container.  SetBackgroundColour(EditableListBox._defaultBG)
         labelWidget.SetBackgroundColour(EditableListBox._defaultBG)
+        container  .Refresh()
+        labelWidget.Refresh()
+        if self._enableSupport:
+            enableWidget.SetBackgroundColour(EditableListBox._defaultBG)
+            enableWidget.Refresh()
         
         labelWidget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
 
@@ -646,9 +670,14 @@ class EditableListBox(wx.Panel):
         if not self._enableSupport: return
         
         li = self._listItems[self._fixIndex(n)]
-        li.labelWidget.SetForegroundColour(EditableListBox._enabledFG)
-        li.container.  SetForegroundColour(EditableListBox._enabledFG)
+        li.labelWidget .SetForegroundColour(EditableListBox._enabledFG)
+        li.container   .SetForegroundColour(EditableListBox._enabledFG)
+        li.enableWidget.SetForegroundColour(EditableListBox._enabledFG)
         li.enableWidget.SetValue(True)
+
+        li.labelWidget .Refresh()
+        li.enableWidget.Refresh()
+        li.container   .Refresh()
 
         
     def DisableItem(self, n):
@@ -657,9 +686,14 @@ class EditableListBox(wx.Panel):
         if not self._enableSupport: return
         
         li = self._listItems[self._fixIndex(n)]
-        li.labelWidget.SetForegroundColour(EditableListBox._disabledFG)
-        li.container.  SetForegroundColour(EditableListBox._disabledFG)
-        li.enableWidget.SetValue(False) 
+        li.labelWidget .SetForegroundColour(EditableListBox._disabledFG)
+        li.container   .SetForegroundColour(EditableListBox._disabledFG)
+        li.enableWidget.SetForegroundColour(EditableListBox._disabledFG)
+        li.enableWidget.SetValue(False)
+
+        li.labelWidget .Refresh()
+        li.enableWidget.Refresh()
+        li.container   .Refresh() 
 
         
     def SetString(self, n, s):
