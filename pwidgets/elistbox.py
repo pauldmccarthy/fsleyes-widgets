@@ -512,7 +512,7 @@ class EditableListBox(wx.Panel):
         return self._fixIndex(self._selection)
 
         
-    def Insert(self, label, pos, clientData, tooltip=None):
+    def Insert(self, label, pos, clientData=None, tooltip=None):
         """Insert an item into the list.
 
         :param str label:   The label to be displayed
@@ -615,7 +615,7 @@ class EditableListBox(wx.Panel):
         listItem.container.Bind(wx.EVT_LEAVE_WINDOW, mouseOut) 
                 
             
-    def Append(self, label, clientData, tooltip=None):
+    def Append(self, label, clientData=None, tooltip=None):
         """Appends an item to the end of the list.
 
         :param str label:   The label to be displayed
