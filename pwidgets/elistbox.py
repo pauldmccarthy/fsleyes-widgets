@@ -27,7 +27,6 @@ _ListSelectEvent, _EVT_ELB_SELECT_EVENT = wxevent.NewEvent()
 _ListAddEvent,    _EVT_ELB_ADD_EVENT    = wxevent.NewEvent()
 _ListRemoveEvent, _EVT_ELB_REMOVE_EVENT = wxevent.NewEvent()
 _ListMoveEvent,   _EVT_ELB_MOVE_EVENT   = wxevent.NewEvent()
-_ListEnableEvent, _EVT_ELB_ENABLE_EVENT = wxevent.NewEvent()
 _ListEditEvent,   _EVT_ELB_EDIT_EVENT   = wxevent.NewEvent()
 
 
@@ -46,8 +45,6 @@ EVT_ELB_REMOVE_EVENT = _EVT_ELB_REMOVE_EVENT
 EVT_ELB_MOVE_EVENT = _EVT_ELB_MOVE_EVENT
 """Identifier for the :data:`ListMoveEvent` event."""
 
-EVT_ELB_ENABLE_EVENT = _EVT_ELB_ENABLE_EVENT
-"""Identifier for the :data:`ListEnableEvent` event."""
 
 EVT_ELB_EDIT_EVENT = _EVT_ELB_EDIT_EVENT
 """Identifier for the :data:`ListEditEvent` event."""
@@ -98,19 +95,6 @@ attributes:
 """
 
 
-ListEnableEvent = _ListEnableEvent
-"""Event emitted when a list item is enabled/disabled by
-the enable/disable checkbox (see the :data:`ELB_ENABLEABLE`
-style). A ``ListEnableEvent`` has the following attributes:
-
-  - ``idx``:     Index of enabled/disabled item
-  - ``label``:   Label of enabled/disabled item
-  - ``data``:    Client data associated with enabled/disabled item
-  - ``enabled``: State of enabled/disabled item (True for
-                 enabled, False otherwise)
-"""
-
-
 ListEditEvent = _ListEditEvent
 """Event emitted when a list item is edited by the user (see the
 :data:`ELB_EDITABLE` style). A ``ListEditEvent`` has the following
@@ -145,13 +129,7 @@ ELB_TOOLTIP   = 16
 on mouse-over."""
 
 
-ELB_ENABLEABLE = 32
-"""Style flag - if enabled, a check box will be displayed alongside
-each list item, allowing items to be enabled/disabled.
-"""
-
-
-ELB_EDITABLE = 64
+ELB_EDITABLE = 32
 """Style flag - if enabled, double clicking a list item will allow the
 user to edit the item value.
 """
@@ -166,7 +144,7 @@ class _ListItem(object):
                  tooltip,
                  labelWidget,
                  container,
-                 enableWidget=None):
+                 extraWidget=None):
 
         """Create a _ListItem object.
 
@@ -183,16 +161,15 @@ class _ListItem(object):
         :param container:    The :mod:`wx` object used as a container for 
                              the ``widget``.
 
-        :param enableWidget: :class:`wx.CheckBox` allowing the user to
-                             enable/disable the item (only present if the
-                             :data:`ELB_ENABLEABLE` style is set).
+        :param extraWidget:  A user-settable widget to be displayed
+                             alongside this item.
         """
         self.label        = label
         self.data         = data
         self.labelWidget  = labelWidget
         self.container    = container
         self.tooltip      = tooltip
-        self.enableWidget = enableWidget
+        self.extraWidget  = extraWidget
 
 
 class EditableListBox(wx.Panel):
@@ -212,14 +189,6 @@ class EditableListBox(wx.Panel):
     
     _defaultBG  = '#FFFFFF'
     """Background colour for the unselected items."""
-
-
-    _enabledFG  = '#000000'
-    """Foreground colour for 'enabled' list items."""
-
-    
-    _disabledFG = '#CCCCCC'
-    """Foreground colour for 'disabled' list items."""
 
     
     def __init__(
@@ -244,7 +213,7 @@ class EditableListBox(wx.Panel):
         :param int style:  Style bitmask - accepts :data:`ELB_NO_ADD`,
                            :data:`ELB_NO_REMOVE`, :data:`ELB_NO_MOVE`,
                            :data:`ELB_REVERSE`, :data:`ELB_TOOLTIP`,
-                           :data:`ELB_ENABLEABLE`, and :data:`ELB_EDITABLE`.
+                           and :data:`ELB_EDITABLE`.
         """
 
         wx.Panel.__init__(self, parent)
@@ -253,7 +222,6 @@ class EditableListBox(wx.Panel):
         addSupport    = not (style & ELB_NO_ADD)
         removeSupport = not (style & ELB_NO_REMOVE)
         moveSupport   = not (style & ELB_NO_MOVE)
-        enableSupport =      style & ELB_ENABLEABLE
         editSupport   =      style & ELB_EDITABLE
         showTooltips  =      style & ELB_TOOLTIP
         noButtons     = not any((addSupport, removeSupport, moveSupport))
@@ -261,7 +229,6 @@ class EditableListBox(wx.Panel):
         self._reverseOrder  = reverseOrder
         self._showTooltips  = showTooltips
         self._moveSupport   = moveSupport
-        self._enableSupport = enableSupport
         self._editSupport   = editSupport
 
         if labels     is None: labels     = []
@@ -460,17 +427,8 @@ class EditableListBox(wx.Panel):
     def ClearSelection(self):
         """Ensures that no items are selected."""
         
-        for item in self._listItems:
-            item.labelWidget.SetBackgroundColour(EditableListBox._defaultBG)
-            item.container.  SetBackgroundColour(EditableListBox._defaultBG)
-
-            item.labelWidget.Refresh()
-            item.container  .Refresh()
-            
-            if self._enableSupport:
-                item.enableWidget.SetBackgroundColour(
-                    EditableListBox._defaultBG)
-                item.enableWidget.Refresh()
+        for i in range(len(self._listItems)):
+            self.SetItemBackgroundColour(i, EditableListBox._defaultBG)
                 
         self._selection = wx.NOT_FOUND
 
@@ -487,21 +445,8 @@ class EditableListBox(wx.Panel):
 
         self._selection = self._fixIndex(n)
 
-        enableWidget = self._listItems[self._selection].enableWidget
-        labelWidget  = self._listItems[self._selection].labelWidget
-        container    = self._listItems[self._selection].container
+        self.SetItemBackgroundColour(n, EditableListBox._selectedBG)
         
-        labelWidget.SetBackgroundColour(EditableListBox._selectedBG)
-        container.  SetBackgroundColour(EditableListBox._selectedBG)
-
-        labelWidget.Refresh()
-        container  .Refresh()
-        
-        if self._enableSupport:
-            enableWidget.SetBackgroundColour(
-                EditableListBox._selectedBG)
-            enableWidget.Refresh()
-
         self._updateMoveButtons()
         
         
@@ -512,7 +457,12 @@ class EditableListBox(wx.Panel):
         return self._fixIndex(self._selection)
 
         
-    def Insert(self, label, pos, clientData=None, tooltip=None):
+    def Insert(self,
+               label,
+               pos,
+               clientData=None,
+               tooltip=None,
+               extraWidget=None):
         """Insert an item into the list.
 
         :param str label:   The label to be displayed
@@ -523,6 +473,10 @@ class EditableListBox(wx.Panel):
 
         :param str tooltip: Tooltip to be shown, if the
                             :data:`ELB_TOOLTIP` style is active.
+        
+        :param extraWidget: A widget to be displayed alongside the
+                            label.
+        
         """
 
         if pos < 0 or pos > self.GetCount():
@@ -535,28 +489,18 @@ class EditableListBox(wx.Panel):
         # intercept mouse motion events. So we embed
         # the StaticText widget within a wx.Panel.
 
-        container    = wx.Panel(self._listPanel)
-        enableWidget = None
-        labelWidget  = wx.StaticText(container,
-                                     label=label,
-                                     style=wx.ST_ELLIPSIZE_MIDDLE)
+        container   = wx.Panel(self._listPanel)
+        labelWidget = wx.StaticText(container,
+                                    label=label,
+                                    style=wx.ST_ELLIPSIZE_MIDDLE)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         container.SetSizer(sizer)
 
-        if self._enableSupport:
-            enableWidget = wx.CheckBox(container)
-            enableWidget.SetValue(True)
-            sizer.Add(enableWidget)
+        if extraWidget is not None:
+            extraWidget.Reparent(container)
+            sizer.Add(extraWidget)
         
         sizer.Add(labelWidget, flag=wx.EXPAND, proportion=1)
-                
-        container.  SetBackgroundColour(EditableListBox._defaultBG)
-        labelWidget.SetBackgroundColour(EditableListBox._defaultBG)
-        container  .Refresh()
-        labelWidget.Refresh()
-        if self._enableSupport:
-            enableWidget.SetBackgroundColour(EditableListBox._defaultBG)
-            enableWidget.Refresh()
         
         labelWidget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
 
@@ -565,12 +509,8 @@ class EditableListBox(wx.Panel):
                          tooltip,
                          labelWidget,
                          container,
-                         enableWidget)
+                         extraWidget)
 
-        if self._enableSupport:
-            enableWidget.Bind(
-                wx.EVT_CHECKBOX,
-                lambda ev: self._onEnable(ev, item))
         if self._editSupport:
             labelWidget.Bind(
                 wx.EVT_LEFT_DCLICK,
@@ -581,6 +521,8 @@ class EditableListBox(wx.Panel):
         self._listItems.insert(pos, item)
         self._listSizer.Insert(pos, container, flag=wx.EXPAND)
         self._listSizer.Layout()
+
+        self.SetItemBackgroundColour(pos, EditableListBox._defaultBG)
 
         # if an item was inserted before the currently
         # selected item, the _selection index will no
@@ -615,7 +557,7 @@ class EditableListBox(wx.Panel):
         listItem.container.Bind(wx.EVT_LEAVE_WINDOW, mouseOut) 
                 
             
-    def Append(self, label, clientData=None, tooltip=None):
+    def Append(self, label, clientData=None, tooltip=None, extraWidget=None):
         """Appends an item to the end of the list.
 
         :param str label:   The label to be displayed
@@ -623,9 +565,15 @@ class EditableListBox(wx.Panel):
         :param clientData:  Data associated with the item
         
         :param str tooltip: Tooltip to be shown, if the
-                            :data:`ELB_TOOLTIP` style is active. 
+                            :data:`ELB_TOOLTIP` style is active.
+
+        :param extraWidget: A widget to be displayed alonside the item.
         """
-        self.Insert(label, len(self._listItems), clientData, tooltip)
+        self.Insert(label,
+                    len(self._listItems),
+                    clientData,
+                    tooltip,
+                    extraWidget)
 
 
     def Delete(self, n):
@@ -659,41 +607,51 @@ class EditableListBox(wx.Panel):
         self._updateScrollbar()
         self.Refresh()
 
-        
-    def EnableItem(self, n):
-        """'Enables the list item at the given index.
 
-        This basically amounts to changing the foreground colour. This method
-        has no effect if the :data:`ELB_ENABLEABLE` style is not set.
+    def IndexOf(self, clientData):
+        """Returns the index of the list item with the specified
+        ``clientData``.
         """
 
-        if not self._enableSupport: return
+        for i, item in enumerate(self._listItems):
+            if item.data == clientData:
+                return self._fixIndex(i)
+            
+        return -1
+
+
+    def SetItemForegroundColour(self, n, colour):
+        """Sets the foreground colour of the item at index ``n``."""
+        item = self._listItems[self._fixIndex(n)]
         
+        item.labelWidget.SetForegroundColour(colour)
+        item.container  .SetForegroundColour(colour)
+        
+        item.labelWidget.Refresh()
+        item.container  .Refresh()
+
+    
+    def SetItemBackgroundColour(self, n, colour):
+        """Sets the background colour of the item at index ``n``."""
+        item = self._listItems[self._fixIndex(n)]
+        
+        item.labelWidget.SetBackgroundColour(colour)
+        item.container  .SetBackgroundColour(colour)
+        
+        item.labelWidget.Refresh()
+        item.container  .Refresh() 
+
+
+    def SetItemFont(self, n, font):
+        """Sets the font for the item label at index ``n``."""
+        li   = self._listItems[self._fixIndex(n)]
+        li.labelWidget.SetFont(font)
+
+        
+    def GetItemFont(self, n):
+        """Returns the font for the item label at index ``n``."""
         li = self._listItems[self._fixIndex(n)]
-        li.labelWidget .SetForegroundColour(EditableListBox._enabledFG)
-        li.container   .SetForegroundColour(EditableListBox._enabledFG)
-        li.enableWidget.SetForegroundColour(EditableListBox._enabledFG)
-        li.enableWidget.SetValue(True)
-
-        li.labelWidget .Refresh()
-        li.enableWidget.Refresh()
-        li.container   .Refresh()
-
-        
-    def DisableItem(self, n):
-        """'Disables the list item at the given index."""
-
-        if not self._enableSupport: return
-        
-        li = self._listItems[self._fixIndex(n)]
-        li.labelWidget .SetForegroundColour(EditableListBox._disabledFG)
-        li.container   .SetForegroundColour(EditableListBox._disabledFG)
-        li.enableWidget.SetForegroundColour(EditableListBox._disabledFG)
-        li.enableWidget.SetValue(False)
-
-        li.labelWidget .Refresh()
-        li.enableWidget.Refresh()
-        li.container   .Refresh() 
+        return li.labelWidget.GetFont()        
 
         
     def SetString(self, n, s):
@@ -908,32 +866,6 @@ class EditableListBox(wx.Panel):
         editCtrl.SetFocus()
 
 
-    def _onEnable(self, ev, listItem):
-        """Called when a checkbox is clicked to enable/disable a list item.
-
-        Toggles the item enabled state, and posts a
-        :data:`EVT_ELB_ENABLE_EVENT` event.
-        """
-
-        idx = self._listItems.index(listItem)
-        idx = self._fixIndex(idx)
-
-        enabled = listItem.enableWidget.GetValue()
-
-        if enabled: self.EnableItem( idx)
-        else:       self.DisableItem(idx)
-
-        log.debug('ListEnableEvent (idx: {}; label: {}; enabled: {})'.format(
-            idx, listItem.label, enabled)) 
-
-        ev = ListEnableEvent(idx=idx,
-                             label=listItem.label,
-                             data=listItem.data,
-                             enabled=enabled)
-
-        wx.PostEvent(self, ev)
-
-
     def _updateMoveButtons(self):
         if self._moveSupport:
             self._upButton  .Enable((self._selection != wx.NOT_FOUND) and
@@ -964,7 +896,6 @@ def _testEListBox():
     listbox = EditableListBox(panel, items, tooltips=tips,
                               style=(ELB_REVERSE    |
                                      ELB_TOOLTIP    |
-                                     ELB_ENABLEABLE |
                                      ELB_EDITABLE))
 
     panelSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -978,8 +909,29 @@ def _testEListBox():
     frame.Show()
 
     def addItem(ev):
-        
-        listbox.Append(str(random.randint(100, 200)), None)
+
+        data   = random.randint(100, 200)
+        widg   = wx.Button(listbox, label='Update')
+        widg.toggle = False
+
+        def onWidg(ev):
+
+            widg.toggle = not widg.toggle
+            idx    = listbox.IndexOf(data)
+            if widg.toggle:
+                font = wx.NORMAL_FONT.Larger().Larger().Bold().Italic()
+                listbox.SetItemForegroundColour(idx, '#ff0000')
+                listbox.SetItemFont(idx, font)
+            else:
+                listbox.SetItemForegroundColour(idx, '#000000')
+                listbox.SetItemFont(idx, wx.NORMAL_FONT)
+
+        widg.Bind(wx.EVT_BUTTON, onWidg)
+
+        listbox.Append(
+            str(data),
+            data,
+            extraWidget=widg)
 
     listbox.Bind(EVT_ELB_ADD_EVENT, addItem)
     
