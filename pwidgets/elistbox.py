@@ -144,32 +144,52 @@ class _ListItem(object):
                  tooltip,
                  labelWidget,
                  container,
+                 defaultFGColour,
+                 selectedFGColour,
+                 defaultBGColour,
+                 selectedBGColour, 
                  extraWidget=None):
 
         """Create a _ListItem object.
 
-        :param str label:    The item label which will be displayed.
+        :param str label:        The item label which will be displayed.
 
-        :param data:         User data associated with the item.
+        :param data:             User data associated with the item.
 
-        :param str tooltip:  A tooltip to be displayed when the mouse
-                             is moved over the item.
+        :param str tooltip:      A tooltip to be displayed when the mouse
+                                 is moved over the item.
         
-        :param labelWidget:  The :mod:`wx` object which represents the list
-                             item.
+        :param labelWidget:      The :mod:`wx` object which represents the 
+                                 list item.
         
-        :param container:    The :mod:`wx` object used as a container for 
-                             the ``widget``.
+        :param container:        The :mod:`wx` object used as a container for 
+                                 the ``widget``.
 
-        :param extraWidget:  A user-settable widget to be displayed
-                             alongside this item.
+        :param defaultFGColour:  Foreground colour to use when the item is
+                                 not selected.
+        
+        :param selectedFGColour: Foreground colour to use when the item is
+                                 selected.
+
+        :param defaultBGColour:  Background colour to use when the item is
+                                 not selected.
+        
+        :param selectedBGColour: Background colour to use when the item is
+                                 selected.
+
+        :param extraWidget:      A user-settable widget to be displayed
+                                 alongside this item.
         """
-        self.label        = label
-        self.data         = data
-        self.labelWidget  = labelWidget
-        self.container    = container
-        self.tooltip      = tooltip
-        self.extraWidget  = extraWidget
+        self.label            = label
+        self.data             = data
+        self.labelWidget      = labelWidget
+        self.container        = container
+        self.tooltip          = tooltip
+        self.defaultFGColour  = defaultFGColour
+        self.selectedFGColour = selectedFGColour
+        self.defaultBGColour  = defaultBGColour
+        self.selectedBGColour = selectedBGColour 
+        self.extraWidget      = extraWidget
 
 
 class EditableListBox(wx.Panel):
@@ -183,6 +203,14 @@ class EditableListBox(wx.Panel):
     :class:`wx.ListBox` class.
     """
 
+    _selectedFG = '#000000'
+    """Default foreground colour for the currently selected item."""
+
+    
+    _defaultFG = '#000000'
+    """Default foreground colour for unselected items."""
+
+    
     _selectedBG = '#7777FF'
     """Background colour for the currently selected item."""
 
@@ -427,8 +455,10 @@ class EditableListBox(wx.Panel):
     def ClearSelection(self):
         """Ensures that no items are selected."""
         
-        for i in range(len(self._listItems)):
-            self.SetItemBackgroundColour(i, EditableListBox._defaultBG)
+        for i, item in enumerate(self._listItems):
+            item.labelWidget.SetForegroundColour(item.defaultFGColour)
+            item.labelWidget.SetBackgroundColour(item.defaultBGColour)
+            item.container  .SetBackgroundColour(item.defaultBGColour)
                 
         self._selection = wx.NOT_FOUND
 
@@ -445,7 +475,11 @@ class EditableListBox(wx.Panel):
 
         self._selection = self._fixIndex(n)
 
-        self.SetItemBackgroundColour(n, EditableListBox._selectedBG)
+        item = self._listItems[self._selection]
+
+        item.labelWidget.SetForegroundColour(item.selectedFGColour)
+        item.labelWidget.SetBackgroundColour(item.selectedBGColour)
+        item.container  .SetBackgroundColour(item.selectedBGColour)
         
         self._updateMoveButtons()
         
@@ -509,6 +543,10 @@ class EditableListBox(wx.Panel):
                          tooltip,
                          labelWidget,
                          container,
+                         EditableListBox._defaultFG,
+                         EditableListBox._selectedFG,
+                         EditableListBox._defaultBG,
+                         EditableListBox._selectedBG,
                          extraWidget)
 
         if self._editSupport:
@@ -522,13 +560,14 @@ class EditableListBox(wx.Panel):
         self._listSizer.Insert(pos, container, flag=wx.EXPAND)
         self._listSizer.Layout()
 
-        self.SetItemBackgroundColour(pos, EditableListBox._defaultBG)
-
         # if an item was inserted before the currently
         # selected item, the _selection index will no
         # longer be valid - fix it.
         if self._selection != wx.NOT_FOUND and pos < self._selection:
             self._selection = self._selection + 1
+
+        # Make sure item fg/bg colours are up to date
+        self.SetSelection(self._fixIndex(self._selection))
 
         self._updateMoveButtons()
         self._configTooltip(item)
@@ -620,26 +659,33 @@ class EditableListBox(wx.Panel):
         return -1
 
 
-    def SetItemForegroundColour(self, n, colour):
+    def SetItemForegroundColour(self, n, defaultColour, selectedColour=None):
         """Sets the foreground colour of the item at index ``n``."""
+
+
+        if selectedColour is None:
+            selectedColour = defaultColour
+        
         item = self._listItems[self._fixIndex(n)]
-        
-        item.labelWidget.SetForegroundColour(colour)
-        item.container  .SetForegroundColour(colour)
-        
-        item.labelWidget.Refresh()
-        item.container  .Refresh()
+
+        item.defaultFGColour  = defaultColour
+        item.selectedFGColour = selectedColour
+
+        self.SetSelection(self._fixIndex(self._selection))
 
     
-    def SetItemBackgroundColour(self, n, colour):
+    def SetItemBackgroundColour(self, n, defaultColour, selectedColour=None):
         """Sets the background colour of the item at index ``n``."""
+
+        if selectedColour is None:
+            selectedColour = defaultColour 
+        
         item = self._listItems[self._fixIndex(n)]
-        
-        item.labelWidget.SetBackgroundColour(colour)
-        item.container  .SetBackgroundColour(colour)
-        
-        item.labelWidget.Refresh()
-        item.container  .Refresh() 
+
+        item.defaultBGColour  = defaultColour
+        item.selectedBGColour = selectedColour
+
+        self.SetSelection(self._fixIndex(self._selection))        
 
 
     def SetItemFont(self, n, font):
