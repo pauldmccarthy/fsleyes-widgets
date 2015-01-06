@@ -459,6 +459,13 @@ class EditableListBox(wx.Panel):
             item.labelWidget.SetForegroundColour(item.defaultFGColour)
             item.labelWidget.SetBackgroundColour(item.defaultBGColour)
             item.container  .SetBackgroundColour(item.defaultBGColour)
+
+            item.labelWidget.Refresh()
+            item.container  .Refresh()
+            
+            if item.extraWidget is not None:
+                item.extraWidget.SetBackgroundColour(item.defaultBGColour)
+                item.extraWidget.Refresh()
                 
         self._selection = wx.NOT_FOUND
 
@@ -480,6 +487,13 @@ class EditableListBox(wx.Panel):
         item.labelWidget.SetForegroundColour(item.selectedFGColour)
         item.labelWidget.SetBackgroundColour(item.selectedBGColour)
         item.container  .SetBackgroundColour(item.selectedBGColour)
+
+        item.labelWidget.Refresh()
+        item.container  .Refresh()
+
+        if item.extraWidget is not None:
+            item.extraWidget.SetBackgroundColour(item.selectedBGColour)
+            item.extraWidget.Refresh()
         
         self._updateMoveButtons()
         
@@ -658,10 +672,38 @@ class EditableListBox(wx.Panel):
             
         return -1
 
+    
+    def SetItemWidget(self, n, widget=None):
+        """Sets the widget to be displayed alongside the item at index ``n``.
+        """
 
-    def SetItemForegroundColour(self, n, defaultColour, selectedColour=None):
+        item = self._listItems[self._fixIndex(n)]
+
+        if widget is None and item.extraWidget is None:
+            return
+
+        sizer = item.container.GetSizer()
+
+        if item.extraWidget is not None:
+            sizer.Detach(item.extraWidget)
+            item.extraWidget.Destroy()
+            
+        item.extraWidget = widget
+
+        if widget is not None:
+            widget.Reparent(item.container)
+            sizer.Insert(0, widget)
+
+
+    def SetItemForegroundColour(self,
+                                n,
+                                defaultColour=None,
+                                selectedColour=None):
         """Sets the foreground colour of the item at index ``n``."""
 
+        if defaultColour is None:
+            defaultColour  = EditableListBox._defaultFG
+            selectedColour = EditableListBox._selectedFG
 
         if selectedColour is None:
             selectedColour = defaultColour
@@ -674,8 +716,15 @@ class EditableListBox(wx.Panel):
         self.SetSelection(self._fixIndex(self._selection))
 
     
-    def SetItemBackgroundColour(self, n, defaultColour, selectedColour=None):
+    def SetItemBackgroundColour(self,
+                                n,
+                                defaultColour=None,
+                                selectedColour=None):
         """Sets the background colour of the item at index ``n``."""
+
+        if defaultColour is None:
+            defaultColour  = EditableListBox._defaultBG
+            selectedColour = EditableListBox._selectedBG 
 
         if selectedColour is None:
             selectedColour = defaultColour 
@@ -685,7 +734,7 @@ class EditableListBox(wx.Panel):
         item.defaultBGColour  = defaultColour
         item.selectedBGColour = selectedColour
 
-        self.SetSelection(self._fixIndex(self._selection))        
+        self.SetSelection(self._fixIndex(self._selection))
 
 
     def SetItemFont(self, n, font):
