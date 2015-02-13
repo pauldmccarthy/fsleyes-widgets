@@ -329,14 +329,29 @@ class EditableListBox(wx.Panel):
             self._drawList()
             ev.Skip()
 
-        self._scrollbar.Bind(wx.EVT_SCROLL, self._drawList)
-        self.Bind(wx.EVT_PAINT, refresh)
-        self.Bind(wx.EVT_SIZE,  refresh)
+        self._scrollbar.Bind(wx.EVT_SCROLL,     self._drawList)
+        self           .Bind(wx.EVT_PAINT,      refresh)
+        self           .Bind(wx.EVT_SIZE,       refresh)
+        self           .Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
 
         for label, data, tooltip in zip(labels, clientData, tooltips):
             self.Append(label, data, tooltip)
 
         self._sizer.Layout()
+
+        
+    def _onMouseWheel(self, ev):
+        """Called when the mouse wheel is scrolled over the list. Scrolls
+        through the list accordingly.
+        """
+        
+        wheel  = ev.GetWheelRotation()
+        scroll = self._scrollbar.GetThumbPosition()
+        
+        if   wheel < 0: self._scrollbar.SetThumbPosition(scroll + 1)
+        elif wheel > 0: self._scrollbar.SetThumbPosition(scroll - 1)
+
+        self._drawList()
 
     
     def _drawList(self, ev=None):
