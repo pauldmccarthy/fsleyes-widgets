@@ -190,6 +190,7 @@ class _ListItem(object):
         self.defaultBGColour  = defaultBGColour
         self.selectedBGColour = selectedBGColour 
         self.extraWidget      = extraWidget
+        self.hidden           = False
 
 
 class EditableListBox(wx.Panel):
@@ -353,13 +354,26 @@ class EditableListBox(wx.Panel):
 
         self._drawList()
 
+        
+    def _lenVisibleItems(self):
+        """Returns the number of items in the list which are visible
+        (i.e. which have not been hidden via a call to :meth:`ApplyFilter`).
+        """
+        nitems = 0
+
+        for item in self._listItems:
+            if not item.hidden:
+                nitems += 1
+
+        return nitems
+
     
     def _drawList(self, ev=None):
         """'Draws' the set of items in the list according to the
         current scrollbar thumb position.
         """
 
-        nitems       = len(self._listItems)
+        nitems       = self._lenVisibleItems()
         thumbPos     = self._scrollbar.GetThumbPosition()
         itemsPerPage = self._scrollbar.GetPageSize()
 
@@ -375,12 +389,19 @@ class EditableListBox(wx.Panel):
             start = start - (end - nitems)
             end   = nitems
 
-        for i in range(len(self._listItems)):
+        visI = 0
+        for i, item in enumerate(self._listItems):
 
-            if (i < start) or (i >= end):
+            if item.hidden:
+                self._listSizer.Show(i, False)
+                continue
+                
+            if (visI < start) or (visI >= end):
                 self._listSizer.Show(i, False)
             else:
                 self._listSizer.Show(i, True)
+
+            visI += 1
 
         self._listSizer.Layout()
 
@@ -395,7 +416,7 @@ class EditableListBox(wx.Panel):
         all items in the list, the scroll bar is hidden.
         """
 
-        nitems     = len(self._listItems)
+        nitems     = self._lenVisibleItems()
         pageHeight = self._listPanel.GetClientSize().GetHeight()
         
         # Yep, I'm assuming that all
@@ -778,6 +799,24 @@ class EditableListBox(wx.Panel):
         
         self._listItems[n].labelWidget.SetLabel(s)
         self._listItems[n].label = s
+
+
+    def ApplyFilter(self, filterStr=None, ignoreCase=False):
+        """Hides any items for which the label does not contain the given
+        ``filterStr``. To clear the filter (and hence show all items),
+        pass in ``filterStr=None``.
+        """
+
+        if filterStr is None:
+            filterStr = ''
+
+        filterStr = filterStr.strip().lower()
+
+        for item in self._listItems:
+            item.hidden = filterStr not in item.label.lower()
+
+        self._updateScrollbar()
+        self._drawList()
 
             
     def _getSelection(self, fix=False):
