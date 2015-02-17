@@ -105,31 +105,34 @@ attributes:
   - ``data``:  Client data associated with edited item.
 """
 
+ELB_NO_SCROLL = 1
+"""Style flag - if enabled, there will be no scrollbar. """
 
-ELB_NO_ADD    = 1
+
+ELB_NO_ADD    = 2
 """Style flag - if enabled, there will be no 'add item' button."""
 
 
-ELB_NO_REMOVE = 2
+ELB_NO_REMOVE = 4
 """Style flag - if enabled, there will be no 'remove item' button."""
 
 
-ELB_NO_MOVE   = 4
+ELB_NO_MOVE   = 8
 """Style flag - if enabled there will be no 'move item up' or 'move item
 down' buttons."""
 
 
-ELB_REVERSE   = 8
+ELB_REVERSE   = 16
 """Style flag - if enabled, the first item in the list (index 0) will be
 shown at the botom, and the last item at the top."""
 
 
-ELB_TOOLTIP   = 16
+ELB_TOOLTIP   = 32
 """Style flag - if enabled, list items will be replaced with a tooltip
 on mouse-over."""
 
 
-ELB_EDITABLE = 32
+ELB_EDITABLE = 64
 """Style flag - if enabled, double clicking a list item will allow the
 user to edit the item value.
 """
@@ -239,15 +242,16 @@ class EditableListBox(wx.Panel):
         :param tooltips:   List of strings, tooltips for each item.
         :type  tooltips:   list of strings 
 
-        :param int style:  Style bitmask - accepts :data:`ELB_NO_ADD`,
-                           :data:`ELB_NO_REMOVE`, :data:`ELB_NO_MOVE`,
-                           :data:`ELB_REVERSE`, :data:`ELB_TOOLTIP`,
-                           and :data:`ELB_EDITABLE`.
+        :param int style:  Style bitmask - accepts :data:`ELB_NO_SCROLL`,
+                           :data:`ELB_NO_ADD`, :data:`ELB_NO_REMOVE`,
+                           :data:`ELB_NO_MOVE`, :data:`ELB_REVERSE`,
+                           :data:`ELB_TOOLTIP`, and :data:`ELB_EDITABLE`.
         """
 
         wx.Panel.__init__(self, parent)
 
         reverseOrder  =      style & ELB_REVERSE
+        addScrollbar  = not (style & ELB_NO_SCROLL)
         addSupport    = not (style & ELB_NO_ADD)
         removeSupport = not (style & ELB_NO_REMOVE)
         moveSupport   = not (style & ELB_NO_MOVE)
@@ -281,7 +285,10 @@ class EditableListBox(wx.Panel):
         # setting a minimum width to overcome this.
         self._listPanel.SetMinSize((250, -1)) 
 
-        self._scrollbar = wx.ScrollBar(self, style=wx.SB_VERTICAL)
+        if addScrollbar:
+            self._scrollbar = wx.ScrollBar(self, style=wx.SB_VERTICAL)
+        else:
+            self._scrollbar = None
 
         # A panel containing buttons for doing stuff with the list
         if not noButtons:
@@ -323,17 +330,19 @@ class EditableListBox(wx.Panel):
             self._sizer.Add(self._buttonPanel, flag=wx.EXPAND)
             
         self._sizer.Add(self._listPanel, flag=wx.EXPAND, proportion=1)
-        self._sizer.Add(self._scrollbar, flag=wx.EXPAND)
+
+        if addScrollbar:
+            self._sizer.Add(self._scrollbar, flag=wx.EXPAND)
+            self._scrollbar.Bind(wx.EVT_SCROLL, self._drawList)
+            self.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
 
         def refresh(ev):
             self._updateScrollbar()
             self._drawList()
             ev.Skip()
 
-        self._scrollbar.Bind(wx.EVT_SCROLL,     self._drawList)
-        self           .Bind(wx.EVT_PAINT,      refresh)
-        self           .Bind(wx.EVT_SIZE,       refresh)
-        self           .Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+        self.Bind(wx.EVT_PAINT, refresh)
+        self.Bind(wx.EVT_SIZE, refresh)
 
         for label, data, tooltip in zip(labels, clientData, tooltips):
             self.Append(label, data, tooltip)
@@ -345,6 +354,9 @@ class EditableListBox(wx.Panel):
         """Called when the mouse wheel is scrolled over the list. Scrolls
         through the list accordingly.
         """
+
+        if self._scrollbar is None:
+            return
         
         wheel  = ev.GetWheelRotation()
         scroll = self._scrollbar.GetThumbPosition()
@@ -355,7 +367,7 @@ class EditableListBox(wx.Panel):
         self._drawList()
 
         
-    def _lenVisibleItems(self):
+    def VisibleItemCount(self):
         """Returns the number of items in the list which are visible
         (i.e. which have not been hidden via a call to :meth:`ApplyFilter`).
         """
@@ -373,9 +385,14 @@ class EditableListBox(wx.Panel):
         current scrollbar thumb position.
         """
 
-        nitems       = self._lenVisibleItems()
-        thumbPos     = self._scrollbar.GetThumbPosition()
-        itemsPerPage = self._scrollbar.GetPageSize()
+        nitems       = self.VisibleItemCount()
+
+        if self._scrollbar is not None:
+            thumbPos     = self._scrollbar.GetThumbPosition()
+            itemsPerPage = self._scrollbar.GetPageSize()
+        else:
+            thumbPos      = 0
+            itemsPerPage = len(self._listItems)
 
         if itemsPerPage >= nitems:
             start = 0
@@ -416,7 +433,10 @@ class EditableListBox(wx.Panel):
         all items in the list, the scroll bar is hidden.
         """
 
-        nitems     = self._lenVisibleItems()
+        if self._scrollbar is None:
+            return
+
+        nitems     = self.VisibleItemCount()
         pageHeight = self._listPanel.GetClientSize().GetHeight()
         
         # Yep, I'm assuming that all
@@ -729,6 +749,14 @@ class EditableListBox(wx.Panel):
         if widget is not None:
             widget.Reparent(item.container)
             sizer.Insert(0, widget)
+
+
+    def GetItemWidget(self, i):
+        """Returns the widget for the item at index ``i``, or ``None``,
+        if the widget hasn't been set.
+        """
+
+        return self._listItems[i].extraWidget
 
 
     def SetItemForegroundColour(self,
