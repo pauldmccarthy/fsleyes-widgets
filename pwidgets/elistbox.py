@@ -248,7 +248,7 @@ class EditableListBox(wx.Panel):
                            :data:`ELB_TOOLTIP`, and :data:`ELB_EDITABLE`.
         """
 
-        wx.Panel.__init__(self, parent)
+        wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
 
         reverseOrder  =      style & ELB_REVERSE
         addScrollbar  = not (style & ELB_NO_SCROLL)
@@ -273,7 +273,7 @@ class EditableListBox(wx.Panel):
         self._listItems  = []
 
         # the panel containing the list items
-        self._listPanel = wx.Panel(self)
+        self._listPanel = wx.Panel(self, style=wx.WANTS_CHARS)
         self._listSizer = wx.BoxSizer(wx.VERTICAL)
         self._listPanel.SetSizer(self._listSizer)
         self._listPanel.SetBackgroundColour(EditableListBox._defaultBG)
@@ -341,8 +341,9 @@ class EditableListBox(wx.Panel):
             self._drawList()
             ev.Skip()
 
-        self.Bind(wx.EVT_PAINT, refresh)
-        self.Bind(wx.EVT_SIZE, refresh)
+        self.Bind(wx.EVT_PAINT,     refresh)
+        self.Bind(wx.EVT_SIZE,      refresh)
+        self.Bind(wx.EVT_CHAR_HOOK, self._onKeyboard)
 
         for label, data, tooltip in zip(labels, clientData, tooltips):
             self.Append(label, data, tooltip)
@@ -350,21 +351,71 @@ class EditableListBox(wx.Panel):
         self._sizer.Layout()
 
         
-    def _onMouseWheel(self, ev):
+    def _onKeyboard(self, ev):
+        """Called when a key is pressed. On up/down arrow key presses,
+        changes the selected item, and scrolls if necessary.
+        """
+        if self._scrollbar is None:
+            return
+
+        key = ev.GetKeyCode()
+
+        # We're only interested in
+        # up/down key presses
+        if key not in (wx.WXK_UP, wx.WXK_DOWN):
+            self.HandleAsNavigationKey(ev)
+            return
+
+        # On up/down keys, we want to
+        # select the next/previous item
+        if   key == wx.WXK_UP:   offset = -1
+        elif key == wx.WXK_DOWN: offset =  1
+
+        selected = self._selection + offset
+        
+        if any((selected < 0, selected >= self.GetCount())):
+            return
+
+        # Change the selected item, simulating
+        # a mouse click so that event listeners
+        # are notified
+        self._itemClicked(None, self._listItems[selected].labelWidget)
+
+        # Update the scrollbar position, to make
+        # sure the newly selected item is visible
+        scrollPos = self._scrollbar.GetThumbPosition()
+        
+        if any((selected <  scrollPos,
+                selected >= scrollPos + self._scrollbar.GetPageSize())):
+            self._onMouseWheel(None, -offset)
+
+        # Retain focus
+        self.SetFocus()
+
+        
+    def _onMouseWheel(self, ev=None, move=None):
         """Called when the mouse wheel is scrolled over the list. Scrolls
         through the list accordingly.
+
+        :arg ev:   A :class:`wx.MouseEvent`
+        
+        :arg move: If called programmatically, a number indicating the
+                   direction in which to scroll.
         """
 
         if self._scrollbar is None:
             return
+
+        if ev is not None:
+            move = ev.GetWheelRotation()
+            
+        scrollPos = self._scrollbar.GetThumbPosition()
         
-        wheel  = ev.GetWheelRotation()
-        scroll = self._scrollbar.GetThumbPosition()
-        
-        if   wheel < 0: self._scrollbar.SetThumbPosition(scroll + 1)
-        elif wheel > 0: self._scrollbar.SetThumbPosition(scroll - 1)
+        if   move < 0: self._scrollbar.SetThumbPosition(scrollPos + 1)
+        elif move > 0: self._scrollbar.SetThumbPosition(scrollPos - 1)
 
         self._drawList()
+        self.SetFocus()
 
         
     def VisibleItemCount(self):
@@ -592,18 +643,19 @@ class EditableListBox(wx.Panel):
         # we cannot set background colour, nor can we
         # intercept mouse motion events. So we embed
         # the StaticText widget within a wx.Panel.
-
-        container   = wx.Panel(self._listPanel)
+        container   = wx.Panel(self._listPanel, style=wx.WANTS_CHARS)
         labelWidget = wx.StaticText(container,
                                     label=label,
-                                    style=wx.ST_ELLIPSIZE_MIDDLE)
+                                    style=(wx.ST_ELLIPSIZE_MIDDLE |
+                                           wx.WANTS_CHARS))
+        
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         container.SetSizer(sizer)
 
         if extraWidget is not None:
             extraWidget.Reparent(container)
             sizer.Add(extraWidget)
-        
+
         sizer.Add(labelWidget, flag=wx.EXPAND, proportion=1)
         
         labelWidget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
@@ -869,12 +921,25 @@ class EditableListBox(wx.Panel):
         return idx, label, data
         
         
-    def _itemClicked(self, ev):
+    def _itemClicked(self, ev=None, widget=None):
         """Called when an item in the list is clicked. Selects the item
         and posts an :data:`EVT_ELB_SELECT_EVENT`.
+
+        This method may be called programmatically, by explicitly passing
+        in the target ``widget``.  This functionality is used by the
+        :meth:`_onKeyboard` event.
+
+        :arg ev:     A :class:`wx.MouseEvent`.
+        :arg widget: The widget on which to simulate a mouse click.
         """
 
-        widget  = ev.GetEventObject()
+        # Give focus to the top level  panel,
+        # otherwise it will not receive char events
+        self.SetFocus()
+
+        if ev is not None:
+            widget = ev.GetEventObject()
+
         itemIdx = -1
 
         for i, listItem in enumerate(self._listItems):
