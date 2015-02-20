@@ -278,13 +278,6 @@ class EditableListBox(wx.Panel):
         self._listPanel.SetSizer(self._listSizer)
         self._listPanel.SetBackgroundColour(EditableListBox._defaultBG)
 
-        # The list panel width doesn't seem to be
-        # automatically sized correctly, (probably
-        # because of my scrollbar hackery in the
-        # _updateScrollBar method). So I'm explicitly
-        # setting a minimum width to overcome this.
-        self._listPanel.SetMinSize((250, -1)) 
-
         if addScrollbar:
             self._scrollbar = wx.ScrollBar(self, style=wx.SB_VERTICAL)
         else:
@@ -348,7 +341,25 @@ class EditableListBox(wx.Panel):
         for label, data, tooltip in zip(labels, clientData, tooltips):
             self.Append(label, data, tooltip)
 
-        self._sizer.Layout()
+
+        # If there are buttons on this listbox, set 
+        # the minimum height according to said buttons
+        if not noButtons:
+            self.SetMinSize((-1, self._buttonPanelSizer.CalcMin()[1]))
+
+        # Otherwise, if some items have been added,
+        # set the minimum height to the height of
+        # four items
+        elif len(self._listItems) > 0:
+            self.SetMinSize(
+                (-1, 4 * self._listSizer.CalcMin()[1] / len(self._listItems)))
+
+        # Otherwise, I don't know, set the minimum
+        # height to something arbitrary
+        else:
+            self.SetMinSize((-1, 100))
+
+        self.Layout()
 
         
     def _onKeyboard(self, ev):
@@ -522,7 +533,7 @@ class EditableListBox(wx.Panel):
                                          nitems,
                                          itemsPerPage,
                                          True)
-        self._sizer.Layout()
+        self.Layout()
 
         
     def _fixIndex(self, idx):
