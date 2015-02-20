@@ -70,27 +70,27 @@ class Notebook(wx.Panel):
         self._selected = None
 
 
-    def DoGetBestClientSize(self):
+    def _updateMinSize(self):
         """Calculate and return the best (minimum) size for the
         :class:`Notebook` widget. The returned size is the minimum
         size of the largest page, plus the size of the button panel.
         """
 
-        buttonSize = self.buttonPanel.GetBestSize()
-        pageSizes  = map(lambda p: p.GetBestSize(), self._pages)
+        buttonSize = self.buttonPanel.GetMinSize()
+        pageSizes  = map(lambda p: p.GetMinSize(), self._pages)
 
-        buttonWidth  = buttonSize.GetWidth()
-        buttonHeight = buttonSize.GetHeight()
+        buttonWidth  = buttonSize[0]
+        buttonHeight = buttonSize[1]
 
-        divLineHeight = self.dividerLine.GetBestSize().GetHeight()
+        divLineHeight = self.dividerLine.GetMinSize()[0]
 
-        pageWidths  = map(lambda ps: ps.GetWidth(),  pageSizes)
-        pageHeights = map(lambda ps: ps.GetHeight(), pageSizes)
+        pageWidths  = map(lambda ps: ps[0], pageSizes)
+        pageHeights = map(lambda ps: ps[1], pageSizes)
         
         myWidth  = max([buttonWidth] + pageWidths)                 + 20
         myHeight = max(pageHeights) + buttonHeight + divLineHeight + 20
-        
-        return wx.Size(myWidth, myHeight)
+
+        self.SetMinSize((myWidth, myHeight))
 
         
     def FindPage(self, page):
@@ -144,16 +144,15 @@ class Notebook(wx.Panel):
             
         button.Bind(wx.EVT_LEFT_DOWN, _showPage)
 
+        if self._selected is None:
+            self._selected = 0
+        self.SetSelection(self._selected)
+
         page.Layout()
-        page.Fit()
-        
         self.buttonPanel.Layout()
-        self.buttonPanel.Fit()
-
-        self.SetMinClientSize(self.DoGetBestClientSize())
-
         self.Layout()
-        self.Fit()
+
+        self._updateMinSize()
 
         
     def AddPage(self, page, text):
@@ -184,6 +183,11 @@ class Notebook(wx.Panel):
 
         # Remove the page but do not destroy it
         self.pagePanel  .Detach(pageIdx)
+
+        if len(self._pages) == 0:
+            self._selected = None
+        
+        self._updateMinSize()
 
         
     def DeletePage(self, index):
