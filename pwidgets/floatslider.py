@@ -64,8 +64,27 @@ class FloatSlider(wx.Slider):
                            maxValue=self.__sliderMax,
                            **kwargs)
 
+        self.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
+        
         self.__SetRange(minValue, maxValue)
         self.SetValue(value)
+
+
+    def __onMouseWheel(self, ev):
+        """Called when the mouse wheel is spun over the slider widget.
+        Increases/decreases the slider value accordingly.
+        """
+        wheelDir  = ev.GetWheelRotation()
+        increment = (self.__realMax - self.__realMin) / 100.0
+
+        if   wheelDir < 0: increment = -increment
+        elif wheelDir > 0: increment =  increment
+        else:              return
+
+        self.SetValue(self.GetValue() + increment)
+
+        ev = wx.PyCommandEvent(wx.EVT_SLIDER.typeId, self.GetId())
+        wx.PostEvent(self.GetEventHandler(), ev)
         
 
     def GetRange(self):
@@ -245,6 +264,7 @@ class SliderSpinPanel(wx.Panel):
         if not showLimits: editLimits = False
         
         self._showLimits = showLimits
+        self._real       = real
 
         if real: self._fmt = '{: 0.3G}'
         else:    self._fmt = '{}'
@@ -273,7 +293,6 @@ class SliderSpinPanel(wx.Panel):
                 max=maxValue,
                 value=self._fmt.format(value),
                 initial=value)
- 
 
         self._sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self._sizer)
@@ -287,6 +306,12 @@ class SliderSpinPanel(wx.Panel):
 
         self._slider .Bind(wx.EVT_SLIDER,         self._onSlider)
         self._spinbox.Bind(wx.EVT_SPINCTRLDOUBLE, self._onSpin)
+        self._spinbox.Bind(wx.EVT_MOUSEWHEEL,     self._onMouseWheel)
+        
+        # The FloatSlider binds its own listener on mouse wheel
+        # events, so we only need to bind for wx.Slider instances
+        if not real:
+            self._slider.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
 
         if showLimits:
             self._minButton = wx.Button(self, label=self._fmt.format(minValue))
@@ -361,7 +386,29 @@ class SliderSpinPanel(wx.Panel):
         """
         val = self._spinbox.GetValue()
         self._slider.SetValue(val)
-        wx.PostEvent(self, SliderSpinValueEvent(value=val)) 
+        wx.PostEvent(self, SliderSpinValueEvent(value=val))
+
+
+    def _onMouseWheel(self, ev):
+        """Called when the mouse wheel is rotated on the spinbox.
+        Increases/decreases the current value accordingly.
+        """
+
+        wheelDir = ev.GetWheelRotation()
+        value    = self._spinbox.GetValue()
+        
+        if self._real: increment = (self.GetMax() - self.GetMin()) / 100.0
+        else:          increment = 1
+
+        if   wheelDir < 0: increment = -increment
+        elif wheelDir > 0: increment =  increment
+        else:              return
+
+        value += increment
+
+        self._slider .SetValue(value)
+        self._spinbox.SetValue(value)
+        wx.PostEvent(self, SliderSpinValueEvent(value=value))
 
         
     def GetRange(self):

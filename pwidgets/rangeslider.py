@@ -139,6 +139,12 @@ class RangePanel(wx.Panel):
             self._lowWidget .Bind(spinEvType, self._onLowChange)
             self._highWidget.Bind(spinEvType, self._onHighChange)
 
+            # Mouse wheel event listener is not
+            # needed for FloatSliders, as they
+            # register their own listener
+            self._lowWidget .Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+            self._highWidget.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+
         self._sizer = wx.GridBagSizer(1, 1)
         self._sizer.SetEmptyCellSize((0, 0))
         
@@ -167,7 +173,30 @@ class RangePanel(wx.Panel):
         self.Layout()
 
 
-    def _onLowChange(self, ev):
+    def _onMouseWheel(self, ev):
+        """Called when the mouse wheel is spun on on of the spin controls.
+        Increases/decreases the respective low/high value accordingly.
+        """
+
+        source   = ev.GetEventObject()
+        wheelDir = ev.GetWheelRotation()
+        inc      = (self.GetMax() - self.GetMin()) / 100.0
+
+        if   wheelDir < 0: inc = -inc
+        elif wheelDir > 0: inc =  inc
+        else:              return
+
+        if source is self._lowWidget:
+            self.SetLow(self.GetLow() + inc)
+            self._onLowChange()
+            
+        elif source is self._highWidget:
+
+            self.SetHigh(self.GetHigh() + inc)
+            self._onHighChange()
+
+
+    def _onLowChange(self, ev=None):
         """Called when the user changes the low widget.  Attempts to make
         sure that the high widget is at least (low value + min distance),
         then posts a :data:`RangeEvent`.
@@ -191,7 +220,7 @@ class RangePanel(wx.Panel):
         wx.PostEvent(self, ev)
 
             
-    def _onHighChange(self, ev):
+    def _onHighChange(self, ev=None):
         """Called when the user changes the high widget.  Attempts to make
         sure that the low widget is at least (high value - min distance),
         then posts a :data:`RangeEvent`.
