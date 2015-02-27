@@ -74,6 +74,9 @@ class FloatSlider(wx.Slider):
         """Called when the mouse wheel is spun over the slider widget.
         Increases/decreases the slider value accordingly.
         """
+        if not self.IsEnabled():
+            return
+        
         wheelDir  = ev.GetWheelRotation()
         increment = (self.__realMax - self.__realMin) / 100.0
 
@@ -393,6 +396,9 @@ class SliderSpinPanel(wx.Panel):
         """Called when the mouse wheel is rotated on the spinbox.
         Increases/decreases the current value accordingly.
         """
+
+        if not self.IsEnabled():
+            return        
 
         wheelDir = ev.GetWheelRotation()
         value    = self._spinbox.GetValue()

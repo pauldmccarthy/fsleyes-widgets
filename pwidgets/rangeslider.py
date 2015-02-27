@@ -178,6 +178,9 @@ class RangePanel(wx.Panel):
         Increases/decreases the respective low/high value accordingly.
         """
 
+        if not self.IsEnabled():
+            return
+
         source   = ev.GetEventObject()
         wheelDir = ev.GetWheelRotation()
         inc      = (self.GetMax() - self.GetMin()) / 100.0
