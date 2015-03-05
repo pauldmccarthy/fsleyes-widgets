@@ -341,23 +341,24 @@ class EditableListBox(wx.Panel):
         for label, data, tooltip in zip(labels, clientData, tooltips):
             self.Append(label, data, tooltip)
 
+        # Figure out a nice minimum width
+        dummyLabel = wx.StaticText(self, label='w' * 25)
+        lblWidth, lblHeight = dummyLabel.GetBestSize().Get()
+        dummyLabel.Destroy()
 
-        # If there are buttons on this listbox, set 
-        # the minimum height according to said buttons
+        # If there are buttons on this listbox,
+        # set the minimum height to the height
+        # of said buttons, or the height of 
+        # four items, whichever is bigger
         if not noButtons:
-            self.SetMinSize((-1, self._buttonPanelSizer.CalcMin()[1]))
+            self.SetMinSize((
+                lblWidth,
+                max(4 * lblHeight, self._buttonPanelSizer.CalcMin()[1])))
 
-        # Otherwise, if some items have been added,
-        # set the minimum height to the height of
-        # four items
-        elif len(self._listItems) > 0:
-            self.SetMinSize(
-                (-1, 4 * self._listSizer.CalcMin()[1] / len(self._listItems)))
-
-        # Otherwise, I don't know, set the minimum
-        # height to something arbitrary
+        # Otherwise set the minimum height
+        # to the height of four items
         else:
-            self.SetMinSize((-1, 100))
+            self.SetMinSize((lblWidth, 4 * lblHeight))
 
         self.Layout()
 
