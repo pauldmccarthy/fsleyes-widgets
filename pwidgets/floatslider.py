@@ -69,6 +69,13 @@ class FloatSlider(wx.Slider):
         self.__SetRange(minValue, maxValue)
         self.SetValue(value)
 
+        # Under GTK, sliders don't seem to
+        # be sized appropriately, so setting
+        # the min size will force them to
+        # have a good size
+        if self.HasFlag(wx.VERTICAL): self.SetMinSize((-1,  150))
+        else:                         self.SetMinSize((150, -1))        
+
 
     def __onMouseWheel(self, ev):
         """Called when the mouse wheel is spun over the slider widget.
