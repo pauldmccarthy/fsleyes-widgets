@@ -326,8 +326,9 @@ class EditableListBox(wx.Panel):
 
         if addScrollbar:
             self._sizer.Add(self._scrollbar, flag=wx.EXPAND)
-            self._scrollbar.Bind(wx.EVT_SCROLL, self._drawList)
-            self.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+            self._scrollbar.Bind(wx.EVT_SCROLL,     self._drawList)
+            self           .Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+            self._listPanel.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
 
         def refresh(ev):
             self._updateScrollbar()
@@ -670,7 +671,11 @@ class EditableListBox(wx.Panel):
 
         sizer.Add(labelWidget, flag=wx.EXPAND, proportion=1)
         
-        labelWidget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
+        labelWidget.Bind(wx.EVT_LEFT_DOWN,  self._itemClicked)
+
+        if self._scrollbar is not None:
+            labelWidget.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+            container  .Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
 
         item = _ListItem(label,
                          clientData,
