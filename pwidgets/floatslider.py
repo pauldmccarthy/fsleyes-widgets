@@ -35,19 +35,23 @@ class FloatSlider(wx.Slider):
                  value=None,
                  minValue=None,
                  maxValue=None,
+                 mousewheel=False,
                  **kwargs):
         """Initialise a FloatSlider.
 
-        :param parent:         The :mod:`wx` parent object.
+        :param parent:           The :mod:`wx` parent object.
         
-        :param float value:    Initial slider value.
+        :param float value:      Initial slider value.
         
-        :param float minValue: Minimum slider value.
+        :param float minValue:   Minimum slider value.
         
-        :param float maxValue: Maximum slider value.
+        :param float maxValue:   Maximum slider value.
+
+        :param float mousewheel: If ``True``, mouse wheel events over the
+                                 slider will change its value.
         
-        :param kwargs:         Passed through to the :class:`wx.Slider`
-                               constructor.
+        :param kwargs:           Passed through to the :class:`wx.Slider`
+                                 constructor.
         """
 
         if value    is None: value    = 0
@@ -64,7 +68,8 @@ class FloatSlider(wx.Slider):
                            maxValue=self.__sliderMax,
                            **kwargs)
 
-        self.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
+        if mousewheel:
+            self.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
         
         self.__SetRange(minValue, maxValue)
         self.SetValue(value)
@@ -234,35 +239,39 @@ class SliderSpinPanel(wx.Panel):
                  maxValue=None,
                  label=None,
                  showLimits=True,
-                 editLimits=False):
+                 editLimits=False,
+                 mousewheel=False):
         """
         Initialise a :class:`SliderSpinPanel` object.
 
-        :param parent:          The :mod:`wx` parent object.
+        :param parent:           The :mod:`wx` parent object.
 
-        :param bool real:       If ``False``, a :class:`wx.Slider` and
-                                :class:`wx.SpinCtrl` are used, instead of a
-                                :class:`FloatSlider` and
-                                :class:`wx.SpinCtrlDouble`.
+        :param bool real:        If ``False``, a :class:`wx.Slider` and
+                                 :class:`wx.SpinCtrl` are used, instead of a
+                                 :class:`FloatSlider` and
+                                 :class:`wx.SpinCtrlDouble`.
         
-        :param number value:    Initial slider/spin value.
+        :param number value:     Initial slider/spin value.
         
-        :param number minValue: Minimum slider/spin value.
+        :param number minValue:  Minimum slider/spin value.
         
-        :param number maxValue: Maximum slider/spin value.
+        :param number maxValue:  Maximum slider/spin value.
 
-        :param str label:       If not ``None``, a :class:`wx.StaticText`
-                                widget is added to the left of the slider,
-                                containing the given label.
+        :param str label:        If not ``None``, a :class:`wx.StaticText`
+                                 widget is added to the left of the slider,
+                                 containing the given label.
         
-        :param bool showLimits: If ``True``, buttons placed on the left and
-                                right, displaying the minimum/maximum limits.
+        :param bool showLimits:  If ``True``, buttons placed on the left and
+                                 right, displaying the minimum/maximum limits.
         
-        :param bool editLimits: If ``True``, when said buttons are clicked, a
-                                :class:`~fsl.gui.numberdialog.NumberDialog`
-                                window pops up allowing the user to edit the
-                                limit values. Has no effect if ``showLimits``
-                                is ``False``.
+        :param bool editLimits:  If ``True``, when said buttons are clicked, a
+                                 :class:`~fsl.gui.numberdialog.NumberDialog`
+                                 window pops up allowing the user to edit the
+                                 limit values. Has no effect if ``showLimits``
+                                 is ``False``.
+        
+        :param float mousewheel: If ``True``, mouse wheel events over the
+                                 sliders/spinboxes will change their value. 
         """
 
         wx.Panel.__init__(self, parent)
@@ -284,7 +293,8 @@ class SliderSpinPanel(wx.Panel):
                 self,
                 value=value,
                 minValue=minValue,
-                maxValue=maxValue)
+                maxValue=maxValue,
+                mousewheel=mousewheel)
             self._spinbox = wx.SpinCtrlDouble(
                 self,
                 min=minValue,
@@ -316,12 +326,14 @@ class SliderSpinPanel(wx.Panel):
 
         self._slider .Bind(wx.EVT_SLIDER,         self._onSlider)
         self._spinbox.Bind(wx.EVT_SPINCTRLDOUBLE, self._onSpin)
-        self._spinbox.Bind(wx.EVT_MOUSEWHEEL,     self._onMouseWheel)
+
+        if mousewheel:
+            self._spinbox.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
         
-        # The FloatSlider binds its own listener on mouse wheel
-        # events, so we only need to bind for wx.Slider instances
-        if not real:
-            self._slider.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+            # The FloatSlider binds its own listener on mouse wheel
+            # events, so we only need to bind for wx.Slider instances
+            if not real:
+                self._slider.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
 
         if showLimits:
             self._minButton = wx.Button(self, label=self._fmt.format(minValue))
