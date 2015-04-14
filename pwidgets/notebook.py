@@ -76,8 +76,8 @@ class Notebook(wx.Panel):
         size of the largest page, plus the size of the button panel.
         """
 
-        buttonSize = self.buttonPanel.GetMinSize()
-        pageSizes  = map(lambda p: p.GetMinSize(), self._pages)
+        buttonSize = self.buttonPanel.GetBestSize()
+        pageSizes  = map(lambda p: p.GetBestSize(), self._pages)
 
         buttonWidth  = buttonSize[0]
         buttonHeight = buttonSize[1]
