@@ -1,7 +1,8 @@
 !!ARBfp1.0
 #
-# Fragment program used for rendering GLVector instances, where
-# the vector orientation is represented by a combination of RGB colours.
+# Fragment program used for rendering GLVector instances.
+# Identical to glvector_frag.prog, but omits voxel coordinate
+# bounds checking.
 #
 # This fragment program does the following:
 # 
@@ -19,7 +20,6 @@
 # Required inputs:
 # 
 #   fragment.texcoord[0] - Fragment texture coordinates
-#   fragment.texcoord[1] - Fragment voxel coordinates 
 #
 #   program.local[0]
 #   program.local[1]
@@ -70,10 +70,6 @@ PARAM modThres       =   program.local[9];
 
 # retrieve the voxel coordinates 
 MOV voxCoord, fragment.texcoord[1];
-
-# Bail if the voxel coordinate
-# is out of the image space
-#pragma include test_in_bounds.prog
 
 # look up vector values
 # from the 3D RGB texture

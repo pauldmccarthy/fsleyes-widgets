@@ -6,9 +6,6 @@
  */
 #version 120
 
-#pragma include spline_interp.glsl
-#pragma include test_in_bounds.glsl
-
 /*
  * Vector image containing XYZ vector data.
  */
@@ -52,22 +49,6 @@ uniform mat4 voxValXform;
 uniform mat4 cmapXform;
 
 /*
- * Shape of the image texture.
- */
-uniform vec3 imageShape;
-
-/*
- * Use spline interpolation?
- */
-uniform bool useSpline;
-
-/*
- * Coordinates of the fragment in voxel
- * coordinates, passed from the vertex shader.
- */
-varying vec3 fragVoxCoord;
-
-/*
  * Corresponding texture coordinates
  */
 varying vec3 fragTexCoord;
@@ -75,35 +56,13 @@ varying vec3 fragTexCoord;
 
 void main(void) {
 
-  vec3 voxCoords = fragVoxCoord;
-
-  if (!test_in_bounds(voxCoords, imageShape)) {
-
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-    return;
-  }
-
   /*
    * Look up the xyz vector values
    */
-  vec3 voxValue;
-  if (useSpline) {
-    voxValue.x = spline_interp(imageTexture, fragTexCoord, imageShape, 0);
-    voxValue.y = spline_interp(imageTexture, fragTexCoord, imageShape, 1);
-    voxValue.z = spline_interp(imageTexture, fragTexCoord, imageShape, 2);
-  }
-  else {
-    voxValue = texture3D(imageTexture, fragTexCoord).xyz;
-  }
+  vec3 voxValue = texture3D(imageTexture, fragTexCoord).xyz;
 
   /* Look up the modulation value */
-  float modValue;
-  if (useSpline) {
-    modValue = spline_interp(modTexture, fragTexCoord, imageShape, 0);
-  }
-  else {
-    modValue = texture3D(modTexture, fragTexCoord).x;
-  }  
+  float modValue = texture3D(modTexture, fragTexCoord).x;
 
   /*
    * Transform the voxel texture values 

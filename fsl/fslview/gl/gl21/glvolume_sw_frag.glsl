@@ -1,5 +1,6 @@
 /*
- * OpenGL fragment shader used by fsl/fslview/gl/gl21/glvolume_funcs.py.
+ * Fast but limited OpenGL fragment shader used by
+ * fsl/fslview/gl/gl21/glvolume_funcs.py.
  *
  * Author: Paul McCarthy <pauldmccarthy@gmail.com>
  */
@@ -25,11 +26,6 @@ uniform sampler1D colourTexture;
 uniform vec3 imageShape;
 
 /*
- * Use spline interpolation?
- */
-uniform bool useSpline;
-
-/*
  * Transformation matrix to apply to the voxel value,
  * so it can be used as a texture coordinate in the
  * colourTexture.
@@ -46,11 +42,6 @@ uniform float clipLow;
  */
 uniform float clipHigh;
 
-/*
- * Image voxel coordinates.
- */
-varying vec3 fragVoxCoord;
-
 
 /*
  * Corresponding texture coordinates.
@@ -60,27 +51,10 @@ varying vec3 fragTexCoord;
 
 void main(void) {
 
-    vec3 voxCoord = fragVoxCoord;
-
-    /*
-     * Skip voxels that are out of the image bounds
-     */
-    if (!test_in_bounds(voxCoord, imageShape)) {
-        
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-        return;
-    }
-
     /*
      * Look up the voxel value 
      */
-    float voxValue;
-    if (useSpline) voxValue = spline_interp(imageTexture,
-                                            fragTexCoord,
-                                            imageShape,
-                                            0);
-    else           voxValue = texture3D(    imageTexture,
-                                            fragTexCoord).r;
+    float voxValue = texture3D(imageTexture, fragTexCoord).r;
 
     /*
      * Clip out of range voxel values
@@ -95,6 +69,6 @@ void main(void) {
      * Transform the voxel value to a colour map texture
      * coordinate, and look up the colour for the voxel value
      */
-    vec4 normVoxValue = voxValXform * vec4(voxValue, 0, 0, 1);
-    gl_FragColor      = texture1D(colourTexture, normVoxValue.x);
+    voxValue     = voxValXform[0].x * voxValue + voxValXform[3].x;
+    gl_FragColor = texture1D(colourTexture, voxValue);
 }
