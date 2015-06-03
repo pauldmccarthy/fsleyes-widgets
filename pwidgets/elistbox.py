@@ -506,7 +506,7 @@ class EditableListBox(wx.Panel):
         # Yep, I'm assuming that all
         # items are the same size
         if nitems > 0:
-            itemHeight = self._listItems[0].labelWidget.GetSize().GetHeight()
+            itemHeight = self._listItems[0].container.GetSize().GetHeight()
         else:
             itemHeight = 0 
         
@@ -659,7 +659,8 @@ class EditableListBox(wx.Panel):
         container   = wx.Panel(self._listPanel, style=wx.WANTS_CHARS)
         labelWidget = wx.StaticText(container,
                                     label=label,
-                                    style=(wx.ST_ELLIPSIZE_MIDDLE |
+                                    style=(wx.ST_ELLIPSIZE_MIDDLE   |
+                                           wx.ALIGN_CENTRE_VERTICAL |
                                            wx.WANTS_CHARS))
         
         sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -669,9 +670,10 @@ class EditableListBox(wx.Panel):
             extraWidget.Reparent(container)
             sizer.Add(extraWidget)
 
-        sizer.Add(labelWidget, flag=wx.EXPAND, proportion=1)
+        sizer.Add(labelWidget, flag=wx.ALIGN_CENTRE, proportion=1)
         
-        labelWidget.Bind(wx.EVT_LEFT_DOWN,  self._itemClicked)
+        labelWidget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
+        container  .Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
 
         if self._scrollbar is not None:
             labelWidget.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
@@ -1096,6 +1098,7 @@ class EditableListBox(wx.Panel):
 
         # Destroyes the textctrl, and re-shows the item label.
         def onFinish(ev=None):
+            ev.Skip()
             def _onFinish():
                 sizer.Detach(editCtrl)
                 editCtrl.Destroy()
