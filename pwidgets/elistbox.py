@@ -368,8 +368,7 @@ class EditableListBox(wx.Panel):
         """Called when a key is pressed. On up/down arrow key presses,
         changes the selected item, and scrolls if necessary.
         """
-        if self._scrollbar is None:
-            return
+        ev.Skip()
 
         key = ev.GetKeyCode()
 
@@ -396,11 +395,12 @@ class EditableListBox(wx.Panel):
 
         # Update the scrollbar position, to make
         # sure the newly selected item is visible
-        scrollPos = self._scrollbar.GetThumbPosition()
-        
-        if any((selected <  scrollPos,
-                selected >= scrollPos + self._scrollbar.GetPageSize())):
-            self._onMouseWheel(None, -offset)
+        if self._scrollbar is not None:
+            scrollPos = self._scrollbar.GetThumbPosition()
+
+            if any((selected <  scrollPos,
+                    selected >= scrollPos + self._scrollbar.GetPageSize())):
+                self._onMouseWheel(None, -offset)
 
         # Retain focus
         self.SetFocus()
@@ -691,9 +691,9 @@ class EditableListBox(wx.Panel):
                          extraWidget)
 
         if self._editSupport:
-            labelWidget.Bind(
-                wx.EVT_LEFT_DCLICK,
-                lambda ev: self._onEdit(ev, item))
+            onEdit = lambda ev: self._onEdit(ev, item)
+            labelWidget.Bind(wx.EVT_LEFT_DCLICK, onEdit)
+            container  .Bind(wx.EVT_LEFT_DCLICK, onEdit)
 
         log.debug('Inserting item ({}) at index {}'.format(label, pos))
 
@@ -954,7 +954,7 @@ class EditableListBox(wx.Panel):
 
         # Give focus to the top level  panel,
         # otherwise it will not receive char events
-        self.SetFocus()
+        self.SetFocusIgnoringChildren()
 
         if ev is not None:
             widget = ev.GetEventObject()
@@ -962,7 +962,7 @@ class EditableListBox(wx.Panel):
         itemIdx = -1
 
         for i, listItem in enumerate(self._listItems):
-            if listItem.labelWidget == widget:
+            if widget in (listItem.labelWidget, listItem.container):
                 itemIdx = i
                 break
 
@@ -1098,12 +1098,16 @@ class EditableListBox(wx.Panel):
 
         # Destroyes the textctrl, and re-shows the item label.
         def onFinish(ev=None):
-            ev.Skip()
+            
+            if ev is not None:
+                ev.Skip()
+                
             def _onFinish():
                 sizer.Detach(editCtrl)
                 editCtrl.Destroy()
                 sizer.Show(listItem.labelWidget, True)
                 sizer.Layout()
+
             wx.CallAfter(_onFinish)
 
         # Sets the list item label to the new
