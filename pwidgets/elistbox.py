@@ -830,6 +830,18 @@ class EditableListBox(wx.Panel):
         return self._listItems[i].extraWidget
 
 
+    def SetItemData(self, n, data=None):
+        """Sets the data associated with the item at index ``n``."""
+        n = self._fixIndex(n)
+        self._listItems[n].data = data
+
+    
+    def GetItemData(self, n):
+        """Returns the data associated with the item at index ``n``."""
+        n = self._fixIndex(n)
+        return self._listItems[n].data
+
+
     def SetItemForegroundColour(self,
                                 n,
                                 defaultColour=None,
