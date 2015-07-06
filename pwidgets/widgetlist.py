@@ -143,11 +143,14 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
 
     def SetColours(self, odd=None, even=None, group=None):
-
         if odd   is not None: self.__oddColour   = odd
         if even  is not None: self.__evenColour  = even
         if group is not None: self.__groupColour = group
         self.__setColours()
+
+
+    def HasGroup(self, groupName):
+        return groupName in self.__groups
 
         
     def AddGroup(self, groupName, displayName=None):
@@ -257,7 +260,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         
     def RemoveGroup(self, groupName):
         group = self.__groups.pop(groupName)
-        self.__groupSizer.detach(group.parentPanel)
+        self.__groupSizer.Detach(group.parentPanel)
         group.parentPanel.Destroy()
         self.__refresh()
 
@@ -276,6 +279,17 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         group.sizer.Clear(True)
         group.props.clear()
         self.__refresh()
+
+
+    def IsExpanded(self, groupName):
+        return self.__groups[groupName].colPanel.IsExpanded()
+
+    
+    def Expand(self, groupName, expand=True):
+        panel = self.__groups[groupName].colPanel
+        if expand: panel.Expand()
+        else:      panel.Collapse()
+        self.Layout()
 
         
 if __name__ == '__main__':
