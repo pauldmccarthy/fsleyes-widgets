@@ -152,6 +152,12 @@ class WidgetList(scrolledpanel.ScrolledPanel):
     def HasGroup(self, groupName):
         return groupName in self.__groups
 
+
+    def RenameGroup(self, groupName, newDisplayName):
+        group = self.__groups[groupName]
+        group.displayName = newDisplayName
+        group.colPanel.SetLabel(newDisplayName)
+
         
     def AddGroup(self, groupName, displayName=None):
 
@@ -289,7 +295,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         panel = self.__groups[groupName].colPanel
         if expand: panel.Expand()
         else:      panel.Collapse()
-        self.Layout()
+        self.__refresh()
 
         
 if __name__ == '__main__':

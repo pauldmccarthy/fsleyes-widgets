@@ -1125,9 +1125,13 @@ class EditableListBox(wx.Panel):
         # Sets the list item label to the new
         # value, and posts a ListEditEvent.
         def onText(ev):
+            oldLabel       = listItem.labelWidget.GetLabel()
             newLabel       = editCtrl.GetValue()
             listItem.label = newLabel
             listItem.labelWidget.SetLabel(newLabel)
+
+            log.debug('ListEditEvent (idx: {}, oldLabel: {}, newLabel: {})'
+                      .format(idx, oldLabel, newLabel))
 
             ev = ListEditEvent(idx=idx, label=newLabel, data=listItem.data)
             wx.PostEvent(self, ev)
