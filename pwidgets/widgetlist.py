@@ -77,7 +77,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
     _defaultOddColour   = '#eaeaea'
     _defaultEvenColour  = '#ffffff'
-    _defaultGroupColour = '#eaeaff'
+    _defaultGroupColour = '#cdcdff'
 
     
     def __init__(self, parent):
@@ -189,7 +189,10 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         self.__groupSizer.Add(gapSizer, flag=wx.EXPAND)
 
         parentSizer = wx.BoxSizer(wx.VERTICAL)
-        parentSizer.Add(colPanel, flag=wx.EXPAND, proportion=1)
+        parentSizer.Add(colPanel,
+                        border=5,
+                        flag=wx.EXPAND | wx.BOTTOM,
+                        proportion=1)
         parentPanel.SetSizer(parentSizer)
 
         group = Group(groupName,
@@ -256,6 +259,13 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
         self.__setLabelWidths(widgDict.values())
         self.__refresh()
+
+
+    def AddSpace(self, groupName=None):
+        if groupName is None: parentSizer = self.__widgSizer
+        else:                 parentSizer = self.__groups[groupName].sizer
+
+        parentSizer.Add((-1, 10))
         
 
     def RemoveWidget(self, widget, groupName=None):
