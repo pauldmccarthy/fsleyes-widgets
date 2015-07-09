@@ -57,12 +57,14 @@ class Group(object):
     def __init__(self,
                  groupName,
                  displayName,
+                 gapSizer,
                  parentPanel,
                  colPanel,
                  widgPanel,
                  sizer):
         self.groupName   = groupName
         self.displayName = displayName
+        self.gapSizer    = gapSizer
         self.parentPanel = parentPanel
         self.colPanel    = colPanel
         self.widgPanel   = widgPanel
@@ -175,7 +177,16 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         
         widgPanel.SetSizer(widgSizer)
         parentPanel.SetWindowStyleFlag(wx.SUNKEN_BORDER)
-        self.__groupSizer.Add(parentPanel, border=10, flag=wx.EXPAND | wx.ALL)
+
+        gapSizer = wx.BoxSizer(wx.VERTICAL)
+
+        # A spacer exists at the top,
+        # and between, every group. 
+        gapSizer.Add((-1, 5))
+        gapSizer.Add(parentPanel, border=10, flag=(wx.EXPAND |
+                                                   wx.LEFT   |
+                                                   wx.RIGHT))
+        self.__groupSizer.Add(gapSizer, flag=wx.EXPAND)
 
         parentSizer = wx.BoxSizer(wx.VERTICAL)
         parentSizer.Add(colPanel, flag=wx.EXPAND, proportion=1)
@@ -183,6 +194,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
         group = Group(groupName,
                       displayName,
+                      gapSizer,
                       parentPanel,
                       colPanel,
                       widgPanel,
@@ -266,7 +278,8 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         
     def RemoveGroup(self, groupName):
         group = self.__groups.pop(groupName)
-        self.__groupSizer.Detach(group.parentPanel)
+        
+        self.__groupSizer.Detach(group.gapSizer)
         group.parentPanel.Destroy()
         self.__refresh()
 
