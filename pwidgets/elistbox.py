@@ -137,6 +137,13 @@ ELB_EDITABLE = 64
 user to edit the item value.
 """
 
+ELB_NO_LABELS = 128
+"""Style flag - if enabled, item labels are not shown - this is intended
+for lists which are to consist solely of widgets (see the ``extraWidget``
+parameter to the :meth:`Insert` method). This style flag will negate
+the :data:`ELB_EDITABLE` flag.
+"""
+
 
 class _ListItem(object):
     """Internal class used to represent items in the list."""
@@ -245,7 +252,8 @@ class EditableListBox(wx.Panel):
         :param int style:  Style bitmask - accepts :data:`ELB_NO_SCROLL`,
                            :data:`ELB_NO_ADD`, :data:`ELB_NO_REMOVE`,
                            :data:`ELB_NO_MOVE`, :data:`ELB_REVERSE`,
-                           :data:`ELB_TOOLTIP`, and :data:`ELB_EDITABLE`.
+                           :data:`ELB_TOOLTIP`, :data:`ELB_EDITABLE`, and
+                           :data:`ELB_NO_LABEL`.
         """
 
         wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
@@ -257,12 +265,17 @@ class EditableListBox(wx.Panel):
         moveSupport   = not (style & ELB_NO_MOVE)
         editSupport   =      style & ELB_EDITABLE
         showTooltips  =      style & ELB_TOOLTIP
+        noLabels      =      style & ELB_NO_LABELS
         noButtons     = not any((addSupport, removeSupport, moveSupport))
+
+        if noLabels:
+            editSupport = False
 
         self._reverseOrder  = reverseOrder
         self._showTooltips  = showTooltips
         self._moveSupport   = moveSupport
         self._editSupport   = editSupport
+        self._noLabels      = noLabels
 
         if labels     is None: labels     = []
         if clientData is None: clientData = [None] * len(labels)
@@ -652,6 +665,9 @@ class EditableListBox(wx.Panel):
 
         pos = self._fixIndex(pos)
 
+        if self._noLabels:
+            label = ''
+
         # StaticText under Linux/GTK poses problems - 
         # we cannot set background colour, nor can we
         # intercept mouse motion events. So we embed
@@ -670,7 +686,10 @@ class EditableListBox(wx.Panel):
             extraWidget.Reparent(container)
             sizer.Add(extraWidget)
 
-        sizer.Add(labelWidget, flag=wx.ALIGN_CENTRE, proportion=1)
+        if self._noLabels:
+            sizer.Add(labelWidget)
+        else:
+            sizer.Add(labelWidget, flag=wx.ALIGN_CENTRE, proportion=1)
         
         labelWidget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
         container  .Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
