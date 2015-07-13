@@ -57,6 +57,26 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
         self.__refresh()
 
+
+    def __reparent(self,  widget, parent):
+        if isinstance(widget, wx.Sizer):
+            widget = [c.GetWindow() for c in widget.GetChildren()]
+        else:
+            widget = [widget]
+
+        for w in widget:
+            w.Reparent(parent)
+            
+
+    def __setBackgroundColour(self, widget, colour):
+        if isinstance(widget, wx.Sizer):
+            widget = [c.GetWindow() for c in widget.GetChildren()]
+        else:
+            widget = [widget]
+
+        for w in widget:
+            w.SetBackgroundColour(colour)
+ 
         
     def __refresh(self):
 
@@ -76,7 +96,12 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             return
 
         self.__gridPanel.SetBackgroundColour(borderColour)
-        self.__gridSizer.Clear(False)
+
+        # Clear the sizer per-item, as the
+        # wx.Sizer.Clear will destroy any
+        # child sizers, and we don't want that
+        for i in reversed(range(self.__gridSizer.GetItemCount())):
+            self.__gridSizer.Detach(i)
 
         # empty cell in top left of grid
         self.__gridSizer.Add((-1, -1), flag=wx.EXPAND)
@@ -92,7 +117,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             
             self.__gridSizer.Add( colLabel, border=1, flag=wx.EXPAND | flag)
             self.__gridSizer.Show(colLabel, self.__showColLabels)
-
 
         for rowi in range(self.__nrows):
             rowLabel = self.__rowLabels[rowi]
@@ -121,7 +145,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
                 if rowi % 2: colour = oddColour
                 else:        colour = evenColour
 
-                widget.SetBackgroundColour(colour)
+                self.__setBackgroundColour(widget, colour)
         
         self.FitInside()
         self.Layout()
@@ -166,14 +190,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
     def ClearGrid(self):
 
         if self.__gridSizer is not None:
-            self.__gridSizer.Clear()
-            
-            for lbl in self.__rowLabels + self.__colLabels:
-                lbl.Destroy()
-                
-            for row in self.__widgets:
-                for widget in row:
-                    widget.Destroy()
+            self.__gridSizer.Clear(True)
 
         self.__gridSizer = None
         self.__nrows     = 0
@@ -200,7 +217,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             raise ValueError('Grid location ({}, {}) out of bounds ({}, {})'.
                              format(row, col, self.__nrows, self.__ncols))
 
-        widget.Reparent(self.__gridPanel)
+        self.__reparent(widget, self.__gridPanel)
 
         if self.__widgets[row][col] is not None:
             self.__widgets[row][col].Destroy()
