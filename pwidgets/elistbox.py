@@ -818,6 +818,47 @@ class EditableListBox(wx.Panel):
             
         return -1
 
+
+    def GetLabels(self):
+        """Returns the labels of all items in the list."""
+        indices = map(self._fixIndex, range(self.GetCount()))
+        return [self._listItems[i].label for i in indices]
+
+    
+    def GetData(self):
+        """Returns the data associated with every item in the list."""
+        indices = map(self._fixIndex, range(self.GetCount()))
+        return [self._listItems[i].data for i in indices] 
+
+        
+    def SetItemLabel(self, n, s):
+        """Sets the label of the item at index ``n`` to the string ``s``.
+        
+        :param int n: Index of the item.
+        :param str s: New label for the item.
+        """
+
+        if n < 0 or n >= self.GetCount():
+            raise IndexError('Index {} is out of bounds'.format(n))
+
+        n = self._fixIndex(n)
+        
+        self._listItems[n].labelWidget.SetLabel(s)
+        self._listItems[n].label = s
+
+
+    def GetItemLabel(self, n):
+        """Returns the label of the item at index ``n``.
+        
+        :param int n: Index of the item.
+        """ 
+        if n < 0 or n >= self.GetCount():
+            raise IndexError('Index {} is out of bounds'.format(n))
+
+        n = self._fixIndex(n)
+        
+        return self._listItems[n].label
+
     
     def SetItemWidget(self, n, widget=None):
         """Sets the widget to be displayed alongside the item at index ``n``.
@@ -913,22 +954,6 @@ class EditableListBox(wx.Panel):
         """Returns the font for the item label at index ``n``."""
         li = self._listItems[self._fixIndex(n)]
         return li.labelWidget.GetFont()        
-
-        
-    def SetString(self, n, s):
-        """Sets the label of the item at index ``n`` to the string ``s``.
-        
-        :param int n: Index of the item.
-        :param str s: New label for the item.
-        """
-
-        if n < 0 or n >= self.GetCount():
-            raise IndexError('Index {} is out of bounds'.format(n))
-
-        n = self._fixIndex(n)
-        
-        self._listItems[n].labelWidget.SetLabel(s)
-        self._listItems[n].label = s
 
 
     def ApplyFilter(self, filterStr=None, ignoreCase=False):
