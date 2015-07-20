@@ -81,10 +81,9 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
     
     def __init__(self, parent):
-        scrolledpanel.ScrolledPanel.__init__(self, parent)
-
-        self.__sizer       = wx.BoxSizer(wx.VERTICAL)
         self.__widgSizer   = wx.BoxSizer(wx.VERTICAL)
+        self.__sizer       = wx.BoxSizer(wx.VERTICAL)
+
         self.__groupSizer  = wx.BoxSizer(wx.VERTICAL)
         self.__widgets     = OrderedDict()
         self.__groups      = OrderedDict()
@@ -96,12 +95,37 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         self.__sizer.Add(self.__widgSizer,  flag=wx.EXPAND)
         self.__sizer.Add(self.__groupSizer, flag=wx.EXPAND)
 
+        # The SP.__init__ method seemingly
+        # induces a call to DoGetBestSize,
+        # which assumes that all of the
+        # things above exist. So we call
+        # init after we've created those
+        # things.
+        scrolledpanel.ScrolledPanel.__init__(self, parent)
+
         self.SetSizer(self.__sizer)
         self.SetBackgroundColour((255, 255, 255))
         self.SetupScrolling()
         self.SetAutoLayout(1)
 
         
+    def DoGetBestSize(self):
+        """Returns the best size for the widget list, with all group
+        widgets expanded.
+        """
+
+        width, height = self.__widgSizer.GetSize().Get()
+        for name, group in self.__groups.items():
+            w, h    = group.parentPanel.GetBestSize().Get()
+            w      += 20
+            h      += 10
+            
+            if w > width:
+                width = w
+            height += h
+        
+        return wx.Size(width, height)
+
 
     def __makeWidgetKey(self, widget):
         return str(id(widget))
@@ -151,6 +175,10 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         self.__setColours()
 
 
+    def GetGroups(self):
+        return self.__groups.keys()
+
+
     def HasGroup(self, groupName):
         return groupName in self.__groups
 
@@ -171,7 +199,9 @@ class WidgetList(scrolledpanel.ScrolledPanel):
                              'already exists'.format(groupName))
 
         parentPanel = wx.Panel(self, style=wx.SUNKEN_BORDER)
-        colPanel    = wx.CollapsiblePane(parentPanel, label=displayName)
+        colPanel    = wx.CollapsiblePane(parentPanel,
+                                         label=displayName,
+                                         style=wx.CP_NO_TLW_RESIZE)
         widgPanel   = colPanel.GetPane()
         widgSizer   = wx.BoxSizer(wx.VERTICAL)
         
@@ -300,13 +330,16 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             widg = self.__widgets.pop(key)
             self.__propSizer.Detach(widg.sizer)
             widg.Destroy()
+
+        for group in self.GetGroups():
+            self.RemoveGroup(group)
         self.__refresh()
         
         
     def ClearGroup(self, groupName):
         group = self.__groups[groupName]
         group.sizer.Clear(True)
-        group.props.clear()
+        group.widgets.clear()
         self.__refresh()
 
 
