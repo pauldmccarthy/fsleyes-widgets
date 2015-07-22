@@ -206,7 +206,16 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
     def SetText(self, row, col, text):
 
         txt = wx.StaticText(self.__gridPanel, label=text)
-        self.SetWidget(row, col, txt)
+
+        # Embed the StaticText in a panel,
+        # as Linux/GTK doesn't let me
+        # change the background colour
+        # of controls
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        panel.SetSizer(sizer)
+        sizer.Add(txt, flag=wx.EXPAND, proportion=1)
+        self.SetWidget(row, col, panel)
 
 
     def SetWidget(self, row, col, widget):

@@ -24,11 +24,13 @@ class Widget(object):
                  tooltip,
                  label,
                  widget,
+                 panel,
                  sizer):
         self.displayName = displayName
         self.tooltip     = tooltip
         self.label       = label
         self.widget      = widget
+        self.panel       = panel
         self.sizer       = sizer
 
 
@@ -263,19 +265,25 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         if key in widgDict:
             raise ValueError('Widgets {} already exist'.format(key))
 
+
+        widgPanel = wx.Panel(parent)
+        widgSizer = wx.BoxSizer(wx.HORIZONTAL)
+        widgPanel.SetSizer(widgSizer) 
+
         if isinstance(widget, wx.Sizer):
             for child in widget.GetChildren():
-                child.GetWindow().Reparent(parent)
+                child.GetWindow().Reparent(widgPanel)
         else:
-            widget.Reparent(parent)
-            
-        label = wx.StaticText(parent, label=displayName, style=wx.ALIGN_RIGHT)
-        widgSizer = wx.BoxSizer(wx.HORIZONTAL)
+            widget.Reparent(widgPanel)
+
+        label = wx.StaticText(widgPanel,
+                              label=displayName,
+                              style=wx.ALIGN_RIGHT)
 
         widgSizer.Add(label,  flag=wx.EXPAND)
         widgSizer.Add(widget, flag=wx.EXPAND, proportion=1)
         
-        parentSizer.Add(widgSizer,
+        parentSizer.Add(widgPanel,
                         flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
                         border=5)
 
@@ -283,6 +291,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
                       tooltip,
                       label,
                       widget,
+                      widgPanel,
                       widgSizer)
 
         widgDict[key] = widg
@@ -310,7 +319,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             widgDict    = group.widgets
 
         widg = widgDict.pop(key)
-        parentSizer.Detach(widg.sizer)
+        parentSizer.Detach(widg.panel)
 
         widg.Destroy()
         self.__refresh()
