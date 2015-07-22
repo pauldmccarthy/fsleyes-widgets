@@ -206,16 +206,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
     def SetText(self, row, col, text):
 
         txt = wx.StaticText(self.__gridPanel, label=text)
-
-        # Embed the StaticText in a panel,
-        # as Linux/GTK doesn't let me
-        # change the background colour
-        # of controls
-        panel = wx.Panel(self)
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        panel.SetSizer(sizer)
-        sizer.Add(txt, flag=wx.EXPAND, proportion=1)
-        self.SetWidget(row, col, panel)
+        self.SetWidget(row, col, txt)
 
 
     def SetWidget(self, row, col, widget):
@@ -226,12 +217,22 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             raise ValueError('Grid location ({}, {}) out of bounds ({}, {})'.
                              format(row, col, self.__nrows, self.__ncols))
 
-        self.__reparent(widget, self.__gridPanel)
+        # Embed the widget in a panel,
+        # as Linux/GTK has trouble
+        # changing the background colour
+        # of some controls
+        panel = wx.Panel(self.__gridPanel)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        panel.SetSizer(sizer)
+
+        self.__reparent(widget, panel)
+
+        sizer.Add(widget, flag=wx.EXPAND, proportion=1)
 
         if self.__widgets[row][col] is not None:
             self.__widgets[row][col].Destroy()
 
-        self.__widgets[row][col] = widget
+        self.__widgets[row][col] = panel
 
         self.__refresh()
     

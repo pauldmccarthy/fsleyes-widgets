@@ -35,6 +35,7 @@ class Widget(object):
 
 
     def SetBackgroundColour(self, colour):
+        self.panel.SetBackgroundColour(colour)
         self.label.SetBackgroundColour(colour)
 
         if isinstance(self.widget, wx.Sizer):
