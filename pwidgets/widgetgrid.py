@@ -107,28 +107,30 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__gridSizer.Add((-1, -1), flag=wx.EXPAND)
 
         # column labels
-        for coli, colLabel in enumerate(self.__colLabels):
+        for coli, (lblPanel, colLabel) in enumerate(self.__colLabels):
 
             # 1px border between every column
             if coli == self.__ncols - 1: flag = wx.TOP | wx.LEFT | wx.RIGHT
             else:                        flag = wx.TOP | wx.LEFT
 
+            lblPanel.SetBackgroundColour(labelColour)
             colLabel.SetBackgroundColour(labelColour)
             
-            self.__gridSizer.Add( colLabel, border=1, flag=wx.EXPAND | flag)
-            self.__gridSizer.Show(colLabel, self.__showColLabels)
+            self.__gridSizer.Add( lblPanel, border=1, flag=wx.EXPAND | flag)
+            self.__gridSizer.Show(lblPanel, self.__showColLabels)
 
         for rowi in range(self.__nrows):
-            rowLabel = self.__rowLabels[rowi]
-            widgets  = self.__widgets[  rowi]
+            lblPanel, rowLabel = self.__rowLabels[rowi]
+            widgets            = self.__widgets[  rowi]
 
             if rowi == self.__nrows - 1: flag = wx.TOP | wx.LEFT | wx.BOTTOM
             else:                        flag = wx.TOP | wx.LEFT
 
+            lblPanel.SetBackgroundColour(labelColour)
             rowLabel.SetBackgroundColour(labelColour)
 
-            self.__gridSizer.Add( rowLabel, border=1, flag=wx.EXPAND | flag)
-            self.__gridSizer.Show(rowLabel, self.__showRowLabels)
+            self.__gridSizer.Add( lblPanel, border=1, flag=wx.EXPAND | flag)
+            self.__gridSizer.Show(lblPanel, self.__showRowLabels)
 
             for coli, widget in enumerate(widgets):
 
@@ -176,13 +178,26 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
                 self.__widgets[-1].append(wx.Panel(self.__gridPanel))
 
         for rowi in range(nrows):
-            lbl = wx.StaticText(self)
-            self.__rowLabels.append(lbl)
+            panel = wx.Panel(self)
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            lbl   = wx.StaticText(panel)
+            
+            panel.SetSizer(sizer)
+            sizer.Add(lbl, flag=wx.EXPAND, proportion=1)
+            
+            self.__rowLabels.append((panel, lbl))
 
         for coli in range(ncols):
-            lbl = wx.StaticText(self)
-            self.__colLabels.append(lbl)
-        
+
+            panel = wx.Panel(self)
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            lbl   = wx.StaticText(panel)
+            
+            panel.SetSizer(sizer)
+            sizer.Add(lbl, flag=wx.EXPAND, proportion=1)
+            
+            self.__colLabels.append((panel, lbl))
+            
         self.__gridPanel.SetSizer(self.__gridSizer)
         self.__refresh()
 
@@ -252,7 +267,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             raise ValueError('Row {} out of bounds ({})'.format(
                 row, self.__nrows))
 
-        self.__rowLabels[row].SetLabel(label)
+        self.__rowLabels[row][1].SetLabel(label)
 
     
     def SetColLabel(self, col, label):
@@ -260,4 +275,4 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             raise ValueError('Column {} out of bounds ({})'.format(
                 col, self.__ncols))
 
-        self.__colLabels[col].SetLabel(label)
+        self.__colLabels[col][1].SetLabel(label)
