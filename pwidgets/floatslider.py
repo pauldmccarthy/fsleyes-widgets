@@ -11,14 +11,17 @@ Provides two classes, :class:`FloatSlider` and :class:`SliderSpinPanel`.
 The :class:`FloatSlider` class is an alternative to :class:`wx.Slider` which
 supports floating point numbers.
 
-The :class:`SliderSpinPanel` class is a panel containing a :class:`FloatSlider`
-and a :class:`wx.SpinCtrlDouble`, linked such that changes in one are reflected
-in the other. The :class:`SliderSpinPanel` class also allows the user to change
-the slider limits, via the :class:`~pwidgets.numberdialog.NumberDialog` class.
+The :class:`SliderSpinPanel` class is a panel containing a
+:class:`FloatSlider` and a :class:`wx.lib.agw.floatspin.FloatSpin`, linked
+such that changes in one are reflected in the other. The
+:class:`SliderSpinPanel` class also allows the user to change the slider
+limits, via the :class:`~pwidgets.numberdialog.NumberDialog` class.
+
 """
 
 import wx
-import wx.lib.newevent as wxevent
+import wx.lib.agw.floatspin as floatspin
+import wx.lib.newevent      as wxevent
 
 import numberdialog
 
@@ -215,7 +218,7 @@ contain the new limit values.
 
 class SliderSpinPanel(wx.Panel):
     """A panel containing a :class:`FloatSlider` and a
-    :class:`wx.SpinCtrlDouble`.
+    :class:`wx.lib.agw.floatspin.FloatSpin`.
 
     The slider and spinbox are linked such that changes to one are
     reflected in the other.  The :class:`SliderSpinPanel` class also
@@ -249,7 +252,7 @@ class SliderSpinPanel(wx.Panel):
         :param bool real:        If ``False``, a :class:`wx.Slider` and
                                  :class:`wx.SpinCtrl` are used, instead of a
                                  :class:`FloatSlider` and
-                                 :class:`wx.SpinCtrlDouble`.
+                                 :class:`wx.lib.agw.floatspin.FloatSpin`.
         
         :param number value:     Initial slider/spin value.
         
@@ -295,19 +298,19 @@ class SliderSpinPanel(wx.Panel):
                 minValue=minValue,
                 maxValue=maxValue,
                 mousewheel=mousewheel)
-            self._spinbox = wx.SpinCtrlDouble(
+            self._spinbox = floatspin.FloatSpin(
                 self,
-                min=minValue,
-                max=maxValue,
-                value=self._fmt.format(value),
-                initial=value)
+                min_val=minValue,
+                max_val=maxValue,
+                digits=6,
+                value=value)
         else:
             self._slider = wx.Slider(
                 self,
                 value=value,
                 minValue=minValue,
                 maxValue=maxValue)
-            self._spinbox = wx.SpinCtrlDouble(
+            self._spinbox = wx.SpinCtrl(
                 self,
                 min=minValue,
                 max=maxValue,
@@ -325,7 +328,9 @@ class SliderSpinPanel(wx.Panel):
         self._sizer.Add(self._spinbox, flag=wx.EXPAND)
 
         self._slider .Bind(wx.EVT_SLIDER,         self._onSlider)
-        self._spinbox.Bind(wx.EVT_SPINCTRLDOUBLE, self._onSpin)
+
+        if real: self._spinbox.Bind(floatspin.EVT_FLOATSPIN, self._onSpin)
+        else:    self._spinbox.Bind(wx.EVT_SPINCTRL,         self._onSpin)
 
         if mousewheel:
             self._spinbox.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)

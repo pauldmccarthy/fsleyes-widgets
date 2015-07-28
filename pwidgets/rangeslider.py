@@ -20,7 +20,8 @@ four control widgets are linked.
 
 
 import wx
-import wx.lib.newevent as wxevent
+import wx.lib.agw.floatspin as floatspin
+import wx.lib.newevent      as wxevent
 
 import floatslider
 import numberdialog
@@ -54,10 +55,10 @@ containing the new minimum/maximum range limits.
 class RangePanel(wx.Panel):
     """A :class:`wx.Panel` containing two widgets (either
     :class:`~pwidgets.floatslider.FloatSlider`, or
-    :class:`wx.SpinCtrlDouble`), representing the 'low'
-    and 'high' values of a range, respectively. When the
-    user changes the low slider to a value beyond the
-    current high value, the high value is increased such
+    :class:`wx.lib.agw.floatspin.FloatSpin`), representing
+    the 'low' and 'high' values of a range, respectively.
+    When the user changes the low slider to a value beyond
+    the current high value, the high value is increased such
     that it remains at least a minimum value above the
     low value. The inverse relationship is also enforced.
     """ 
@@ -83,7 +84,7 @@ class RangePanel(wx.Panel):
                                    :class:`wx.SpinCtrl` widgets are used
                                    instead of
                                    :class:`~pwidgets.floatslider.FloatSlider`
-                                   and :class:`wx.SpinCtrlDouble`.
+                                   and :class:`wx.lib.agw.floatspin.FloatSpin`.
         
         :param number minValue:    Minimum range value.
         
@@ -112,8 +113,8 @@ class RangePanel(wx.Panel):
 
         if real:
             sliderType = floatslider.FloatSlider
-            spinType   = wx.SpinCtrlDouble
-            spinEvType = wx.EVT_SPINCTRLDOUBLE
+            spinType   = floatspin.FloatSpin
+            spinEvType = floatspin.EVT_FLOATSPIN
         else:
             sliderType = wx.Slider
             spinType   = wx.SpinCtrl
@@ -138,6 +139,10 @@ class RangePanel(wx.Panel):
             self._highWidget = spinType(self)
             self._lowWidget .Bind(spinEvType, self._onLowChange)
             self._highWidget.Bind(spinEvType, self._onHighChange)
+
+            if real:
+                self._lowWidget .SetDigits(6)
+                self._highWidget.SetDigits(6)
 
             # Mouse wheel event listener is not
             # needed for FloatSliders, as they
@@ -315,14 +320,17 @@ class RangePanel(wx.Panel):
         
     def SetMin(self, minValue):
         """Sets the current minimum range value."""
-        self._lowWidget .SetMin(minValue)
-        self._highWidget.SetMin(minValue)
+
+        # FloatSpin does not have a SetMin 
+        # method (nor does it have SetMax)
+        self._lowWidget .SetRange(minValue, self._lowWidget .GetMax())
+        self._highWidget.SetRange(minValue, self._highWidget.GetMax())
 
         
     def SetMax(self, maxValue):
         """Sets the current maximum range value."""
-        self._lowWidget .SetMax(maxValue)
-        self._highWidget.SetMax(maxValue)
+        self._lowWidget .SetRange(self._lowWidget .GetMin(), maxValue)
+        self._highWidget.SetRange(self._highWidget.GetMin(), maxValue)
 
 
 class RangeSliderSpinPanel(wx.Panel):
@@ -356,7 +364,7 @@ class RangeSliderSpinPanel(wx.Panel):
                                    :class:`wx.SpinCtrl` widgets are used
                                    instead of
                                    :class:`~pwidgets.floatslider.FloatSlider`
-                                   and :class:`wx.SpinCtrlDouble`.
+                                   and :class:`wx.lib.agw.floatspin.FloatSpin`.
         
         :param number minValue:    Minimum low value.
         
