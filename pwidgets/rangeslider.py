@@ -20,9 +20,9 @@ four control widgets are linked.
 
 
 import wx
-import wx.lib.agw.floatspin as floatspin
-import wx.lib.newevent      as wxevent
+import wx.lib.newevent as wxevent
 
+import floatspin
 import floatslider
 import numberdialog
 
@@ -54,13 +54,12 @@ containing the new minimum/maximum range limits.
 
 class RangePanel(wx.Panel):
     """A :class:`wx.Panel` containing two widgets (either
-    :class:`~pwidgets.floatslider.FloatSlider`, or
-    :class:`wx.lib.agw.floatspin.FloatSpin`), representing
-    the 'low' and 'high' values of a range, respectively.
-    When the user changes the low slider to a value beyond
-    the current high value, the high value is increased such
-    that it remains at least a minimum value above the
-    low value. The inverse relationship is also enforced.
+    :class:`~pwidgets.floatslider.FloatSlider`, or :class:`.FloatSpin`),
+    representing the 'low' and 'high' values of a range, respectively.  When
+    the user changes the low slider to a value beyond the current high value,
+    the high value is increased such that it remains at least a minimum value
+    above the low value. The inverse relationship is also enforced.
+
     """ 
 
     def __init__(self,
@@ -80,11 +79,8 @@ class RangePanel(wx.Panel):
 
         :param str widgetType:     Widget type - either ``slider`` or ``spin``. 
 
-        :param real:               If ``False``, :class:`wx.Slider` and
-                                   :class:`wx.SpinCtrl` widgets are used
-                                   instead of
-                                   :class:`~pwidgets.floatslider.FloatSlider`
-                                   and :class:`wx.lib.agw.floatspin.FloatSpin`.
+        :param real:               If ``False``, a :class:`wx.Slider` widget
+                                   is used instead of a :class:`.FloatSlider`.
         
         :param number minValue:    Minimum range value.
         
@@ -111,14 +107,8 @@ class RangePanel(wx.Panel):
 
         wx.Panel.__init__(self, parent)
 
-        if real:
-            sliderType = floatslider.FloatSlider
-            spinType   = floatspin.FloatSpin
-            spinEvType = floatspin.EVT_FLOATSPIN
-        else:
-            sliderType = wx.Slider
-            spinType   = wx.SpinCtrl
-            spinEvType = wx.EVT_SPINCTRL
+        if real: sliderType  = floatslider.FloatSlider
+        else:    sliderType  = wx.Slider
 
         if minValue    is None: minValue    = 0
         if maxValue    is None: maxValue    = 100
@@ -133,22 +123,20 @@ class RangePanel(wx.Panel):
             self._highWidget = sliderType(self)
             self._lowWidget .Bind(wx.EVT_SLIDER, self._onLowChange)
             self._highWidget.Bind(wx.EVT_SLIDER, self._onHighChange)
-            
-        elif widgetType == 'spin':
-            self._lowWidget  = spinType(self)
-            self._highWidget = spinType(self)
-            self._lowWidget .Bind(spinEvType, self._onLowChange)
-            self._highWidget.Bind(spinEvType, self._onHighChange)
-
-            if real:
-                self._lowWidget .SetDigits(6)
-                self._highWidget.SetDigits(6)
 
             # Mouse wheel event listener is not
             # needed for FloatSliders, as they
             # register their own listener
-            self._lowWidget .Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
-            self._highWidget.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+            if not real:
+                self._lowWidget .Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+                self._highWidget.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
+            
+        elif widgetType == 'spin':
+            self._lowWidget  = floatspin.FloatSpinCtrl(self)
+            self._highWidget = floatspin.FloatSpinCtrl(self)
+
+            self._lowWidget .Bind(floatspin.EVT_FLOATSPIN, self._onLowChange)
+            self._highWidget.Bind(floatspin.EVT_FLOATSPIN, self._onHighChange)
 
         self._sizer = wx.GridBagSizer(1, 1)
         self._sizer.SetEmptyCellSize((0, 0))
@@ -172,7 +160,7 @@ class RangePanel(wx.Panel):
 
         self.SetLimits(minValue, maxValue)
         self.SetRange( lowValue, highValue)
-
+        
         self._sizer.AddGrowableCol(1)
 
         self.Layout()

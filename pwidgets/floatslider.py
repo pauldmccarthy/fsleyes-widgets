@@ -12,7 +12,7 @@ The :class:`FloatSlider` class is an alternative to :class:`wx.Slider` which
 supports floating point numbers.
 
 The :class:`SliderSpinPanel` class is a panel containing a
-:class:`FloatSlider` and a :class:`wx.lib.agw.floatspin.FloatSpin`, linked
+:class:`FloatSlider` and a :class:`.FloatSpinCtrl`, linked
 such that changes in one are reflected in the other. The
 :class:`SliderSpinPanel` class also allows the user to change the slider
 limits, via the :class:`~pwidgets.numberdialog.NumberDialog` class.
@@ -20,11 +20,14 @@ limits, via the :class:`~pwidgets.numberdialog.NumberDialog` class.
 """
 
 import wx
-import wx.lib.agw.floatspin as floatspin
-import wx.lib.newevent      as wxevent
+import floatspin
+import wx.lib.newevent as wxevent
 
 import numberdialog
 
+# TODO
+#   - Use styles for e.g. mouse wheel
+#   - Support integers
 class FloatSlider(wx.Slider):
     """Floating point slider widget.
     
@@ -217,8 +220,7 @@ contain the new limit values.
 
 
 class SliderSpinPanel(wx.Panel):
-    """A panel containing a :class:`FloatSlider` and a
-    :class:`wx.lib.agw.floatspin.FloatSpin`.
+    """A panel containing a :class:`FloatSlider` and a :class:`.FloatSpinCtrl`.
 
     The slider and spinbox are linked such that changes to one are
     reflected in the other.  The :class:`SliderSpinPanel` class also
@@ -252,7 +254,7 @@ class SliderSpinPanel(wx.Panel):
         :param bool real:        If ``False``, a :class:`wx.Slider` and
                                  :class:`wx.SpinCtrl` are used, instead of a
                                  :class:`FloatSlider` and
-                                 :class:`wx.lib.agw.floatspin.FloatSpin`.
+                                 :class:`.FloatSpinCtrl`.
         
         :param number value:     Initial slider/spin value.
         
@@ -291,6 +293,16 @@ class SliderSpinPanel(wx.Panel):
         if real: self._fmt = '{: 0.3G}'
         else:    self._fmt = '{}'
 
+        spinParams = {
+            'value' : value,
+            'min'   : minValue,
+            'max'   : maxValue,
+            'style' : 0
+        }
+        
+        if mousewheel:
+            spinParams['style'] |= floatspin.FSC_MOUSEWHEEL
+
         if real:
             self._slider = FloatSlider(
                 self,
@@ -298,25 +310,21 @@ class SliderSpinPanel(wx.Panel):
                 minValue=minValue,
                 maxValue=maxValue,
                 mousewheel=mousewheel)
-            self._spinbox = floatspin.FloatSpin(
-                self,
-                min_val=minValue,
-                max_val=maxValue,
-                digits=6,
-                value=value)
+
+            spinParams['inc'] = (maxValue - minValue) / 100.0
+
         else:
             self._slider = wx.Slider(
                 self,
                 value=value,
                 minValue=minValue,
                 maxValue=maxValue)
-            self._spinbox = wx.SpinCtrl(
-                self,
-                min=minValue,
-                max=maxValue,
-                value=self._fmt.format(value),
-                initial=value)
 
+            spinParams['style'] |= floatspin.FSC_INTEGER
+            spinParams['inc']    = 1
+
+        self._spinbox = floatspin.FloatSpinCtrl(self, **spinParams)
+ 
         self._sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self._sizer)
 
@@ -327,16 +335,13 @@ class SliderSpinPanel(wx.Panel):
         self._sizer.Add(self._slider,  flag=wx.EXPAND, proportion=1)
         self._sizer.Add(self._spinbox, flag=wx.EXPAND)
 
-        self._slider .Bind(wx.EVT_SLIDER,         self._onSlider)
-
-        if real: self._spinbox.Bind(floatspin.EVT_FLOATSPIN, self._onSpin)
-        else:    self._spinbox.Bind(wx.EVT_SPINCTRL,         self._onSpin)
+        self._slider .Bind(wx.EVT_SLIDER,           self._onSlider)
+        self._spinbox.Bind(floatspin.EVT_FLOATSPIN, self._onSpin)
 
         if mousewheel:
-            self._spinbox.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
-        
-            # The FloatSlider binds its own listener on mouse wheel
-            # events, so we only need to bind for wx.Slider instances
+            # The FloatSlider and FloatSpinCtrl bind their
+            # own listeners on mouse wheel events, so we
+            # only need to bind for wx.Slider instances
             if not real:
                 self._slider.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
 
@@ -412,6 +417,7 @@ class SliderSpinPanel(wx.Panel):
         slider value and emits an :data:`EVT_SSP_VALUE` event.
         """
         val = self._spinbox.GetValue()
+        
         self._slider.SetValue(val)
         wx.PostEvent(self, SliderSpinValueEvent(value=val))
 
