@@ -107,9 +107,6 @@ class RangePanel(wx.Panel):
 
         wx.Panel.__init__(self, parent)
 
-        if real: sliderType  = floatslider.FloatSlider
-        else:    sliderType  = wx.Slider
-
         if minValue    is None: minValue    = 0
         if maxValue    is None: maxValue    = 100
         if lowValue    is None: lowValue    = 0
@@ -119,21 +116,24 @@ class RangePanel(wx.Panel):
         self._minDistance = minDistance
 
         if widgetType == 'slider':
-            self._lowWidget  = sliderType(self)
-            self._highWidget = sliderType(self)
+            style = floatslider.FS_MOUSEWHEEL
+            if not real:
+                style |= floatslider.FS_INTEGER
+                
+            self._lowWidget  = floatslider.FloatSlider(self, style=style)
+            self._highWidget = floatslider.FloatSlider(self, style=style)
+            
             self._lowWidget .Bind(wx.EVT_SLIDER, self._onLowChange)
             self._highWidget.Bind(wx.EVT_SLIDER, self._onHighChange)
-
-            # Mouse wheel event listener is not
-            # needed for FloatSliders, as they
-            # register their own listener
-            if not real:
-                self._lowWidget .Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
-                self._highWidget.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
             
         elif widgetType == 'spin':
-            self._lowWidget  = floatspin.FloatSpinCtrl(self)
-            self._highWidget = floatspin.FloatSpinCtrl(self)
+
+            style = floatspin.FSC_MOUSEWHEEL
+            if not real:
+                style |= floatspin.FSC_INTEGER
+            
+            self._lowWidget  = floatspin.FloatSpinCtrl(self, style=style)
+            self._highWidget = floatspin.FloatSpinCtrl(self, style=style)
 
             self._lowWidget .Bind(floatspin.EVT_FLOATSPIN, self._onLowChange)
             self._highWidget.Bind(floatspin.EVT_FLOATSPIN, self._onHighChange)

@@ -25,9 +25,16 @@ import wx.lib.newevent as wxevent
 
 import numberdialog
 
+
 # TODO
 #   - Use styles for e.g. mouse wheel
 #   - Support integers
+
+
+FS_MOUSEWHEEL = 1
+FS_INTEGER    = 2
+
+
 class FloatSlider(wx.Slider):
     """Floating point slider widget.
     
@@ -41,8 +48,7 @@ class FloatSlider(wx.Slider):
                  value=None,
                  minValue=None,
                  maxValue=None,
-                 mousewheel=False,
-                 **kwargs):
+                 style=0):
         """Initialise a FloatSlider.
 
         :param parent:           The :mod:`wx` parent object.
@@ -55,9 +61,6 @@ class FloatSlider(wx.Slider):
 
         :param float mousewheel: If ``True``, mouse wheel events over the
                                  slider will change its value.
-        
-        :param kwargs:           Passed through to the :class:`wx.Slider`
-                                 constructor.
         """
 
         if value    is None: value    = 0
@@ -68,13 +71,15 @@ class FloatSlider(wx.Slider):
         self.__sliderMax   =  2 ** 31 - 1
         self.__sliderRange = abs(self.__sliderMax - self.__sliderMin)
 
+        self.__integer     = style & FS_INTEGER > 0
+
         wx.Slider.__init__(self,
                            parent,
                            minValue=self.__sliderMin,
                            maxValue=self.__sliderMax,
-                           **kwargs)
+                           style=wx.SL_HORIZONTAL)
 
-        if mousewheel:
+        if style & FS_MOUSEWHEEL:
             self.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
         
         self.__SetRange(minValue, maxValue)
@@ -121,13 +126,21 @@ class FloatSlider(wx.Slider):
         :meth:`SetValue` needs :attr:`__realMin` and :attr:`__realMax`
         to be set, but :meth:`SetRange` needs to retrieve the value
         before setting :attr:`__realMin` and :attr:`__realMax`.
-        """ 
+        """
 
-        self.__realMin   = float(minValue)
-        self.__realMax   = float(maxValue)
-        if self.__realMin == self.__realMax:
-            self.__realMax = self.__realMax + 1
-        self.__realRange = abs(self.__realMin - self.__realMax)
+        minValue  = float(minValue)
+        maxValue  = float(maxValue)
+
+        if self.__integer:
+            minValue  = int(round(minValue))
+            maxValue  = int(round(maxValue))
+
+        if minValue >= maxValue:
+            maxValue = minValue + 1
+
+        self.__realMin   = minValue
+        self.__realMax   = maxValue
+        self.__realRange = abs(self.__realMax - self.__realMin)
 
         
     def SetRange(self, minValue, maxValue):
@@ -166,19 +179,26 @@ class FloatSlider(wx.Slider):
     def __sliderToReal(self, value):
         """Converts the given value from slider space to real space."""
         value = self.__realMin + (value - self.__sliderMin) * \
-            (self.__realRange / self.__sliderRange)
-        return value
+            (float(self.__realRange) / self.__sliderRange)
+
+        if self.__integer: return int(round(value))
+        else:              return value
 
         
     def __realToSlider(self, value):
-        """Converts the given value from real space to slider space.""" 
+        """Converts the given value from real space to slider space."""
+
+        if self.__integer:
+            value = int(round(value)) 
+
         value = self.__sliderMin + (value - self.__realMin) * \
-            (self.__sliderRange / self.__realRange)
+            (self.__sliderRange / float(self.__realRange))
         return int(round(value))
 
         
     def SetValue(self, value):
         """Set the slider value."""
+
         value = self.__realToSlider(value)
 
         if value < self.__sliderMin: value = self.__sliderMin
@@ -293,38 +313,35 @@ class SliderSpinPanel(wx.Panel):
         if real: self._fmt = '{: 0.3G}'
         else:    self._fmt = '{}'
 
-        spinParams = {
-            'value' : value,
-            'min'   : minValue,
-            'max'   : maxValue,
-            'style' : 0
-        }
+        spinStyle   = 0
+        sliderStyle = 0
         
         if mousewheel:
-            spinParams['style'] |= floatspin.FSC_MOUSEWHEEL
+            spinStyle   |= floatspin.FSC_MOUSEWHEEL
+            sliderStyle |=            FS_MOUSEWHEEL
 
         if real:
-            self._slider = FloatSlider(
-                self,
-                value=value,
-                minValue=minValue,
-                maxValue=maxValue,
-                mousewheel=mousewheel)
-
-            spinParams['inc'] = (maxValue - minValue) / 100.0
-
+            increment    = (maxValue - minValue) / 100.0
         else:
-            self._slider = wx.Slider(
-                self,
-                value=value,
-                minValue=minValue,
-                maxValue=maxValue)
+            spinStyle   |= floatspin.FSC_INTEGER
+            sliderStyle |=            FS_INTEGER
+            increment    = 1
 
-            spinParams['style'] |= floatspin.FSC_INTEGER
-            spinParams['inc']    = 1
+        self._slider = FloatSlider(
+            self,
+            value=value,
+            minValue=minValue,
+            maxValue=maxValue,
+            style=sliderStyle)
 
-        self._spinbox = floatspin.FloatSpinCtrl(self, **spinParams)
- 
+        self._spinbox = floatspin.FloatSpinCtrl(
+            self,
+            value=value,
+            minValue=minValue,
+            maxValue=maxValue,
+            increment=increment,
+            style=spinStyle)
+                                                
         self._sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self._sizer)
 
@@ -337,13 +354,6 @@ class SliderSpinPanel(wx.Panel):
 
         self._slider .Bind(wx.EVT_SLIDER,           self._onSlider)
         self._spinbox.Bind(floatspin.EVT_FLOATSPIN, self._onSpin)
-
-        if mousewheel:
-            # The FloatSlider and FloatSpinCtrl bind their
-            # own listeners on mouse wheel events, so we
-            # only need to bind for wx.Slider instances
-            if not real:
-                self._slider.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
 
         if showLimits:
             self._minButton = wx.Button(self, label=self._fmt.format(minValue))
