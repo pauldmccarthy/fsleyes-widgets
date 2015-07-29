@@ -72,7 +72,8 @@ class RangePanel(wx.Panel):
                  highValue=None,
                  lowLabel=None,
                  highLabel=None,
-                 minDistance=None):
+                 minDistance=None,
+                 mousewheel=False):
         """Initialise a :class:`RangePanel` panel.
         
         :param parent:             The :mod:`wx` parent object.
@@ -116,7 +117,10 @@ class RangePanel(wx.Panel):
         self._minDistance = minDistance
 
         if widgetType == 'slider':
-            style = floatslider.FS_MOUSEWHEEL
+
+            if mousewheel: style = floatslider.FS_MOUSEWHEEL
+            else:          style = 0
+            
             if not real:
                 style |= floatslider.FS_INTEGER
                 
@@ -128,7 +132,9 @@ class RangePanel(wx.Panel):
             
         elif widgetType == 'spin':
 
-            style = floatspin.FSC_MOUSEWHEEL
+            if mousewheel: style = floatspin.FSC_MOUSEWHEEL
+            else:          style = 0
+            
             if not real:
                 style |= floatspin.FSC_INTEGER
             
@@ -164,32 +170,6 @@ class RangePanel(wx.Panel):
         self._sizer.AddGrowableCol(1)
 
         self.Layout()
-
-
-    def _onMouseWheel(self, ev):
-        """Called when the mouse wheel is spun on on of the spin controls.
-        Increases/decreases the respective low/high value accordingly.
-        """
-
-        if not self.IsEnabled():
-            return
-
-        source   = ev.GetEventObject()
-        wheelDir = ev.GetWheelRotation()
-        inc      = (self.GetMax() - self.GetMin()) / 100.0
-
-        if   wheelDir < 0: inc = -inc
-        elif wheelDir > 0: inc =  inc
-        else:              return
-
-        if source is self._lowWidget:
-            self.SetLow(self.GetLow() + inc)
-            self._onLowChange()
-            
-        elif source is self._highWidget:
-
-            self.SetHigh(self.GetHigh() + inc)
-            self._onHighChange()
 
 
     def _onLowChange(self, ev=None):
@@ -343,7 +323,8 @@ class RangeSliderSpinPanel(wx.Panel):
                  lowLabel=None,
                  highLabel=None,
                  showLimits=True,
-                 editLimits=False):
+                 editLimits=False,
+                 mousewheel=False):
         """Initialise a :class:`RangeSliderSpinPanel`.
         
         :param parent:             The :mod:`wx` parent object.
@@ -405,7 +386,8 @@ class RangeSliderSpinPanel(wx.Panel):
             'maxValue'    : maxValue,
             'lowValue'    : lowValue,
             'highValue'   : highValue,
-            'minDistance' : minDistance
+            'minDistance' : minDistance,
+            'mousewheel'  : mousewheel
         }
         
         self._sliderPanel = RangePanel(self,
