@@ -184,7 +184,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             
             panel.SetSizer(sizer)
             sizer.Add(lbl, flag=wx.EXPAND, proportion=1)
-            
+
+            self.__initWidget(lbl)
             self.__rowLabels.append((panel, lbl))
 
         for coli in range(ncols):
@@ -195,7 +196,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             
             panel.SetSizer(sizer)
             sizer.Add(lbl, flag=wx.EXPAND, proportion=1)
-            
+
+            self.__initWidget(lbl)
             self.__colLabels.append((panel, lbl))
             
         self.__gridPanel.SetSizer(self.__gridSizer)
@@ -265,8 +267,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             elif rotation < 0: delta = -1
             else:              return
             
-            if ev.ShiftDown(): posx += delta
-            else:              posy -= delta
+            if ev.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL: posy -= delta
+            else:                                            posx += delta
 
             self.Scroll(posx, posy)
 
