@@ -180,11 +180,14 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         for rowi in range(nrows):
             panel = wx.Panel(self)
             sizer = wx.BoxSizer(wx.HORIZONTAL)
-            lbl   = wx.StaticText(panel)
+            lbl   = wx.StaticText(
+                panel,
+                style=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
             
             panel.SetSizer(sizer)
-            sizer.Add(lbl, flag=wx.EXPAND, proportion=1)
+            sizer.Add(lbl, flag=wx.CENTRE)
 
+            self.__initWidget(panel)
             self.__initWidget(lbl)
             self.__rowLabels.append((panel, lbl))
 
@@ -192,11 +195,14 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
             panel = wx.Panel(self)
             sizer = wx.BoxSizer(wx.HORIZONTAL)
-            lbl   = wx.StaticText(panel)
+            lbl   = wx.StaticText(
+                panel,
+                style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ALIGN_CENTRE_VERTICAL)
             
             panel.SetSizer(sizer)
-            sizer.Add(lbl, flag=wx.EXPAND, proportion=1)
+            sizer.Add(lbl, flag=wx.CENTRE)
 
+            self.__initWidget(panel)
             self.__initWidget(lbl)
             self.__colLabels.append((panel, lbl))
             
@@ -263,8 +269,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             posx, posy = self.GetViewStart().Get()
             rotation   = ev.GetWheelRotation()
 
-            if   rotation > 0: delta =  1
-            elif rotation < 0: delta = -1
+            if   rotation > 0: delta =  20
+            elif rotation < 0: delta = -20
             else:              return
             
             if ev.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL: posy -= delta

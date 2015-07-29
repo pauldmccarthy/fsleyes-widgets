@@ -325,8 +325,8 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         posx, posy = self.GetViewStart().Get()
         rotation   = ev.GetWheelRotation()
 
-        if   rotation > 0: delta =  1
-        elif rotation < 0: delta = -1
+        if   rotation > 0: delta =  20
+        elif rotation < 0: delta = -20
         else:              return
 
         if ev.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL: posy -= delta
