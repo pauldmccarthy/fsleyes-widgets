@@ -97,7 +97,7 @@ class FloatSpinCtrl(wx.PyPanel):
 
         self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        self.__sizer.Add(self.__text)
+        self.__sizer.Add(self.__text, flag=wx.EXPAND, proportion=1)
         self.__sizer.Add(self.__spin)
         
         self.SetSizer(self.__sizer)
