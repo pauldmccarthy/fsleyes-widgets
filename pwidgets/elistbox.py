@@ -712,6 +712,9 @@ class EditableListBox(wx.Panel):
         labelWidget.Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
         container  .Bind(wx.EVT_LEFT_DOWN, self._itemClicked)
 
+        # Under linux/GTK, mouse wheel handlers
+        # need to be added to children, not
+        # just the top level container
         if self._scrollbar is not None:
             labelWidget.Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)
             container  .Bind(wx.EVT_MOUSEWHEEL, self._onMouseWheel)

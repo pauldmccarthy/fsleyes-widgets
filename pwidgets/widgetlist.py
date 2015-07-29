@@ -44,7 +44,18 @@ class Widget(object):
         else:
             self.widget.SetBackgroundColour(colour)
 
-    
+
+    def Bind(self, evType, callback):
+        self.panel.Bind(evType, callback)
+        self.label.Bind(evType, callback)
+
+        if isinstance(self.widget, wx.Sizer):
+            for c in self.widget.GetChildren():
+                c.GetWindow().Bind(evType, callback)
+        else:
+            self.widget.Bind(evType, callback)
+
+            
     def Destroy(self):
         self.label.Destroy()
         if isinstance(self.widget, wx.Sizer):
@@ -283,7 +294,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
         widgSizer.Add(label,  flag=wx.EXPAND)
         widgSizer.Add(widget, flag=wx.EXPAND, proportion=1)
-        
+
         parentSizer.Add(widgPanel,
                         flag=wx.EXPAND | wx.LEFT | wx.RIGHT,
                         border=5)
@@ -294,6 +305,26 @@ class WidgetList(scrolledpanel.ScrolledPanel):
                       widget,
                       widgPanel,
                       widgSizer)
+
+        # Under linux/GTK, mouse events are
+        # captured by child windows, so if
+        # we want scrolling to work, we need
+        # to capture scroll events on every
+        # child
+        def scroll(ev):
+            posx, posy = self.GetViewStart().Get()
+            rotation   = ev.GetWheelRotation()
+
+            if   rotation > 0: delta =  1
+            elif rotation < 0: delta = -1
+            else:              return
+            
+            if ev.ShiftDown(): posx += delta
+            else:              posy -= delta
+
+            self.Scroll(posx, posy)
+            
+        widg.Bind(wx.EVT_MOUSEWHEEL, scroll)
 
         widgDict[key] = widg
 

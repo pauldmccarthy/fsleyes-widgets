@@ -242,6 +242,9 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
         self.__reparent(widget, panel)
 
+        self.__initWidget(widget)
+        self.__initWidget(panel)
+
         sizer.Add(widget, flag=wx.EXPAND, proportion=1)
 
         if self.__widgets[row][col] is not None:
@@ -250,6 +253,28 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__widgets[row][col] = panel
 
         self.__refresh()
+
+
+    def __initWidget(self, widget):
+            
+        def scroll(ev):
+            posx, posy = self.GetViewStart().Get()
+            rotation   = ev.GetWheelRotation()
+
+            if   rotation > 0: delta =  1
+            elif rotation < 0: delta = -1
+            else:              return
+            
+            if ev.ShiftDown(): posx += delta
+            else:              posy -= delta
+
+            self.Scroll(posx, posy)
+
+        if isinstance(widget, wx.Sizer):
+            for c in widget.GetChildren():
+                c.GetWindow().Bind(wx.EVT_MOUSEWHEEL, scroll)
+        else:
+            widget.Bind(wx.EVT_MOUSEWHEEL, scroll)
     
 
     def ShowRowLabels(self, show=True):
