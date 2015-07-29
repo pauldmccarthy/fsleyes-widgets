@@ -90,7 +90,56 @@ class FloatSlider(wx.Slider):
         # the min size will force them to
         # have a good size
         if self.HasFlag(wx.VERTICAL): self.SetMinSize((-1,  150))
-        else:                         self.SetMinSize((150, -1))        
+        else:                         self.SetMinSize((150, -1))
+
+        # Under GTK, mouse click on the
+        # slider do not update the slider
+        # position - users have to click+drag
+        # on the slider thumb
+        if wx.Platform == '__WXGTK__':
+            self.__mousePos = None
+            self.Bind(wx.EVT_LEFT_DOWN, self.__onMouseDown)
+            self.Bind(wx.EVT_LEFT_UP,   self.__onMouseUp)
+            
+
+    def __onMouseDown(self, ev):
+        """Only called when running on GTK. Stores the mouse down position,
+        and passes the event on.
+        """
+        self.__mousePos = (ev.GetX(), ev.GetY())
+        ev.Skip()
+
+        
+    def __onMouseUp(self, ev):
+        """Only called when running on GTK. If the mouse position has moved
+        since its corresponding mouse down position (i.e. a drag), passes
+        the event on to the next handler.
+
+        Otherwise (a mouse click) changes the slider value according to the
+        mouse position.
+        """        
+        if self.__mousePos is None:
+            return
+
+        if self.__mousePos != (ev.GetX(), ev.GetY()):
+            ev.Skip()
+            return
+        
+
+        dataMin, dataMax = self.GetRange()
+        width, height    = self.GetClientSize().Get()
+        vertical         = self.GetWindowStyle() & wx.VERTICAL > 0
+        x                = float(ev.GetX())
+        y                = float(ev.GetY())
+
+        if vertical: value = dataMin + (y / height) * (dataMax - dataMin) 
+        else:        value = dataMin + (x / width)  * (dataMax - dataMin)
+
+        self.__mousePos = None
+
+        self.SetValue(value)
+        ev = wx.PyCommandEvent(wx.EVT_SLIDER.typeId, self.GetId())
+        wx.PostEvent(self.GetEventHandler(), ev) 
 
 
     def __onMouseWheel(self, ev):
