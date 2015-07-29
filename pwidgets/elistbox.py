@@ -23,11 +23,12 @@ import wx.lib.newevent as wxevent
 log = logging.getLogger(__name__)
 
 
-_ListSelectEvent, _EVT_ELB_SELECT_EVENT = wxevent.NewEvent()
-_ListAddEvent,    _EVT_ELB_ADD_EVENT    = wxevent.NewEvent()
-_ListRemoveEvent, _EVT_ELB_REMOVE_EVENT = wxevent.NewEvent()
-_ListMoveEvent,   _EVT_ELB_MOVE_EVENT   = wxevent.NewEvent()
-_ListEditEvent,   _EVT_ELB_EDIT_EVENT   = wxevent.NewEvent()
+_ListSelectEvent,   _EVT_ELB_SELECT_EVENT   = wxevent.NewEvent()
+_ListAddEvent,      _EVT_ELB_ADD_EVENT      = wxevent.NewEvent()
+_ListRemoveEvent,   _EVT_ELB_REMOVE_EVENT   = wxevent.NewEvent()
+_ListMoveEvent,     _EVT_ELB_MOVE_EVENT     = wxevent.NewEvent()
+_ListEditEvent,     _EVT_ELB_EDIT_EVENT     = wxevent.NewEvent()
+_ListDblClickEvent, _EVT_ELB_DBLCLICK_EVENT = wxevent.NewEvent()
 
 
 EVT_ELB_SELECT_EVENT = _EVT_ELB_SELECT_EVENT
@@ -48,6 +49,9 @@ EVT_ELB_MOVE_EVENT = _EVT_ELB_MOVE_EVENT
 
 EVT_ELB_EDIT_EVENT = _EVT_ELB_EDIT_EVENT
 """Identifier for the :data:`ListEditEvent` event."""
+
+
+EVT_ELB_DBLCLICK_EVENT = _EVT_ELB_DBLCLICK_EVENT
 
 
 ListSelectEvent = _ListSelectEvent
@@ -105,6 +109,17 @@ attributes:
   - ``data``:  Client data associated with edited item.
 """
 
+ListDblClickEvent = _ListDblClickEvent
+"""Event emitted when a list item is double-clicked onthe user (see
+the :data:`ELB_EDITABLE` style). A ``ListDblClickEvent`` has the
+following attributes:
+
+  - ``idx``:   Index of clicked item
+  - ``label``: Label of clicked item
+  - ``data``:  Client data associated with clicked item.
+"""
+
+
 ELB_NO_SCROLL = 1
 """Style flag - if enabled, there will be no scrollbar. """
 
@@ -135,6 +150,9 @@ on mouse-over."""
 ELB_EDITABLE = 64
 """Style flag - if enabled, double clicking a list item will allow the
 user to edit the item value.
+
+If this style is enabled, the :attr:`EVT_ELB_DBLCLICK_EVENT` will not
+be generated.
 """
 
 ELB_NO_LABELS = 128
@@ -709,10 +727,21 @@ class EditableListBox(wx.Panel):
                          EditableListBox._selectedBG,
                          extraWidget)
 
+        # If the items are editable,
+        # double clicking will call
+        # the _onEdit method
         if self._editSupport:
             onEdit = lambda ev: self._onEdit(ev, item)
             labelWidget.Bind(wx.EVT_LEFT_DCLICK, onEdit)
             container  .Bind(wx.EVT_LEFT_DCLICK, onEdit)
+
+        # Otherwise, double clicking
+        # will call the _onDoubleClick
+        # method
+        else:
+            onDblClick = lambda ev: self._onDoubleClick(ev, item)
+            labelWidget.Bind(wx.EVT_LEFT_DCLICK, onDblClick)
+            container  .Bind(wx.EVT_LEFT_DCLICK, onDblClick) 
 
         log.debug('Inserting item ({}) at index {}'.format(label, pos))
 
@@ -1130,8 +1159,10 @@ class EditableListBox(wx.Panel):
 
 
     def _onEdit(self, ev, listItem):
-        """Called when an item is double clicked. See the :data:`ELB_EDITABLE`
-        style.
+        """Called when an item is double clicked.
+
+        This method is only called if the :data:`ELB_EDITABLE` style flag is
+        set.
 
         Creates and displays a :class:`wx.TextCtrl` allowing the user to edit
         the item label. A :class:`ListEditEvent` is posted every time the text
@@ -1190,6 +1221,25 @@ class EditableListBox(wx.Panel):
         sizer.Layout()
 
         editCtrl.SetFocus()
+
+        
+    def _onDoubleClick(self, ev, listItem):
+        """Called when an item is double clicked. See the :data:`ELB_EDITABLE`
+        style.
+
+        This method is only called if the :data:`ELB_EDITABLE` style flag is
+        not set. 
+        
+        Posts a :class:`ListDblClickEvent`.
+        """
+        
+        idx = self._listItems.index(listItem)
+        idx = self._fixIndex(idx) 
+        
+        ev = ListDblClickEvent(idx=idx,
+                               label=listItem.label,
+                               data=listItem.data)
+        wx.PostEvent(self, ev) 
 
 
     def _updateMoveButtons(self):
