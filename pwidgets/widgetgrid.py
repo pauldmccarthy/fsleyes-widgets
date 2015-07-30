@@ -264,13 +264,20 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
 
     def __initWidget(self, widget):
+
+        # Under Linux/GTK, we need to bind a mousewheel
+        # listener to every child of the panel in order
+        # for scrolling to work correctly. This is not
+        # necessary under OSX/cocoa.
+        if wx.Platform != '__WXGTK__':
+            return
             
         def scroll(ev):
             posx, posy = self.GetViewStart().Get()
             rotation   = ev.GetWheelRotation()
 
-            if   rotation > 0: delta =  20
-            elif rotation < 0: delta = -20
+            if   rotation > 0: delta =  10
+            elif rotation < 0: delta = -10
             else:              return
             
             if ev.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL: posy -= delta

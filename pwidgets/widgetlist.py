@@ -250,9 +250,13 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         self.__groups[groupName] = group
         self.__refresh()
 
-        parentPanel.Bind(wx.EVT_MOUSEWHEEL,              self.__onMouseWheel)
-        colPanel   .Bind(wx.EVT_MOUSEWHEEL,              self.__onMouseWheel)
-        colPanel   .Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.__refresh)
+        # Mouse wheel listener needed
+        # on all children under linux/GTK
+        if wx.Platform == '__WXGTK__':
+            parentPanel.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
+            colPanel   .Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
+            
+        colPanel.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.__refresh)
 
 
     def AddWidget(self, widget, displayName, tooltip=None, groupName=None):
@@ -312,8 +316,10 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         # captured by child windows, so if
         # we want scrolling to work, we need
         # to capture scroll events on every
-        # child
-        widg.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
+        # child. Under OSX/cocoa, this is
+        # not necessary.
+        if wx.Platform == '__WXGTK__':
+            widg.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
 
         widgDict[key] = widg
 
@@ -325,8 +331,8 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         posx, posy = self.GetViewStart().Get()
         rotation   = ev.GetWheelRotation()
 
-        if   rotation > 0: delta =  20
-        elif rotation < 0: delta = -20
+        if   rotation > 0: delta =  10
+        elif rotation < 0: delta = -10
         else:              return
 
         if ev.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL: posy -= delta
