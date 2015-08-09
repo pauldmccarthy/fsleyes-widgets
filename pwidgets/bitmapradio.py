@@ -40,36 +40,14 @@ class BitmapRadioBox(wx.PyPanel):
         self.SetSizer(self.__sizer)
 
 
-    def __loadBitmap(self, imgFile):
-        
-        img     = wx.Image(imgFile)
-        maxSize = self.__maxSize
-
-        if maxSize is not None:
-            w, h = img.GetSize().Get()
-
-            if w >= h:
-                h = maxSize * h / float(w)
-                w = maxSize
-            else:
-                w = maxSize * (w / float(h)) 
-                h = maxSize
-
-            img.Rescale(w, h, wx.IMAGE_QUALITY_BICUBIC)
-
-        return wx.BitmapFromImage(img)
-
-
-    def AddChoice(self, imgFile, clientData=None):
-
-        bmp    = self.__loadBitmap(imgFile)
+    def AddChoice(self, bitmap, clientData=None):
 
         # BU_NOTEXT causes a segfault under OSX
         if wx.Platform == '__WXMAC__': style = wx.BU_EXACTFIT
         else:                          style = wx.BU_EXACTFIT | wx.BU_NOTEXT
         
         button = wx.ToggleButton(self, style=style)
-        button.SetBitmap(bmp)
+        button.SetBitmap(bitmap)
 
         self.__buttons   .append(button)
         self.__clientData.append(clientData)
@@ -88,13 +66,13 @@ class BitmapRadioBox(wx.PyPanel):
         self.__clientData = []
 
         
-    def Set(self, imgFiles, clientData=None):
+    def Set(self, bitmaps, clientData=None):
 
         if clientData is None:
-            clientData = [None] * len(imgFiles)
+            clientData = [None] * len(bitmaps)
 
         self.Clear()
-        map(self.AddChoice, imgFiles, clientData)
+        map(self.AddChoice, bitmaps, clientData)
 
 
     def GetSelection(self):
