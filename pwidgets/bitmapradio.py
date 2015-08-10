@@ -19,19 +19,18 @@ BitmapRadioEvent = _BitampRadioEvent
 
 class BitmapRadioBox(wx.PyPanel):
 
-    def __init__(self, parent, maxSize=None, style=None):
+    def __init__(self, parent, style=None):
         """
         :arg style: ``wx.HORIZONTAL`` or ``wx.VERTICAL``.
         """
         wx.PyPanel.__init__(self, parent)
 
-        if style   is None: style   = wx.HORIZONTAL
-        if maxSize is None: maxSize = 32
+        if style is None:
+            style = wx.HORIZONTAL
 
         if style & wx.VERTICAL: szorient = wx.VERTICAL
         else:                   szorient = wx.HORIZONTAL
 
-        self.__maxSize    = maxSize
         self.__selection  = -1
         self.__buttons    = []
         self.__clientData = []
@@ -43,8 +42,11 @@ class BitmapRadioBox(wx.PyPanel):
     def AddChoice(self, bitmap, clientData=None):
 
         # BU_NOTEXT causes a segfault under OSX
-        if wx.Platform == '__WXMAC__': style = wx.BU_EXACTFIT
-        else:                          style = wx.BU_EXACTFIT | wx.BU_NOTEXT
+        if wx.Platform == '__WXMAC__':
+            style = wx.BU_EXACTFIT | wx.ALIGN_CENTRE
+            
+        else:
+            style = wx.BU_EXACTFIT | wx.ALIGN_CENTRE | wx.BU_NOTEXT
         
         button = wx.ToggleButton(self, style=style)
         button.SetBitmap(bitmap)
