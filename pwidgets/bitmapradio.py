@@ -54,10 +54,13 @@ class BitmapRadioBox(wx.PyPanel):
         self.__buttons   .append(button)
         self.__clientData.append(clientData)
 
-        self.__sizer.Add(button)
+        self.__sizer.Add(button, flag=wx.EXPAND)
         self.Layout()
 
         button.Bind(wx.EVT_TOGGLEBUTTON, self.__onButton)
+
+        if self.__selection == -1:
+            self.SetSelection(0)
 
         
     def Clear(self):
