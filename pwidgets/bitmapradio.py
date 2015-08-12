@@ -70,6 +70,14 @@ class BitmapRadioBox(wx.PyPanel):
         self.__buttons    = []
         self.__clientData = []
 
+
+    def Enable(self, index, enable=True):
+        self.__buttons[index].Enable(enable)
+
+    
+    def Disable(self, index):
+        self.Enable(index, False)
+
         
     def Set(self, bitmaps, clientData=None):
 
