@@ -144,6 +144,14 @@ class RangePanel(wx.Panel):
             self._lowWidget .Bind(floatspin.EVT_FLOATSPIN, self._onLowChange)
             self._highWidget.Bind(floatspin.EVT_FLOATSPIN, self._onHighChange)
 
+        # Widgets under Linux/GTK absorb mouse
+        # wheel events, so we bind a handler
+        # to prevent this.
+        if not mousewheel and wx.Platform == '__WXGTK__':
+            def wheel(ev):
+                self.GetParent().GetEventHandler().ProcessEvent(ev)
+            self.Bind(wx.EVT_MOUSEWHEEL, wheel)
+
         self._sizer = wx.GridBagSizer(1, 1)
         self._sizer.SetEmptyCellSize((0, 0))
         
@@ -418,6 +426,14 @@ class RangeSliderSpinPanel(wx.Panel):
 
             self._minButton.Bind(wx.EVT_BUTTON, self._onLimitButton)
             self._maxButton.Bind(wx.EVT_BUTTON, self._onLimitButton)
+
+        # Widgets under Linux/GTK absorb mouse
+        # wheel events, so we bind a handler
+        # to prevent this.
+        if not mousewheel and wx.Platform == '__WXGTK__':
+            def wheel(ev):
+                self.GetParent().GetEventHandler().ProcessEvent(ev)
+            self.Bind(wx.EVT_MOUSEWHEEL, wheel)
             
         self.Layout()
 

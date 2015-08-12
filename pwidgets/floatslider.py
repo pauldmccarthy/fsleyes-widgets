@@ -81,6 +81,14 @@ class FloatSlider(wx.Slider):
 
         if style & FS_MOUSEWHEEL:
             self.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
+
+        # Under GTK, slider widgets absorb
+        # mousewheel events, so we bind our
+        # own handler to prevent this.
+        elif wx.Platform == '__WXGTK__':
+            def wheel(ev):
+                self.GetParent().GetEventHandler().ProcessEvent(ev)
+            self.Bind(wx.EVT_MOUSEWHEEL, wheel)
         
         self.__SetRange(minValue, maxValue)
         self.SetValue(value)

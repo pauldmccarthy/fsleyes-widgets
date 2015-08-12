@@ -95,6 +95,15 @@ class FloatSpinCtrl(wx.PyPanel):
             self.__spin.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
             self.__text.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
 
+        # Under linux/GTK, text controls absorb
+        # mousewheel events, so we bind our own
+        # handler to prevent this.
+        elif wx.Platform == '__WXGTK__':
+            def wheel(ev):
+                self.GetParent().GetEventHandler().ProcessEvent(ev)
+            self.__spin.Bind(wx.EVT_MOUSEWHEEL, wheel)
+            self.__text.Bind(wx.EVT_MOUSEWHEEL, wheel)
+
         self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
         
         self.__sizer.Add(self.__text, flag=wx.EXPAND, proportion=1)
