@@ -5,7 +5,6 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
-import numpy as np
 
 import wx
 import wx.lib.newevent as wxevent
@@ -56,6 +55,8 @@ class ColourButton(wx.Button):
 
 
     def __updateBitmap(self, colour):
+
+        import numpy as np
         
         w, h = self.__size
         data = np.zeros((w, h, 3), dtype=np.uint8)
