@@ -45,6 +45,17 @@ class Widget(object):
             self.widget.SetBackgroundColour(colour)
 
 
+    def SetTooltip(self, tooltip):
+        
+        self.label.SetToolTipString(tooltip)
+        
+        if isinstance(self.widget, wx.Sizer):
+            for child in self.widget.GetChildren():
+                child.GetWindow().SetToolTipString(tooltip)
+        else:
+            self.widget.SetToolTipString(tooltip)
+
+
     def Bind(self, evType, callback):
         self.panel.Bind(evType, callback)
         self.label.Bind(evType, callback)
@@ -311,6 +322,9 @@ class WidgetList(scrolledpanel.ScrolledPanel):
                       widget,
                       widgPanel,
                       widgSizer)
+
+        if tooltip is not None:
+            widg.SetTooltip(tooltip)
 
         # Under linux/GTK, mouse events are
         # captured by child windows, so if
