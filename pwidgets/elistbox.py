@@ -144,7 +144,7 @@ shown at the botom, and the last item at the top."""
 
 ELB_TOOLTIP   = 32
 """Style flag - if enabled, list items will be replaced with a tooltip
-on mouse-over."""
+on mouse-over. If disabled, a regular tooltip is shown."""
 
 
 ELB_EDITABLE = 64
@@ -771,21 +771,28 @@ class EditableListBox(wx.Panel):
         """If the :data:`ELB_TOOLTIP` style was enabled, this method
         configures mouse-over listeners on the widget representing the given
         list item, so the item displays the tool tip on mouse overs.
+
+        If :data:`ELB_TOOLTIP` is not enabled, a regular tooltip is configured.
         """
 
-        if not self._showTooltips: return
+        if listItem.tooltip is None:
+            return
 
-        def mouseOver(ev):
-            if listItem.tooltip is not None:
+        if not self._showTooltips:
+            listItem.container  .SetToolTipString(listItem.tooltip)
+            listItem.labelWidget.SetToolTipString(listItem.tooltip)
+            
+        else:
+
+            def mouseOver(ev):
                 listItem.labelWidget.SetLabel(listItem.tooltip)
-        def mouseOut(ev):
-            if listItem.tooltip is not None:
+            def mouseOut(ev):
                 listItem.labelWidget.SetLabel(listItem.label)
 
-        # Register motion listeners on the widget
-        # container so it works under GTK
-        listItem.container.Bind(wx.EVT_ENTER_WINDOW, mouseOver)
-        listItem.container.Bind(wx.EVT_LEAVE_WINDOW, mouseOut) 
+            # Register motion listeners on the widget
+            # container so it works under GTK
+            listItem.container.Bind(wx.EVT_ENTER_WINDOW, mouseOver)
+            listItem.container.Bind(wx.EVT_LEAVE_WINDOW, mouseOut) 
                 
             
     def Append(self, label, clientData=None, tooltip=None, extraWidget=None):
