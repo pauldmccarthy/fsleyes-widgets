@@ -29,7 +29,7 @@ class Notebook(wx.PyPanel):
         :arg parent: The :mod:`wx` parent object.
         """
         
-        wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+        wx.PyPanel.__init__(self, parent, style=wx.SUNKEN_BORDER)
         
         self.__buttonPanel = wx.Panel(self)
 

@@ -313,7 +313,7 @@ class SliderSpinPanel(wx.PyPanel):
                        :data:`SSP_SHOW_LIMITS`.
         """
 
-        wx.Panel.__init__(self, parent)
+        wx.PyPanel.__init__(self, parent)
 
         if style is None: style = SSP_SHOW_LIMITS
 
@@ -514,14 +514,12 @@ class SliderSpinPanel(wx.PyPanel):
 
 
 FS_MOUSEWHEEL = 1
-"""``FloatSlider`` style flag. If set, mouse wheel events on the slider will
-change the value.
-"""
+"""If set, mouse wheel events on the slider will change the value. """
 
 
-FS_INTEGER    = 2
-"""``FloatSlider`` style flag. If set, the slider will store an integer value
-instead of a floating point value.
+FS_INTEGER = 2
+"""If set, the slider will store an integer value instead of a floating point
+value.
 """
 
 

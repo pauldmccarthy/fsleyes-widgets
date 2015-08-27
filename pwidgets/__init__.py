@@ -17,6 +17,8 @@ behaviour in the existing controls. The following controls are available:
 
 
  .. autosummary::
+    :nosignatures:
+
     ~pwidgets.floatspin.FloatSpinCtrl
     ~pwidgets.floatslider.FloatSlider
     ~pwidgets.floatslider.SliderSpinPanel

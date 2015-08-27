@@ -4,18 +4,14 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""Twin sliders for defining the values of a range.
-
-Provides two classes, :class:`RangePanel`, and :class:`RangeSliderSpinPanel`.
-
-The :class:`RangePanel` is a widget which contains two sliders or spinboxes,
-allowing a range to be set. The slider/spinbox which controls the low range
-value must always be less than the slider which/spinbox controls the high
-value.
+"""This module provides the :class:`RangePanel` and
+:class:`RangeSliderSpinPanel` classes, both of which contain controls allowing
+the user to modify a range.
 
 The :class:`RangeSliderSpinPanel` is a widget which contains two
 :class:`RangePanel` widgets - one with sliders, and one with spinboxes. All
 four control widgets are linked.
+
 """
 
 
@@ -25,6 +21,608 @@ import wx.lib.newevent as wxevent
 import floatspin
 import floatslider
 import numberdialog
+
+
+class RangePanel(wx.PyPanel):
+    """``RangePanel`` is a widget which contains two sliders or spinboxes (either
+    :class:`.FloatSlider`, or :class:`.FloatSpinCtrl`), allowing a range to be
+    set.
+
+    
+    When the user changes the low range value to a value beyond the current
+    high value, the high value is increased such that it remains at least a
+    minimum value above the low value. The inverse relationship is also
+    enforced. Whenever the user chenges either the *low* or *high* range value,
+    a :data:`RangeEvent` is generated.
+    
+
+    The following style flags are available:
+
+      .. autosummary::
+         RP_INTEGER
+         RP_MOUSEWHEEL
+         RP_SLIDER
+    """ 
+
+    def __init__(self,
+                 parent,
+                 minValue=None,
+                 maxValue=None,
+                 lowValue=None,
+                 highValue=None,
+                 lowLabel=None,
+                 highLabel=None,
+                 minDistance=None,
+                 style=0):
+        """Create a :class:`RangePanel`.
+        
+        :arg parent:      The :mod:`wx` parent object.
+
+        :arg minValue:    Minimum range value.
+        
+        :arg maxValue:    Maximum range value.
+
+        :arg lowLabel:    If not ``None``, a :class:`wx.StaticText` 
+                          widget is placed to the left of the low 
+                          widget, containing the given label.
+
+        :arg highLabel:   If not ``None``, a :class:`wx.StaticText` 
+                          widget is placed to the left of the high 
+                          widget, containing the given label.
+
+        :arg lowValue:    Initial low range value.
+        
+        :arg highValue:   Initial high range value.
+        
+        :arg minDistance: Minimum distance to be maintained between
+                          low/high values.
+
+        :arg style:       A combination of :data:`RP_MOUSEWHEEL`,
+                          :data:`RP_INTEGER`, and :data:`RP_SLIDER`.
+        """
+
+        if style & RP_SLIDER: widgetType = 'slider'
+        else:                 widgetType = 'spin'
+
+        wx.PyPanel.__init__(self, parent)
+
+        if minValue    is None: minValue    = 0
+        if maxValue    is None: maxValue    = 100
+        if lowValue    is None: lowValue    = 0
+        if highValue   is None: highValue   = 100
+        if minDistance is None: minDistance = 0
+
+        self.__minDistance = minDistance
+
+        if widgetType == 'slider':
+
+            if style & RP_MOUSEWHEEL: widgStyle = floatslider.FS_MOUSEWHEEL
+            else:                     widgStyle = 0
+            
+            if style & RP_INTEGER:
+                widgStyle |= floatslider.FS_INTEGER
+                
+            self.__lowWidget  = floatslider.FloatSlider(self, style=widgStyle)
+            self.__highWidget = floatslider.FloatSlider(self, style=widgStyle)
+            
+            self.__lowWidget .Bind(wx.EVT_SLIDER, self.__onLowChange)
+            self.__highWidget.Bind(wx.EVT_SLIDER, self.__onHighChange)
+            
+        elif widgetType == 'spin':
+
+            if style & RP_MOUSEWHEEL: widgStyle = floatspin.FSC_MOUSEWHEEL
+            else:                     widgStyle = 0
+            
+            if style & RP_INTEGER:
+                widgStyle |= floatspin.FSC_INTEGER
+            
+            self.__lowWidget  = floatspin.FloatSpinCtrl(self, style=widgStyle)
+            self.__highWidget = floatspin.FloatSpinCtrl(self, style=widgStyle)
+
+            self.__lowWidget .Bind(floatspin.EVT_FLOATSPIN,
+                                   self.__onLowChange)
+            self.__highWidget.Bind(floatspin.EVT_FLOATSPIN,
+                                   self.__onHighChange)
+
+        # Widgets under Linux/GTK absorb mouse
+        # wheel events, so we bind a handler
+        # to prevent this.
+        if not (style & RP_MOUSEWHEEL) and wx.Platform == '__WXGTK__':
+            def wheel(ev):
+                self.GetParent().GetEventHandler().ProcessEvent(ev)
+            self.Bind(wx.EVT_MOUSEWHEEL, wheel)
+
+        self.__sizer = wx.GridBagSizer(1, 1)
+        self.__sizer.SetEmptyCellSize((0, 0))
+        
+        self.SetSizer(self.__sizer)
+
+        self.__sizer.Add(self.__lowWidget,
+                         pos=(0, 1),
+                         flag=wx.EXPAND | wx.ALL)
+        self.__sizer.Add(self.__highWidget,
+                         pos=(1, 1),
+                         flag=wx.EXPAND | wx.ALL)
+
+        if lowLabel is not None:
+            self.__lowLabel = wx.StaticText(self, label=lowLabel)
+            self.__sizer.Add(self.__lowLabel,
+                             pos=(0, 0),
+                             flag=wx.EXPAND | wx.ALL)
+
+        if highLabel is not None:
+            self.__highLabel = wx.StaticText(self, label=highLabel)
+            self.__sizer.Add(self.__highLabel,
+                             pos=(1, 0),
+                             flag=wx.EXPAND | wx.ALL) 
+
+        self.SetLimits(minValue, maxValue)
+        self.SetRange( lowValue, highValue)
+        
+        self.__sizer.AddGrowableCol(1)
+
+        self.Layout()
+
+
+    def __onLowChange(self, ev=None):
+        """Called when the user changes the low widget.
+
+        Attempts to make sure that the high widget is at least (low value +
+        min distance), then posts a :data:`RangeEvent`.
+        """
+
+        lowValue  = self.GetLow()
+        highValue = self.GetHigh()
+
+        if lowValue >= (self.GetMax() - self.__minDistance):
+            self.SetLow(self.GetMax() - self.__minDistance)
+            lowValue = self.GetLow()
+
+        if highValue <= (lowValue + self.__minDistance):
+            highValue = lowValue + self.__minDistance
+            self.SetHigh(highValue)
+            highValue = self.GetHigh()
+
+        ev = RangeEvent(low=lowValue, high=highValue)
+        ev.SetEventObject(self)
+
+        wx.PostEvent(self, ev)
+
+            
+    def __onHighChange(self, ev=None):
+        """Called when the user changes the high widget.
+
+        Attempts to make sure that the low widget is at least (high value -
+        min distance), then posts a :data:`RangeEvent`.
+        """ 
+
+        lowValue  = self.GetLow()
+        highValue = self.GetHigh()
+
+        if highValue <= (self.GetMin() + self.__minDistance):
+            self.SetHigh(self.GetMin() + self.__minDistance)
+            highValue = self.GetHigh() 
+
+        if lowValue >= (highValue - self.__minDistance):
+            lowValue = highValue - self.__minDistance
+            self.SetLow(lowValue)
+            lowValue = self.GetLow()
+            
+        ev = RangeEvent(low=lowValue, high=highValue)
+        ev.SetEventObject(self) 
+
+        wx.PostEvent(self, ev)
+
+        
+    def GetRange(self):
+        """Returns a tuple containing the current (low, high) range values."""
+        return (self.GetLow(), self.GetHigh())
+
+        
+    def SetRange(self, lowValue, highValue):
+        """Sets the current (low, high) range values.""" 
+        self.SetLow( lowValue)
+        self.SetHigh(highValue)
+
+        
+    def GetLow(self):
+        """Returns the current low range value."""
+        return self.__lowWidget.GetValue()
+
+        
+    def GetHigh(self):
+        """Returns the current high range value.""" 
+        return self.__highWidget.GetValue()
+
+        
+    def SetLow(self, lowValue):
+        """Set the current low range value, and attempts to make sure
+        that the high value is at least (low value + min distance).
+        """
+        self.__lowWidget.SetValue(lowValue)
+
+        highValue = self.GetHigh()
+        if highValue <= lowValue + self.__minDistance:
+            self.__highWidget.SetValue(lowValue + self.__minDistance)
+
+        
+    def SetHigh(self, highValue):
+        """Set the current high range value, and attempts to make sure
+        that the high value is at least (low value + min distance).
+        """ 
+        self.__highWidget.SetValue(highValue)
+        
+        lowValue = self.GetLow()
+        if lowValue >= highValue - self.__minDistance:
+            self.__lowWidget.SetValue(highValue - self.__minDistance)
+
+
+    def GetLimits(self):
+        """Returns a tuple containing the current (minimum, maximum) range
+        limit values.
+        """
+        return (self.GetMin(), self.GetMax())
+
+        
+    def SetLimits(self, minValue, maxValue):
+        """Sets the current (minimum, maximum) range limit values.""" 
+        self.SetMin(minValue)
+        self.SetMax(maxValue)
+
+
+    def GetMin(self):
+        """Returns the current minimum range value."""
+        return self.__lowWidget.GetMin()
+
+        
+    def GetMax(self):
+        """Returns the current maximum range value.""" 
+        return self.__highWidget.GetMax()
+
+        
+    def SetMin(self, minValue):
+        """Sets the current minimum range value."""
+
+        self.__lowWidget .SetMin(minValue)
+        self.__highWidget.SetMin(minValue)
+
+        
+    def SetMax(self, maxValue):
+        """Sets the current maximum range value."""
+        self.__lowWidget .SetMax(maxValue)
+        self.__highWidget.SetMax(maxValue)
+
+
+class RangeSliderSpinPanel(wx.PyPanel):
+    """A :class:`wx.Panel` which contains two sliders and two spinboxes.
+
+    
+    The sliders and spinboxes are contained within two :class:`RangePanel`
+    instances respectively. One slider and spinbox pair is used to edit the
+    *low* value of a range, and the other slider/spinbox used to edit the
+    *high* range value. Buttons are optionally displayed on either end
+    which display the minimum/maximum limits and, when clicked, allow the
+    user to modify said limits.
+
+    
+    The ``RangeSliderSpinPanel`` generates a :data:`RangeEvent` when the
+    user edits the *low*/*high* range values,  and a :data:`RangeLimitEvent`
+    when the user edits the range limits.
+
+    
+    The following style flags are available:
+
+     .. autosummary::
+        RSSP_INTEGER
+        RSSP_MOUSEWHEEL
+        RSSP_SHOW_LIMITS
+        RSSP_EDIT_LIMITS
+
+
+    A ``RangeSliderSpinPanel`` will look something like this:
+
+     .. image:: images/rangesliderspinpanel.png
+        :scale: 50%
+        :align: center
+    """
+
+    
+    def __init__(self,
+                 parent,
+                 minValue=None,
+                 maxValue=None,
+                 lowValue=None,
+                 highValue=None,
+                 minDistance=None,
+                 lowLabel=None,
+                 highLabel=None,
+                 style=None):
+        """Create a :class:`RangeSliderSpinPanel`.
+        
+        :arg parent:      The :mod:`wx` parent object.
+        
+        :arg minValue:    Minimum low value.
+        
+        :arg maxValue:    Maximum high value.
+        
+        :arg lowValue:    Initial low value.
+        
+        :arg highValue:   Initial high value.
+        
+        :arg minDistance: Minimum distance to maintain between low and high
+                          values.
+
+        :arg lowLabel:    If not ``None``, a :class:`wx.StaticText` widget is
+                          placed to the left of the low slider, containing the
+                          label.
+
+        :arg highLabel:   If not ``None``, a :class:`wx.StaticText` widget is
+                          placed to the left of the high slider, containing
+                          the label.
+
+        :arg style:       A combination of :data:`RSSP_INTEGER`,
+                          :data:`RSSP_MOUSEWHEEL`, :data:`RSSP_SHOW_LIMITS`,
+                          and :data:`RSSP_EDIT_LIMITS`. Defaults to
+                          :data:`RSSP_SHOW_LIMITS`.
+        """
+
+        if style is None:
+            style = RSSP_SHOW_LIMITS
+
+        showLimits =     style & RSSP_SHOW_LIMITS
+        editLimits =     style & RSSP_EDIT_LIMITS
+        mousewheel =     style & RSSP_MOUSEWHEEL
+        real       = not style & RSSP_INTEGER
+
+        wx.PyPanel.__init__(self, parent)
+
+        if minValue    is None: minValue    = 0
+        if maxValue    is None: maxValue    = 1
+        if lowValue    is None: lowValue    = 0
+        if highValue   is None: highValue   = 1
+        if minDistance is None: minDistance = 0.01 
+        
+        if not showLimits:
+            editLimits = False
+        
+        self.__showLimits = showLimits
+
+        if real: self.__fmt = '{: 0.3G}'
+        else:    self.__fmt = '{}'
+
+        params = {
+            'minValue'    : minValue,
+            'maxValue'    : maxValue,
+            'lowValue'    : lowValue,
+            'highValue'   : highValue,
+            'minDistance' : minDistance,
+        }
+
+        style = 0
+
+        if mousewheel: style |= RP_MOUSEWHEEL
+        if not real:   style |= RP_INTEGER
+        
+        self.__sliderPanel = RangePanel(
+            self,
+            lowLabel=lowLabel,
+            highLabel=highLabel,
+            style=style | RP_SLIDER,
+            **params)
+        self.__spinPanel = RangePanel(
+            self,
+            style=style,
+            **params)
+        
+        self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.__sizer)
+
+        self.__sizer.Add(self.__sliderPanel, flag=wx.EXPAND, proportion=1)
+        self.__sizer.Add(self.__spinPanel,   flag=wx.EXPAND)
+
+        self.__sliderPanel.Bind(EVT_RANGE, self.__onRangeChange)
+        self.__spinPanel  .Bind(EVT_RANGE, self.__onRangeChange)
+
+        if showLimits:
+            self.__minButton = wx.Button(self)
+            self.__maxButton = wx.Button(self)
+
+            self.__sizer.Insert(0, self.__minButton, flag=wx.EXPAND | wx.ALL)
+            self.__sizer.Add(      self.__maxButton, flag=wx.EXPAND | wx.ALL)
+
+            self.__minButton.SetLabel(self.__fmt.format(minValue))
+            self.__maxButton.SetLabel(self.__fmt.format(maxValue))
+
+            self.__minButton.Enable(editLimits)
+            self.__maxButton.Enable(editLimits)
+
+            self.__minButton.Bind(wx.EVT_BUTTON, self.__onLimitButton)
+            self.__maxButton.Bind(wx.EVT_BUTTON, self.__onLimitButton)
+
+        # Widgets under Linux/GTK absorb mouse
+        # wheel events, so we bind a handler
+        # to prevent this.
+        if not mousewheel and wx.Platform == '__WXGTK__':
+            def wheel(ev):
+                self.GetParent().GetEventHandler().ProcessEvent(ev)
+            self.Bind(wx.EVT_MOUSEWHEEL, wheel)
+            
+        self.Layout()
+
+        
+    def __onRangeChange(self, ev):
+        """Called when the user modifies the low or high range values.
+        Syncs the change between the sliders and spinboxes, and emits
+        a :data:`RangeEvent`.
+        """
+        source = ev.GetEventObject()
+
+        lowValue, highValue = source.GetRange()
+
+        if source == self.__sliderPanel:
+            self.__spinPanel.SetRange(lowValue, highValue)
+        elif source == self.__spinPanel:
+            self.__sliderPanel.SetRange(lowValue, highValue)
+
+        ev = RangeEvent(low=lowValue, high=highValue)
+        ev.SetEventObject(self)
+
+        wx.PostEvent(self, ev)
+
+            
+    def __onLimitButton(self, ev):
+        """Called when one of the min/max buttons is pushed. Pops up
+        a dialog prompting the user to enter a new value, and updates
+        the range limits accordingly. Emits a :data:`RangeLimitEvent`.
+        """
+
+        source = ev.GetEventObject()
+        
+        if source == self.__minButton:
+            labeltxt = 'New minimum value'
+            initVal  = self.GetMin()
+            minVal   = None
+            maxVal   = self.GetMax()
+            
+        elif source == self.__maxButton:
+            labeltxt = 'New maximum value'
+            initVal  = self.GetMax()
+            minVal   = self.GetMin() 
+            maxVal   = None
+            
+        else:
+            return
+
+        dlg = numberdialog.NumberDialog(
+            self.GetTopLevelParent(),
+            message=labeltxt,
+            initial=initVal,
+            minValue=minVal,
+            maxValue=maxVal)
+
+        pos = ev.GetEventObject().GetScreenPosition()
+        dlg.SetPosition(pos)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+
+        if   source == self.__minButton: self.SetMin(dlg.GetValue())
+        elif source == self.__maxButton: self.SetMax(dlg.GetValue())
+
+        ev = RangeLimitEvent(min=self.GetMin(), max=self.GetMax())
+        ev.SetEventObject(self)
+
+        wx.PostEvent(self, ev)
+
+        
+    def SetLimits(self, minValue, maxValue):
+        """Sets the minimum/maximum range values."""
+        self.SetMin(minValue)
+        self.SetMax(maxValue)
+
+        
+    def SetMin(self, minValue):
+        """Sets the minimum range value."""
+        self.__sliderPanel.SetMin(minValue)
+        self.__spinPanel  .SetMin(minValue)
+
+        if self.__showLimits:
+            self.__minButton.SetLabel(self.__fmt.format(minValue))
+
+            
+    def SetMax(self, maxValue):
+        """Sets the maximum range value."""
+        self.__sliderPanel.SetMax(maxValue)
+        self.__spinPanel  .SetMax(maxValue)
+        
+        if self.__showLimits:
+            self.__maxButton.SetLabel(self.__fmt.format(maxValue))
+
+            
+    def GetMin(self):
+        """Returns the minimum range value."""
+        return self.__sliderPanel.GetMin()
+
+        
+    def GetMax(self):
+        """Returns the maximum range value.""" 
+        return self.__sliderPanel.GetMax()
+
+        
+    def GetLow( self):
+        """Returns the current low range value."""
+        return self.__sliderPanel.GetLow()
+
+        
+    def GetHigh(self):
+        """Returns the current high range value."""
+        return self.__sliderPanel.GetHigh()
+
+        
+    def SetLow(self, lowValue):
+        """Sets the current low range value."""
+        self.__sliderPanel.SetLow(lowValue)
+        self.__spinPanel  .SetLow(lowValue)
+
+        
+    def SetHigh(self, highValue):
+        """Sets the current high range value.""" 
+        self.__sliderPanel.SetHigh(highValue)
+        self.__spinPanel  .SetHigh(highValue)
+
+
+    def GetRange(self):
+        """Return the current (low, high) range values."""
+        return self.__sliderPanel.GetRange()
+
+
+    def SetRange(self, lowValue, highValue):
+        """Set the current low and high range values."""
+        self.__sliderPanel.SetRange(lowValue, highValue)
+        self.__spinPanel  .SetRange(lowValue, highValue)
+
+        
+RP_INTEGER = 1
+"""If set, the :class:`RangePanel` stores integer values, rather than
+floating point.
+"""
+
+
+RP_MOUSEWHEEL = 2
+"""If set, the user will be able to change the range values with the mouse
+wheel.
+"""
+
+
+RP_SLIDER = 4
+"""If set, :class:`.FloatSlider` widgets will be used to control the range
+values. If not set, :class:`.FloatSpinCtrl` widgets are used.
+"""
+
+
+RSSP_INTEGER = 1
+"""If set, the :class:`RangeSliderSpinPanel` stores integer values, rather
+than floating point.
+"""
+
+
+RSSP_MOUSEWHEEL = 2
+"""If set, the user will be able to change the range values with the mouse
+wheel.
+"""
+
+
+RSSP_SHOW_LIMITS = 4
+"""If set, the minimum/maximum range values are shown alongside the range
+controls.
+"""
+
+
+RSSP_EDIT_LIMITS = 8
+"""If set, and :data:`RSSP_SHOW_LIMITS` is also set, the minimum/maximum
+range values are shown alongside the range controls on buttons. When
+the presses a button, a dialog is displayed allowing them to change the
+range limits.
+"""
 
 
 _RangeEvent,      _EVT_RANGE       = wxevent.NewEvent()
@@ -50,557 +648,3 @@ RangeLimitEvent = _RangeLimitEvent
 modifies the range limits. Contains two attributes, ``min`` and ``max``,
 containing the new minimum/maximum range limits.
 """
-
-
-class RangePanel(wx.Panel):
-    """A :class:`wx.Panel` containing two widgets (either
-    :class:`~pwidgets.floatslider.FloatSlider`, or :class:`.FloatSpin`),
-    representing the 'low' and 'high' values of a range, respectively.  When
-    the user changes the low slider to a value beyond the current high value,
-    the high value is increased such that it remains at least a minimum value
-    above the low value. The inverse relationship is also enforced.
-
-    """ 
-
-    def __init__(self,
-                 parent,
-                 widgetType,
-                 real=True,
-                 minValue=None,
-                 maxValue=None,
-                 lowValue=None,
-                 highValue=None,
-                 lowLabel=None,
-                 highLabel=None,
-                 minDistance=None,
-                 mousewheel=False):
-        """Initialise a :class:`RangePanel` panel.
-        
-        :param parent:             The :mod:`wx` parent object.
-
-        :param str widgetType:     Widget type - either ``slider`` or ``spin``. 
-
-        :param real:               If ``False``, a :class:`wx.Slider` widget
-                                   is used instead of a :class:`.FloatSlider`.
-        
-        :param number minValue:    Minimum range value.
-        
-        :param number maxValue:    Maximum range value.
-
-        :param str lowLabel:       If not ``None``, a :class:`wx.StaticText` 
-                                   widget is placed to the left of the low 
-                                   widget, containing the given label.
-
-        :param str highLabel:      If not ``None``, a :class:`wx.StaticText` 
-                                   widget is placed to the left of the high 
-                                   widget, containing the given label.
-
-        :param number lowValue:    Initial low range value.
-        
-        :param number highValue:   Initial high range value.
-        
-        :param number minDistance: Minimum distance to be maintained between
-                                   low/high values.
-        """
-
-        if widgetType not in ('slider', 'spin'):
-            raise ValueError('Unknown widget type: {}'.format(widgetType))
-
-        wx.Panel.__init__(self, parent)
-
-        if minValue    is None: minValue    = 0
-        if maxValue    is None: maxValue    = 100
-        if lowValue    is None: lowValue    = 0
-        if highValue   is None: highValue   = 100
-        if minDistance is None: minDistance = 0
-
-        self._minDistance = minDistance
-
-        if widgetType == 'slider':
-
-            if mousewheel: style = floatslider.FS_MOUSEWHEEL
-            else:          style = 0
-            
-            if not real:
-                style |= floatslider.FS_INTEGER
-                
-            self._lowWidget  = floatslider.FloatSlider(self, style=style)
-            self._highWidget = floatslider.FloatSlider(self, style=style)
-            
-            self._lowWidget .Bind(wx.EVT_SLIDER, self._onLowChange)
-            self._highWidget.Bind(wx.EVT_SLIDER, self._onHighChange)
-            
-        elif widgetType == 'spin':
-
-            if mousewheel: style = floatspin.FSC_MOUSEWHEEL
-            else:          style = 0
-            
-            if not real:
-                style |= floatspin.FSC_INTEGER
-            
-            self._lowWidget  = floatspin.FloatSpinCtrl(self, style=style)
-            self._highWidget = floatspin.FloatSpinCtrl(self, style=style)
-
-            self._lowWidget .Bind(floatspin.EVT_FLOATSPIN, self._onLowChange)
-            self._highWidget.Bind(floatspin.EVT_FLOATSPIN, self._onHighChange)
-
-        # Widgets under Linux/GTK absorb mouse
-        # wheel events, so we bind a handler
-        # to prevent this.
-        if not mousewheel and wx.Platform == '__WXGTK__':
-            def wheel(ev):
-                self.GetParent().GetEventHandler().ProcessEvent(ev)
-            self.Bind(wx.EVT_MOUSEWHEEL, wheel)
-
-        self._sizer = wx.GridBagSizer(1, 1)
-        self._sizer.SetEmptyCellSize((0, 0))
-        
-        self.SetSizer(self._sizer)
-
-        self._sizer.Add(self._lowWidget,  pos=(0, 1), flag=wx.EXPAND | wx.ALL)
-        self._sizer.Add(self._highWidget, pos=(1, 1), flag=wx.EXPAND | wx.ALL)
-
-        if lowLabel is not None:
-            self._lowLabel = wx.StaticText(self, label=lowLabel)
-            self._sizer.Add(self._lowLabel,
-                            pos=(0, 0),
-                            flag=wx.EXPAND | wx.ALL)
-
-        if highLabel is not None:
-            self._highLabel = wx.StaticText(self, label=highLabel)
-            self._sizer.Add(self._highLabel,
-                            pos=(1, 0),
-                            flag=wx.EXPAND | wx.ALL) 
-
-        self.SetLimits(minValue, maxValue)
-        self.SetRange( lowValue, highValue)
-        
-        self._sizer.AddGrowableCol(1)
-
-        self.Layout()
-
-
-    def _onLowChange(self, ev=None):
-        """Called when the user changes the low widget.  Attempts to make
-        sure that the high widget is at least (low value + min distance),
-        then posts a :data:`RangeEvent`.
-        """
-
-        lowValue  = self.GetLow()
-        highValue = self.GetHigh()
-
-        if lowValue >= (self.GetMax() - self._minDistance):
-            self.SetLow(self.GetMax() - self._minDistance)
-            lowValue = self.GetLow()
-
-        if highValue <= (lowValue + self._minDistance):
-            highValue = lowValue + self._minDistance
-            self.SetHigh(highValue)
-            highValue = self.GetHigh()
-
-        ev = RangeEvent(low=lowValue, high=highValue)
-        ev.SetEventObject(self)
-
-        wx.PostEvent(self, ev)
-
-            
-    def _onHighChange(self, ev=None):
-        """Called when the user changes the high widget.  Attempts to make
-        sure that the low widget is at least (high value - min distance),
-        then posts a :data:`RangeEvent`.
-        """ 
-
-        lowValue  = self.GetLow()
-        highValue = self.GetHigh()
-
-        if highValue <= (self.GetMin() + self._minDistance):
-            self.SetHigh(self.GetMin() + self._minDistance)
-            highValue = self.GetHigh() 
-
-        if lowValue >= (highValue - self._minDistance):
-            lowValue = highValue - self._minDistance
-            self.SetLow(lowValue)
-            lowValue = self.GetLow()
-            
-        ev = RangeEvent(low=lowValue, high=highValue)
-        ev.SetEventObject(self) 
-
-        wx.PostEvent(self, ev)
-
-        
-    def GetRange(self):
-        """Returns a tuple containing the current (low, high) range values."""
-        return (self.GetLow(), self.GetHigh())
-
-        
-    def SetRange(self, lowValue, highValue):
-        """Sets the current (low, high) range values.""" 
-        self.SetLow( lowValue)
-        self.SetHigh(highValue)
-
-        
-    def GetLow(self):
-        """Returns the current low range value."""
-        return self._lowWidget.GetValue()
-
-        
-    def GetHigh(self):
-        """Returns the current high range value.""" 
-        return self._highWidget.GetValue()
-
-        
-    def SetLow(self, lowValue):
-        """Set the current low range value, and attempts to make sure
-        that the high value is at least (low value + min distance).
-        """
-        self._lowWidget.SetValue(lowValue)
-
-        highValue = self.GetHigh()
-        if highValue <= lowValue + self._minDistance:
-            self._highWidget.SetValue(lowValue + self._minDistance)
-
-        
-    def SetHigh(self, highValue):
-        """Set the current high range value, and attempts to make sure
-        that the high value is at least (low value + min distance).
-        """ 
-        self._highWidget.SetValue(highValue)
-        
-        lowValue = self.GetLow()
-        if lowValue >= highValue - self._minDistance:
-            self._lowWidget.SetValue(highValue - self._minDistance)
-
-
-    def getLimits(self):
-        """Returns a tuple containing the current (minimum, maximum) range
-        limit values.
-        """
-        return (self.GetMin(), self.GetMax())
-
-        
-    def SetLimits(self, minValue, maxValue):
-        """Sets the current (minimum, maximum) range limit values.""" 
-        self.SetMin(minValue)
-        self.SetMax(maxValue)
-
-
-    def GetMin(self):
-        """Returns the current minimum range value."""
-        return self._lowWidget.GetMin()
-
-        
-    def GetMax(self):
-        """Returns the current maximum range value.""" 
-        return self._highWidget.GetMax()
-
-        
-    def SetMin(self, minValue):
-        """Sets the current minimum range value."""
-
-        # FloatSpin does not have a SetMin 
-        # method (nor does it have SetMax)
-        self._lowWidget .SetRange(minValue, self._lowWidget .GetMax())
-        self._highWidget.SetRange(minValue, self._highWidget.GetMax())
-
-        
-    def SetMax(self, maxValue):
-        """Sets the current maximum range value."""
-        self._lowWidget .SetRange(self._lowWidget .GetMin(), maxValue)
-        self._highWidget.SetRange(self._highWidget.GetMin(), maxValue)
-
-
-class RangeSliderSpinPanel(wx.Panel):
-    """A :class:`wx.Panel` which contains two sliders and two spinboxes.
-
-    The sliders and spinboxes are contained within two :class:`RangePanel`
-    instances respectively). One slider and spinbox are used to edit the
-    'low' value of a range, and the other slider/spinbox are used to edit
-    the 'high' range value. Buttons are optionally displayed on either end
-    which display the minimum/maximum limits and, when clicked, allow the
-    user to modify said limits.
-    """
-    
-    def __init__(self,
-                 parent,
-                 real=True,
-                 minValue=None,
-                 maxValue=None,
-                 lowValue=None,
-                 highValue=None,
-                 minDistance=None,
-                 lowLabel=None,
-                 highLabel=None,
-                 showLimits=True,
-                 editLimits=False,
-                 mousewheel=False):
-        """Initialise a :class:`RangeSliderSpinPanel`.
-        
-        :param parent:             The :mod:`wx` parent object.
-
-        :param real:               If ``False``, :class:`wx.Slider` and
-                                   :class:`wx.SpinCtrl` widgets are used
-                                   instead of
-                                   :class:`~pwidgets.floatslider.FloatSlider`
-                                   and :class:`wx.lib.agw.floatspin.FloatSpin`.
-        
-        :param number minValue:    Minimum low value.
-        
-        :param number maxValue:    Maximum high value.
-        
-        :param number lowValue:    Initial low value.
-        
-        :param number highValue:   Initial high value.
-        
-        :param number minDistance: Minimum distance to maintain between low
-                                   and high values.
-
-        :param str lowLabel:       If not ``None``, a :class:`wx.StaticText` 
-                                   widget is placed to the left of the low 
-                                   slider, containing the label.
-
-        :param str highLabel:      If not ``None``, a :class:`wx.StaticText`
-                                   widget is placed to the left of the high 
-                                   slider, containing the label. 
-        
-        :param bool showLimits:    If ``True``, a button will be shown on
-                                   either side, displaying the minimum/maximum
-                                   values.
-        
-        :param bool editLimits:    If ``True``, when aforementioned buttons are
-                                   clicked, a
-                                   :class:`~pwidgets.numberdialog.NumberDialog`
-                                   window will pop up, allowing the user to
-                                   edit the min/max limits.
-        """
-
-        wx.Panel.__init__(self, parent)
-
-        if minValue    is None: minValue    = 0
-        if maxValue    is None: maxValue    = 1
-        if lowValue    is None: lowValue    = 0
-        if highValue   is None: highValue   = 1
-        if minDistance is None: minDistance = 0.01 
-        
-        if not showLimits: editLimits = False
-        
-        self._showLimits = showLimits
-
-        if real: self._fmt = '{: 0.3G}'
-        else:    self._fmt = '{}'
-
-        params = {
-            'real'        : real,
-            'minValue'    : minValue,
-            'maxValue'    : maxValue,
-            'lowValue'    : lowValue,
-            'highValue'   : highValue,
-            'minDistance' : minDistance,
-            'mousewheel'  : mousewheel
-        }
-        
-        self._sliderPanel = RangePanel(self,
-                                       widgetType='slider',
-                                       lowLabel=lowLabel,
-                                       highLabel=highLabel,
-                                       **params)
-        self._spinPanel   = RangePanel(self, widgetType='spin', **params)
-        
-        self._sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.SetSizer(self._sizer)
-
-        self._sizer.Add(self._sliderPanel, flag=wx.EXPAND, proportion=1)
-        self._sizer.Add(self._spinPanel,   flag=wx.EXPAND)
-
-        self._sliderPanel.Bind(EVT_RANGE, self._onRangeChange)
-        self._spinPanel  .Bind(EVT_RANGE, self._onRangeChange)
-
-        if showLimits:
-            self._minButton = wx.Button(self, label=self._fmt.format(minValue))
-            self._maxButton = wx.Button(self, label=self._fmt.format(maxValue))
-
-            self._sizer.Insert(0, self._minButton, flag=wx.EXPAND | wx.ALL)
-            self._sizer.Add(      self._maxButton, flag=wx.EXPAND | wx.ALL)
-
-            self._minButton.Enable(editLimits)
-            self._maxButton.Enable(editLimits)
-
-            self._minButton.Bind(wx.EVT_BUTTON, self._onLimitButton)
-            self._maxButton.Bind(wx.EVT_BUTTON, self._onLimitButton)
-
-        # Widgets under Linux/GTK absorb mouse
-        # wheel events, so we bind a handler
-        # to prevent this.
-        if not mousewheel and wx.Platform == '__WXGTK__':
-            def wheel(ev):
-                self.GetParent().GetEventHandler().ProcessEvent(ev)
-            self.Bind(wx.EVT_MOUSEWHEEL, wheel)
-            
-        self.Layout()
-
-        
-    def _onRangeChange(self, ev):
-        """Called when the user modifies the low or high range values.
-        Syncs the change between the sliders and spinboxes, and emits
-        a :data:`RangeEvent`.
-        """
-        source = ev.GetEventObject()
-
-        lowValue, highValue = source.GetRange()
-
-        if source == self._sliderPanel:
-            self._spinPanel.SetRange(lowValue, highValue)
-        elif source == self._spinPanel:
-            self._sliderPanel.SetRange(lowValue, highValue)
-
-        ev = RangeEvent(low=lowValue, high=highValue)
-        ev.SetEventObject(self)
-
-        wx.PostEvent(self, ev)
-
-            
-    def _onLimitButton(self, ev):
-        """Called when one of the min/max buttons is pushed. Pops up
-        a dialog prompting the user to enter a new value, and updates
-        the range limits accordingly. Emits a :data:`RangeLimitEvent`.
-        """
-
-        source = ev.GetEventObject()
-        
-        if source == self._minButton:
-            labeltxt = 'New minimum value'
-            initVal  = self.GetMin()
-            minVal   = None
-            maxVal   = self.GetMax()
-            
-        elif source == self._maxButton:
-            labeltxt = 'New maximum value'
-            initVal  = self.GetMax()
-            minVal   = self.GetMin() 
-            maxVal   = None
-            
-        else:
-            return
-
-        dlg = numberdialog.NumberDialog(
-            self.GetTopLevelParent(),
-            message=labeltxt,
-            initial=initVal,
-            minValue=minVal,
-            maxValue=maxVal)
-
-        pos = ev.GetEventObject().GetScreenPosition()
-        dlg.SetPosition(pos)
-        if dlg.ShowModal() != wx.ID_OK:
-            return
-
-        if   source == self._minButton: self.SetMin(dlg.GetValue())
-        elif source == self._maxButton: self.SetMax(dlg.GetValue())
-
-        ev = RangeLimitEvent(min=self.GetMin(), max=self.GetMax())
-        ev.SetEventObject(self)
-
-        wx.PostEvent(self, ev)
-
-        
-    def SetLimits(self, minValue, maxValue):
-        """Sets the minimum/maximum range values."""
-        self.SetMin(minValue)
-        self.SetMax(maxValue)
-
-        
-    def SetMin(self, minValue):
-        """Sets the minimum range value."""
-        self._sliderPanel.SetMin(minValue)
-        self._spinPanel  .SetMin(minValue)
-
-        if self._showLimits:
-            self._minButton.SetLabel(self._fmt.format(minValue))
-
-            
-    def SetMax(self, maxValue):
-        """Sets the maximum range value."""
-        self._sliderPanel.SetMax(maxValue)
-        self._spinPanel  .SetMax(maxValue)
-        
-        if self._showLimits:
-            self._maxButton.SetLabel(self._fmt.format(maxValue))
-
-            
-    def GetMin(self):
-        """Returns the minimum range value."""
-        return self._sliderPanel.GetMin()
-
-        
-    def GetMax(self):
-        """Returns the maximum range value.""" 
-        return self._sliderPanel.GetMax()
-
-        
-    def GetLow( self):
-        """Returns the current low range value."""
-        return self._sliderPanel.GetLow()
-
-        
-    def GetHigh(self):
-        """Returns the current high range value."""
-        return self._sliderPanel.GetHigh()
-
-        
-    def SetLow(self, lowValue):
-        """Sets the current low range value."""
-        self._sliderPanel.SetLow(lowValue)
-        self._spinPanel  .SetLow(lowValue)
-
-        
-    def SetHigh(self, highValue):
-        """Sets the current high range value.""" 
-        self._sliderPanel.SetHigh(highValue)
-        self._spinPanel  .SetHigh(highValue)
-
-
-    def GetRange(self):
-        """Return the current (low, high) range values."""
-        return self._sliderPanel.GetRange()
-
-
-    def SetRange(self, lowValue, highValue):
-        """Set the current low and high range values."""
-        self._sliderPanel.SetRange(lowValue, highValue)
-        self._spinPanel  .SetRange(lowValue, highValue)
-        
-        
-def _testRangeSliderSpinPanel():
-    """Little test program."""
-
-    app   = wx.App()
-    frame = wx.Frame(None)
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    frame.SetSizer(sizer)
-    
-    slider = RangeSliderSpinPanel(
-        frame,
-        minValue=0,
-        maxValue=100,
-        lowValue=0,
-        highValue=100,
-        minDistance=5,
-        lowLabel='Low',
-        highLabel='High',
-        showLimits=True,
-        editLimits=True)
-
-    sizer.Add(slider, flag=wx.EXPAND)
-
-    def _range(ev):
-        print 'Range: {} {}'.format(ev.low, ev.high)
-
-    def _limit(ev):
-        print 'Limit: {} {}'.format(ev.min, ev.max)
-    
-       
-    slider.Bind(EVT_RANGE,       _range)
-    slider.Bind(EVT_RANGE_LIMIT, _limit)
-    
-    frame.Layout()
-    frame.Show()
-    app.MainLoop()

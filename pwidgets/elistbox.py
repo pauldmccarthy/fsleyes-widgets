@@ -116,7 +116,7 @@ class EditableListBox(wx.PyPanel):
                          :data:`ELB_NO_LABEL`.
         """
 
-        wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
+        wx.PyPanel.__init__(self, parent, style=wx.WANTS_CHARS)
 
         reverseOrder  =      style & ELB_REVERSE
         addScrollbar  = not (style & ELB_NO_SCROLL)
