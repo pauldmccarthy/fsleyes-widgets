@@ -1,27 +1,43 @@
 #!/usr/bin/env python
 #
-# colourbutton.py -
+# colourbutton.py - A button which allows the user to select a colour.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""This module provides the :class:`ColourButton` class, a button which
+allows the user to select a RGBA colour.
+"""
 
 
 import wx
 import wx.lib.newevent as wxevent
 
 
-_ColourButtonEvent, _EVT_COLOUR_BUTTON_EVENT = wxevent.NewEvent()
-
-
-EVT_COLOUR_BUTTON_EVENT = _EVT_COLOUR_BUTTON_EVENT
-
-
-ColourButtonEvent = _ColourButtonEvent
-
-
 class ColourButton(wx.Button):
+    """A :class:`wx.Button` which allows the user to select a colour.
 
-    def __init__(self, parent, size, colour=None):
+    The currently selected colour is displayed as a bitmap on the button.
+    When the user presses the button, a :class:`wx.ColourDialog` is displayed,
+    allowing the user to change the colour. When the user does so, a
+    :data:`EVT_COLOUR_BUTTON_EVENT` is generated.
+
+    This class provides an alternative to the :class:`wx.ColourPickerCtrl`,
+    which is a bit inflexible w.r.t. sizing/automatic resizing.
+    """
+
+    def __init__(self, parent, size=None, colour=None):
+        """Create a ``ColourButton``.
+
+        :arg parent: A :mod:`wx` parent window.
+
+        :arg size:   A tuple containing the ``(width, height)`` of the
+                     colour bitmap in pixels. Defaults to ``(32, 32)``.
+        
+        :arg colour: Initial colour. Defaults to black.
+        """
+
+        if size   is None: size   = (32, 32)
+        if colour is None: colour = (0, 0, 0)
 
         # BU_NOTEXT causes crash under OSX
         if wx.Platform == '__WXMAC__': style = wx.BU_EXACTFIT
@@ -41,10 +57,14 @@ class ColourButton(wx.Button):
 
 
     def GetValue(self):
+        """Return the current colour, as a tuple of ``(r, g, b)`` values, each
+        in the range ``[0 - 255]``.
+        """
         return self.__colour
 
     
     def SetValue(self, colour):
+        """Sets the current colour to the specified ``colour``."""
         
         if len(colour) != 3 or \
            any([v < 0 or v > 255 for v in colour]):
@@ -55,6 +75,9 @@ class ColourButton(wx.Button):
 
 
     def __updateBitmap(self, colour):
+        """Called when the colour is changed. Updates the bitmap shown
+        on the button.
+        """
 
         import numpy as np
         
@@ -71,6 +94,11 @@ class ColourButton(wx.Button):
 
 
     def __onClick(self, ev):
+        """Called when this ``ColourButton`` is pressed.
+
+        Displays a :class:`wx.ColourDialog` allowing the user to select a new
+        colour.
+        """
 
         colourData = wx.ColourData()
         colourData.SetColour(self.__colour)
@@ -85,3 +113,16 @@ class ColourButton(wx.Button):
         self.SetValue(newColour)
         
         wx.PostEvent(self, ColourButtonEvent(colour=newColour))
+
+
+_ColourButtonEvent, _EVT_COLOUR_BUTTON_EVENT = wxevent.NewEvent()
+
+
+EVT_COLOUR_BUTTON_EVENT = _EVT_COLOUR_BUTTON_EVENT
+"""Identifier for the :data:`ColourButtonEvent`. """
+
+
+ColourButtonEvent = _ColourButtonEvent
+"""Event emitted by a ``ColourButton`` when the user changes the selected
+colour.
+"""

@@ -1,27 +1,46 @@
 #!/usr/bin/env python
 #
-# bitmapradio.py -
+# bitmapradio.py - A radio control with bitmap buttons.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""This module provides the :class:`BitmapRadioBox` class, a radio control
+which uses bitmap toggle buttons.
+"""
 
 import wx
 import wx.lib.newevent as wxevent
 
-_BitampRadioEvent, _EVT_BITMAP_RADIO_EVENT = wxevent.NewEvent()
 
-
-EVT_BITMAP_RADIO_EVENT = _EVT_BITMAP_RADIO_EVENT
-
-
-BitmapRadioEvent = _BitampRadioEvent
+# TODO Button tooltips
 
 
 class BitmapRadioBox(wx.PyPanel):
+    """A radio control which displays a collection of :class:`wx.ToggleButton`
+    controls, each of which displays an image.
+
+    Each of these buttons corresponds to a mutually exclusive option - when
+    the user clicks on a button, it is toggled *on*, and all of the others are
+    toggled *off*.
+
+    For example, here is a ``BitmapRadioBox`` which allows the user to switch
+    between *view* mode and *edit* mode:
+
+     .. image:: images/bitmapradiobox.png
+        :scale: 50%
+        :align: center
+
+    When the user pushes a button, a :data:`EVT_BITMAP_RADIO_EVENT` is
+    generated.
+    """
 
     def __init__(self, parent, style=None):
-        """
-        :arg style: ``wx.HORIZONTAL`` or ``wx.VERTICAL``.
+        """Create a ``BitmapRadioBox``.
+
+        :arg parent: A parent window.
+        
+        :arg style:  Either ``wx.HORIZONTAL`` (the default) or ``wx.VERTICAL``,
+                     to control the button layout direction.
         """
         wx.PyPanel.__init__(self, parent)
 
@@ -40,6 +59,12 @@ class BitmapRadioBox(wx.PyPanel):
 
 
     def AddChoice(self, bitmap, clientData=None):
+        """Add a button to this ``BitmapRadioBox``.
+
+        :arg bitmap:     A :class:`wx.Bitmap` to display on the button.
+
+        :arg clientData: Arbitrary data which is associated with the choice.
+        """
 
         # BU_NOTEXT causes a segfault under OSX
         if wx.Platform == '__WXMAC__':
@@ -64,6 +89,7 @@ class BitmapRadioBox(wx.PyPanel):
 
         
     def Clear(self):
+        """Remove all buttons from this ``BitmapRadioBox``."""
 
         self.__sizer.Clear(True)
         self.__selection  = -1
@@ -72,14 +98,23 @@ class BitmapRadioBox(wx.PyPanel):
 
 
     def Enable(self, index, enable=True):
+        """Enable or disable the button at the specified index. """
         self.__buttons[index].Enable(enable)
 
     
     def Disable(self, index):
+        """Disable the button at the specified index. """
         self.Enable(index, False)
 
         
     def Set(self, bitmaps, clientData=None):
+        """Set all buttons at once.
+
+        :arg bitmaps:    A list of :class:`wx.Bitmap` objects.
+
+        :arg clientData: A list of arbitrary data to associate with each
+                         choice.
+        """
 
         if clientData is None:
             clientData = [None] * len(bitmaps)
@@ -89,10 +124,12 @@ class BitmapRadioBox(wx.PyPanel):
 
 
     def GetSelection(self):
+        """Returns the index of the curently selected choice."""
         return self.__selection
 
     
     def SetSelection(self, index):
+        """Sets the current selection."""
 
         if index < 0 or index >= len(self.__buttons):
             raise ValueError('Invalid index {}'.format(index))
@@ -106,6 +143,9 @@ class BitmapRadioBox(wx.PyPanel):
 
 
     def __onButton(self, ev):
+        """Called when a button is pushed. Updates the selection,
+        and emits a :data:`BitmapRadioEvent`.
+        """
 
         idx  = self.__buttons.index(ev.GetEventObject())
         data = self.__clientData[idx]
@@ -113,3 +153,19 @@ class BitmapRadioBox(wx.PyPanel):
         self.SetSelection(idx)
         
         wx.PostEvent(self, BitmapRadioEvent(index=idx, clientData=data))
+
+
+_BitampRadioEvent, _EVT_BITMAP_RADIO_EVENT = wxevent.NewEvent()
+
+
+EVT_BITMAP_RADIO_EVENT = _EVT_BITMAP_RADIO_EVENT
+"""Identifier for the :data:`BitmapRadioEvent`. """
+
+
+BitmapRadioEvent = _BitampRadioEvent
+"""Event emitted when the user changes the radio selection. Contains
+the following attributes:
+
+  - ``idx``:        The index of the new selection.
+  - ``clientData``: Client data associated with the new selection.
+"""

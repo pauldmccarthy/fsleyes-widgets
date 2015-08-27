@@ -20,8 +20,8 @@ behaviour in the existing controls. The following controls are available:
     ~pwidgets.floatspin.FloatSpinCtrl
     ~pwidgets.floatslider.FloatSlider
     ~pwidgets.floatslider.SliderSpinPanel
-    ~pwidgets.floatslider.RangePanel
-    ~pwidgets.floatslider.RangeSliderSpinPanel
+    ~pwidgets.rangeslider.RangePanel
+    ~pwidgets.rangeslider.RangeSliderSpinPanel
     ~pwidgets.notebook.Notebook
     ~pwidgets.numberdialog.NumberDialog
     ~pwidgets.colourbutton.ColourButton
