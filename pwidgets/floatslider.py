@@ -4,43 +4,27 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""Floating point slider widgets.
-
-Provides two classes, :class:`FloatSlider` and :class:`SliderSpinPanel`.
-
-The :class:`FloatSlider` class is an alternative to :class:`wx.Slider` which
-supports floating point numbers.
-
-The :class:`SliderSpinPanel` class is a panel containing a
-:class:`FloatSlider` and a :class:`.FloatSpinCtrl`, linked
-such that changes in one are reflected in the other. The
-:class:`SliderSpinPanel` class also allows the user to change the slider
-limits, via the :class:`~pwidgets.numberdialog.NumberDialog` class.
-
+"""This module provides two classes, the :class:`FloatSlider` and
+:class:`SliderSpinPanel`, which allow the user to modify floating point
+values.
 """
 
 import wx
-import floatspin
 import wx.lib.newevent as wxevent
 
+import floatspin
 import numberdialog
-
-
-# TODO
-#   - Use styles for e.g. mouse wheel
-#   - Support integers
-
-
-FS_MOUSEWHEEL = 1
-FS_INTEGER    = 2
 
 
 class FloatSlider(wx.Slider):
     """Floating point slider widget.
     
-    A cheap and nasty subclass of :class:`wx.Slider` which supports floating
-    point numbers of any range. The desired range is transformed into the
-    internal range :math:`[-2^{31}, 2^{31-1}]`.
+    This class is an alternative to :class:`wx.Slider`, which supports
+    floating point numbers of any range. The desired range is transformed into
+    the internal range :math:`[-2^{31}, 2^{31-1}]`.
+
+    A :class:`EVT_SLIDER` event is emitted whenever the user changes the
+    value.
     """
 
     def __init__(self,
@@ -49,18 +33,24 @@ class FloatSlider(wx.Slider):
                  minValue=None,
                  maxValue=None,
                  style=0):
-        """Initialise a FloatSlider.
+        """Create a ``FloatSlider``.
 
-        :param parent:           The :mod:`wx` parent object.
-        
-        :param float value:      Initial slider value.
-        
-        :param float minValue:   Minimum slider value.
-        
-        :param float maxValue:   Maximum slider value.
+        The following style flags are available:
 
-        :param float mousewheel: If ``True``, mouse wheel events over the
-                                 slider will change its value.
+         .. autosummary::
+            FS_MOUSEWHEEL
+            FS_INTEGER
+
+        :arg parent:   The :mod:`wx` parent object.
+        
+        :arg value:    Initial slider value.
+        
+        :arg minValue: Minimum slider value.
+        
+        :arg maxValue: Maximum slider value.
+
+        :arg style:    A combination of :data:`FS_MOUSEWHEEL` and
+                       :data:`FS_INTEGER`.
         """
 
         if value    is None: value    = 0
@@ -132,7 +122,6 @@ class FloatSlider(wx.Slider):
         if self.__mousePos != (ev.GetX(), ev.GetY()):
             ev.Skip()
             return
-        
 
         dataMin, dataMax = self.GetRange()
         width, height    = self.GetClientSize().Get()
@@ -151,7 +140,9 @@ class FloatSlider(wx.Slider):
 
 
     def __onMouseWheel(self, ev):
-        """Called when the mouse wheel is spun over the slider widget.
+        """If the :data:`FS_MOUSEWHEEL` style is set, this method is called
+        when the mouse wheel is spun over the slider widget.
+
         Increases/decreases the slider value accordingly.
         """
         if not self.IsEnabled():
@@ -269,6 +260,270 @@ class FloatSlider(wx.Slider):
         value = wx.Slider.GetValue(self)
         return self.__sliderToReal(value)
 
+    
+class SliderSpinPanel(wx.PyPanel):
+    """A panel containing a :class:`FloatSlider` and a :class:`.FloatSpinCtrl`.
+
+    The slider and spinbox are linked such that changes to one are reflected
+    in the other.  The ``SliderSpinPanel`` class also provides the option to
+    have the minimum/maximum limits displayed on either side of the
+    slider/spinbox, and to have those limits editable via a
+    :class:`.NumberDialog` .
+
+    Users of the ``SliderSpinPanel`` may wish to bind listeners to
+    the following events:
+    
+      - :data:`EVT_SSP_VALUE`: Emitted when the slider value changes.
+    
+      - :data:`EVT_SSP_LIMIT`: Emitted when the slider limits change.
+    """
+
+    def __init__(self,
+                 parent,
+                 value=None,
+                 minValue=None,
+                 maxValue=None,
+                 label=None,
+                 style=None):
+        """Create a ``SliderSpinPanel``.
+
+        The following style flags are available:
+
+         .. autosummary::
+            SSP_SHOW_LIMITS
+            SSP_EDIT_LIMITS
+            SSP_MOUSEWHEEL
+            SSP_INTEGER
+
+        :arg parent:   A parent control.
+        
+        :arg value:    Initial slider/spin value.
+        
+        :arg minValue: Minimum slider/spin value.
+        
+        :arg maxValue: Maximum slider/spin value.
+
+        :arg label:    If not ``None``, a :class:`wx.StaticText`
+                       widget is added to the left of the slider,
+                       containing the given label.
+        
+        :arg style:    A combination of :data:`SSP_SHOW_LIMITS`,
+                       :data:`SSP_EDIT_LIMITS`, :data:`SSP_MOUSEWHEEL` and
+                       :data:`SSP_INTEGER`. Defaults to
+                       :data:`SSP_SHOW_LIMITS`.
+        """
+
+        wx.Panel.__init__(self, parent)
+
+        if style is None: style = SSP_SHOW_LIMITS
+
+        showLimits = style & SSP_SHOW_LIMITS
+        editLimits = style & SSP_EDIT_LIMITS
+        integer    = style & SSP_INTEGER
+        mousewheel = style & SSP_MOUSEWHEEL
+
+        if value    is None: value    = 0
+        if minValue is None: minValue = 0
+        if maxValue is None: maxValue = 1 
+
+        if not showLimits:
+            editLimits = False
+        
+        self.__showLimits = showLimits
+
+        if integer: self.__fmt = '{}'
+        else:       self.__fmt = '{: 0.3G}'
+
+        spinStyle   = 0
+        sliderStyle = 0
+        
+        if mousewheel:
+            spinStyle   |= floatspin.FSC_MOUSEWHEEL
+            sliderStyle |=            FS_MOUSEWHEEL
+
+        if integer:
+            spinStyle   |= floatspin.FSC_INTEGER
+            sliderStyle |=            FS_INTEGER
+            increment    = 1 
+        else:
+            increment    = (maxValue - minValue) / 100.0
+
+        self.__slider = FloatSlider(
+            self,
+            value=value,
+            minValue=minValue,
+            maxValue=maxValue,
+            style=sliderStyle)
+
+        self.__spinbox = floatspin.FloatSpinCtrl(
+            self,
+            value=value,
+            minValue=minValue,
+            maxValue=maxValue,
+            increment=increment,
+            style=spinStyle)
+                                                
+        self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.SetSizer(self.__sizer)
+
+        if label is not None:
+            self.__label = wx.StaticText(self, label=label)
+            self.__sizer.Add(self.__label, flag=wx.EXPAND)
+
+        self.__sizer.Add(self.__slider,  flag=wx.EXPAND, proportion=1)
+        self.__sizer.Add(self.__spinbox, flag=wx.EXPAND)
+
+        self.__slider .Bind(wx.EVT_SLIDER,           self.__onSlider)
+        self.__spinbox.Bind(floatspin.EVT_FLOATSPIN, self.__onSpin)
+
+        if showLimits:
+            self.__minButton = wx.Button(self,
+                                         label=self.__fmt.format(minValue))
+            self.__maxButton = wx.Button(self,
+                                         label=self.__fmt.format(maxValue))
+
+            self.__sizer.Insert(0, self._minButton, flag=wx.EXPAND)
+            self.__sizer.Add(      self._maxButton, flag=wx.EXPAND)
+
+            self.__minButton.Enable(editLimits)
+            self.__maxButton.Enable(editLimits)
+
+            self.__minButton.Bind(wx.EVT_BUTTON, self.__onLimitButton)
+            self.__maxButton.Bind(wx.EVT_BUTTON, self.__onLimitButton)
+
+        self.Layout()
+
+        
+    def __onLimitButton(self, ev):
+        """Only called if the :data:`SSP_SHOW_LIMITS` and
+        :data:`SSP_EDIT_LIMITS` style flags are set.
+
+        Called when either of the minimum/maximum limit buttons are clicked.
+
+        Pops up a :class:`.NumberDialog` window. If the user changes the limit
+        value, updates the slider/spin limits, and emits an
+        :data:`EVT_SSP_LIMIT` event.
+        """
+
+        source = ev.GetEventObject()
+
+        if source == self.__minButton:
+            message = 'New minimum value'
+            initVal = self.GetMin()
+            minVal  = None
+            maxVal  = self.GetMax()
+        elif source == self.__maxButton:
+            message = 'New maximum value'
+            initVal = self.GetMax()
+            minVal  = self.GetMin()
+            maxVal  = None
+        else:
+            return
+
+        dlg = numberdialog.NumberDialog(
+            self.GetTopLevelParent(),
+            message=message,
+            initial=initVal,
+            minValue=minVal,
+            maxValue=maxVal)
+
+        pos = ev.GetEventObject().GetScreenPosition()
+        dlg.SetPosition(pos)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+
+        if   source == self.__minButton: self.SetMin(dlg.GetValue())
+        elif source == self.__maxButton: self.SetMax(dlg.GetValue())
+
+        wx.PostEvent(self, SliderSpinLimitEvent(
+            min=self.GetMin(),
+            max=self.GetMax()))
+
+        
+    def __onSlider(self, ev):
+        """Called when the user changes the slider value.
+
+        Updates the spinbox value and emits an :data:`EVT_SSP_VALUE` event.
+        """
+        val = self.__slider.GetValue()
+        self.__spinbox.SetValue(val)
+        wx.PostEvent(self, SliderSpinValueEvent(value=val)) 
+
+        
+    def __onSpin(self, ev):
+        """Called when the user changes the spinbox value.
+
+        Updates the slider value and emits an :data:`EVT_SSP_VALUE` event.
+        """
+        val = self.__spinbox.GetValue()
+        
+        self.__slider.SetValue(val)
+        wx.PostEvent(self, SliderSpinValueEvent(value=val))
+
+        
+    def GetRange(self):
+        """Return a tuple containing the (minimum, maximum) slider/spinbox
+        values.
+        """
+        return self.__slider.GetRange()
+
+        
+    def GetMin(self):
+        """Returns the minimum slider/spinbox value."""
+        return self.__slider.GetMin()
+
+        
+    def GetMax(self):
+        """Returns the maximum slider/spinbox value."""
+        return self.__slider.GetMax()
+
+        
+    def GetValue(self):
+        """Returns the current slider/spinbox value. """
+        return self.__slider.GetValue()
+
+        
+    def SetRange(self, minValue, maxValue):
+        """Sets the minimum/maximum slider/spinbox values.""" 
+        self.SetMin(minValue)
+        self.SetMax(maxValue)
+
+        
+    def SetMin(self, minValue):
+        """Sets the minimum slider/spinbox value.""" 
+        self.__slider .SetMin(minValue)
+        self.__spinbox.SetMin(minValue)
+
+        if self.__showLimits:
+            self.__minButton.SetLabel(self.__fmt.format(minValue))
+
+            
+    def SetMax(self, maxValue):
+        """Sets the maximum slider/spinbox value.""" 
+        self.__slider .SetMax(maxValue)
+        self.__spinbox.SetMax(maxValue)
+
+        if self.__showLimits:
+            self.__maxButton.SetLabel(self.__fmt.format(maxValue)) 
+
+            
+    def SetValue(self, value):
+        """Sets the current slider/spinbox value.""" 
+        self.__slider .SetValue(value)
+        self.__spinbox.SetValue(value)
+
+
+FS_MOUSEWHEEL = 1
+"""``FloatSlider`` style flag. If set, mouse wheel events on the slider will
+change the value.
+"""
+
+
+FS_INTEGER    = 2
+"""``FloatSlider`` style flag. If set, the slider will store an integer value
+instead of a floating point value.
+"""
+
 
 _SliderSpinValueEvent, _EVT_SSP_VALUE = wxevent.NewEvent()
 _SliderSpinLimitEvent, _EVT_SSP_LIMIT = wxevent.NewEvent()
@@ -296,246 +551,27 @@ contain the new limit values.
 """
 
 
-class SliderSpinPanel(wx.Panel):
-    """A panel containing a :class:`FloatSlider` and a :class:`.FloatSpinCtrl`.
+SSP_SHOW_LIMITS = 1
+"""If set, the data range limits are shown alongside the slider/spin control
+widgets.
+"""
 
-    The slider and spinbox are linked such that changes to one are
-    reflected in the other.  The :class:`SliderSpinPanel` class also
-    provides the option to have the minimum/maximum limits displayed
-    on either side of the slider/spinbox, and to have those limits
-    editable via a button push.
 
-    Users of the :class:`SliderSpinPanel` may wish to bind listeners to
-    the following events:
-    
-      - :data:`EVT_SSP_VALUE`: Emitted when the slider value changes.
-    
-      - :data:`EVT_SSP_LIMIT`: Emitted when the slider limits change.
-    """
+SSP_EDIT_LIMITS = 2
+"""If set, and :data:`SSP_SHOW_LIMITS` is also set, the data range limits
+are shown on buttons alongside the slider/spin control widgets.
 
-    def __init__(self,
-                 parent,
-                 real=True,
-                 value=None,
-                 minValue=None,
-                 maxValue=None,
-                 label=None,
-                 showLimits=True,
-                 editLimits=False,
-                 mousewheel=False):
-        """
-        Initialise a :class:`SliderSpinPanel` object.
+When the user pushes the button, a :class:`.NumberDialog` is shown, allowing
+the user to change the data range.
+"""
 
-        :param parent:           The :mod:`wx` parent object.
+SSP_MOUSEWHEEL = 4
+"""If set, mouse wheel events on the slider/spin controls will change the
+value.
+"""
 
-        :param bool real:        If ``False``, a :class:`wx.Slider` and
-                                 :class:`wx.SpinCtrl` are used, instead of a
-                                 :class:`FloatSlider` and
-                                 :class:`.FloatSpinCtrl`.
-        
-        :param number value:     Initial slider/spin value.
-        
-        :param number minValue:  Minimum slider/spin value.
-        
-        :param number maxValue:  Maximum slider/spin value.
 
-        :param str label:        If not ``None``, a :class:`wx.StaticText`
-                                 widget is added to the left of the slider,
-                                 containing the given label.
-        
-        :param bool showLimits:  If ``True``, buttons placed on the left and
-                                 right, displaying the minimum/maximum limits.
-        
-        :param bool editLimits:  If ``True``, when said buttons are clicked, a
-                                 :class:`~fsl.gui.numberdialog.NumberDialog`
-                                 window pops up allowing the user to edit the
-                                 limit values. Has no effect if ``showLimits``
-                                 is ``False``.
-        
-        :param float mousewheel: If ``True``, mouse wheel events over the
-                                 sliders/spinboxes will change their value. 
-        """
-
-        wx.Panel.__init__(self, parent)
-
-        if value    is None: value    = 0
-        if minValue is None: minValue = 0
-        if maxValue is None: maxValue = 1 
-
-        if not showLimits: editLimits = False
-        
-        self._showLimits = showLimits
-        self._real       = real
-
-        if real: self._fmt = '{: 0.3G}'
-        else:    self._fmt = '{}'
-
-        spinStyle   = 0
-        sliderStyle = 0
-        
-        if mousewheel:
-            spinStyle   |= floatspin.FSC_MOUSEWHEEL
-            sliderStyle |=            FS_MOUSEWHEEL
-
-        if real:
-            increment    = (maxValue - minValue) / 100.0
-        else:
-            spinStyle   |= floatspin.FSC_INTEGER
-            sliderStyle |=            FS_INTEGER
-            increment    = 1
-
-        self._slider = FloatSlider(
-            self,
-            value=value,
-            minValue=minValue,
-            maxValue=maxValue,
-            style=sliderStyle)
-
-        self._spinbox = floatspin.FloatSpinCtrl(
-            self,
-            value=value,
-            minValue=minValue,
-            maxValue=maxValue,
-            increment=increment,
-            style=spinStyle)
-                                                
-        self._sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.SetSizer(self._sizer)
-
-        if label is not None:
-            self._label = wx.StaticText(self, label=label)
-            self._sizer.Add(self._label, flag=wx.EXPAND)
-
-        self._sizer.Add(self._slider,  flag=wx.EXPAND, proportion=1)
-        self._sizer.Add(self._spinbox, flag=wx.EXPAND)
-
-        self._slider .Bind(wx.EVT_SLIDER,           self._onSlider)
-        self._spinbox.Bind(floatspin.EVT_FLOATSPIN, self._onSpin)
-
-        if showLimits:
-            self._minButton = wx.Button(self, label=self._fmt.format(minValue))
-            self._maxButton = wx.Button(self, label=self._fmt.format(maxValue))
-
-            self._sizer.Insert(0, self._minButton, flag=wx.EXPAND)
-            self._sizer.Add(      self._maxButton, flag=wx.EXPAND)
-
-            self._minButton.Enable(editLimits)
-            self._maxButton.Enable(editLimits)
-
-            self._minButton.Bind(wx.EVT_BUTTON, self._onLimitButton)
-            self._maxButton.Bind(wx.EVT_BUTTON, self._onLimitButton)
-
-        self.Layout()
-
-        
-    def _onLimitButton(self, ev):
-        """Called when either of the minimum/maximum limit buttons
-        are clicked. Pops up a :class:`~fsl.gui.numberdialog.NumberDialog`
-        window and, if the user changes the value, updates the slider/spin
-        limits, and emits an :data:`EVT_SSP_LIMIT` event.
-        """
-
-        source = ev.GetEventObject()
-
-        if source == self._minButton:
-            message = 'New minimum value'
-            initVal = self.GetMin()
-            minVal  = None
-            maxVal  = self.GetMax()
-        elif source == self._maxButton:
-            message = 'New maximum value'
-            initVal = self.GetMax()
-            minVal  = self.GetMin()
-            maxVal  = None
-        else:
-            return
-
-        dlg = numberdialog.NumberDialog(
-            self.GetTopLevelParent(),
-            message=message,
-            initial=initVal,
-            minValue=minVal,
-            maxValue=maxVal)
-
-        pos = ev.GetEventObject().GetScreenPosition()
-        dlg.SetPosition(pos)
-        if dlg.ShowModal() != wx.ID_OK:
-            return
-
-        if   source == self._minButton: self.SetMin(dlg.GetValue())
-        elif source == self._maxButton: self.SetMax(dlg.GetValue())
-
-        wx.PostEvent(self, SliderSpinLimitEvent(
-            min=self.GetMin(),
-            max=self.GetMax()))
-
-        
-    def _onSlider(self, ev):
-        """Called when the user changes the slider value. Updates the
-        spinbox value and emits an :data:`EVT_SSP_VALUE` event.
-        """
-        val = self._slider.GetValue()
-        self._spinbox.SetValue(val)
-        wx.PostEvent(self, SliderSpinValueEvent(value=val)) 
-
-        
-    def _onSpin(self, ev):
-        """Called when the user changes the spinbox value. Updates the
-        slider value and emits an :data:`EVT_SSP_VALUE` event.
-        """
-        val = self._spinbox.GetValue()
-        
-        self._slider.SetValue(val)
-        wx.PostEvent(self, SliderSpinValueEvent(value=val))
-
-        
-    def GetRange(self):
-        """Return a tuple containing the (minimum, maximum) slider/spinbox
-        values.
-        """
-        return self._slider.GetRange()
-
-        
-    def GetMin(self):
-        """Returns the minimum slider/spinbox value."""
-        return self._slider.GetMin()
-
-        
-    def GetMax(self):
-        """Returns the maximum slider/spinbox value."""
-        return self._slider.GetMax()
-
-        
-    def GetValue(self):
-        """Returns the current slider/spinbox value. """
-        return self._slider.GetValue()
-
-        
-    def SetRange(self, minValue, maxValue):
-        """Sets the minimum/maximum slider/spinbox values.""" 
-        self.SetMin(minValue)
-        self.SetMax(maxValue)
-
-        
-    def SetMin(self, minValue):
-        """Sets the minimum slider/spinbox value.""" 
-        self._slider .SetMin(minValue)
-        self._spinbox.SetMin(minValue)
-
-        if self._showLimits:
-            self._minButton.SetLabel(self._fmt.format(minValue))
-
-            
-    def SetMax(self, maxValue):
-        """Sets the maximum slider/spinbox value.""" 
-        self._slider .SetMax(maxValue)
-        self._spinbox.SetMax(maxValue)
-
-        if self._showLimits:
-            self._maxButton.SetLabel(self._fmt.format(maxValue)) 
-
-            
-    def SetValue(self, value):
-        """Sets the current slider/spinbox value.""" 
-        self._slider .SetValue(value)
-        self._spinbox.SetValue(value)
+SSP_INTEGER = 8
+"""If set, the ``SliderSpinPanel`` will store an integer value instead of
+floating point value.
+"""

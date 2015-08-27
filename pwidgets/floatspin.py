@@ -5,15 +5,8 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""An alternative to :class:`wx.SpinCtrl`, :class:`wx.SpinCtrlDouble`, and
-:class:`wx.lib.agw.floatspin.FloatSpin`.
-
- - :class:`wx.SpinCtrlDouble`: Under Linux/GTK, this widget does not allow the
-   user to enter values that are not a multiple of the increment.
-
- - :class:`wx.lib.agw.floatspin.FloatSpin`. Differs from the
-   :class:`wx.SpinCtrl` API in various annoying ways, and formatting is a
-   pain.
+"""This module provides the :class:`FloatSpinCtrl` class, a spin control for
+modifying a floating point value.
 """
 
 
@@ -23,26 +16,21 @@ import wx.lib.newevent as wxevent
 import re
 
 
-_FloatSpinEvent, _EVT_FLOATSPIN = wxevent.NewEvent()
-
-
-EVT_FLOATSPIN = _EVT_FLOATSPIN
-
-
-FloatSpinEvent = _FloatSpinEvent
-
-
-FSC_MOUSEWHEEL          = 1
-FSC_EVENT_ON_TEXT       = 2
-FSC_INTEGER             = 4
-
-
-# TODO Add these styles if/when you need them:
-#      FSC_NO_SPIN_BUTTON      = 8
-#      FSC_IGNORE_OUT_OF_RANGE = 16
-
-
 class FloatSpinCtrl(wx.PyPanel):
+    """A ``FloatSpinCtrl`` is a :class:`wx.PyPanel` which contains a
+    :class:`wx.TextCtrl` and a :class:`wx.SpinButton`, allowing the user to
+    modify a floating point (or integer) value.
+
+    The ``FloatSpinCtrl`` is an alternative to :class:`wx.SpinCtrl`,
+    :class:`wx.SpinCtrlDouble`, and :class:`wx.lib.agw.floatspin.FloatSpin`.
+
+     - :class:`wx.SpinCtrlDouble`: Under Linux/GTK, this widget does not allow
+        the user to enter values that are not a multiple of the increment.
+
+     - :class:`wx.lib.agw.floatspin.FloatSpin`. Differs from the
+       :class:`wx.SpinCtrl` API in various annoying ways, and formatting is a
+       pain.
+    """
 
     def __init__(self,
                  parent,
@@ -51,6 +39,29 @@ class FloatSpinCtrl(wx.PyPanel):
                  increment=1,
                  value=0,
                  style=0):
+        """Create a ``FloatSpinCtrl``.
+
+        The following style flags are available:
+          .. autosummary::
+             FSC_MOUSEWHEEL
+             FSC_EVENT_ON_TEXT
+             FSC_INTEGER
+
+        :arg parent:    The parent of this control (e.g. a :class:`wx.Panel`).
+
+        :arg minValue:  Initial minimum value.
+
+        :arg maxValue:  Initial maximum value.
+
+        :arg increment: Default increment to apply when the user changes the
+                        value via the spin button or mouse wheel.
+
+        :arg value:     Initial value.
+
+        :arg style:     Style flags - a combination of :data:`FSC_MOUSEWHEEL`,
+                        :data:`FSC_EVENT_ON_TEXT`, and :data:`FSC_INTEGER`.
+
+        """
         wx.PyPanel.__init__(self, parent)
 
         self.__value     = value
@@ -117,39 +128,50 @@ class FloatSpinCtrl(wx.PyPanel):
 
     
     def GetValue(self):
+        """Returns the current value."""
         return self.__value
     
 
     def GetMin(self):
+        """Returns the current minimum value."""
         return self.__realMin
 
     
     def GetMax(self):
+        """Returns the current maximum value."""
         return self.__realMax
 
 
     def GetIncrement(self):
+        """Returns the current inrement."""
         return self.__increment
 
 
     def SetIncrement(self, inc):
+        """Sets the inrement."""
         if self.__integer: self.__increment = int(round(inc))
         else:              self.__increment =           inc
 
         
     def GetRange(self):
+        """Returns the current data range, a tuple containing the
+        ``(min, max)`` values.
+        """
         return (self.__realMin, self.__realMax)
 
 
     def SetMin(self, minval):
+        """Sets the minimum value."""
         self.SetRange(minval, self.__realMax)
 
     
     def SetMax(self, maxval):
+        """Sets the maximum value."""
         self.SetRange(self.__realMin, maxval)
 
     
     def SetRange(self, minval, maxval):
+        """Sets the minimum and maximum values."""
         
         inc = (maxval - minval) / 100.0
 
@@ -170,9 +192,9 @@ class FloatSpinCtrl(wx.PyPanel):
 
     
     def SetValue(self, value):
-        """
-        Returns ``True`` if the value was changed,
-        ``False`` otherwise.
+        """Sets the value.
+
+        :returns ``True`` if the value was changed, ``False`` otherwise.
         """
 
         if self.__integer:
@@ -191,6 +213,14 @@ class FloatSpinCtrl(wx.PyPanel):
     
 
     def __onText(self, ev):
+        """Called when the user changes the value via the text control.
+
+        If the :data:`FSC_EVENT_ON_TEXT` style is set, this method is called
+        on every text event. Otherwise, this method is called when the enter
+        key is pressed, or when the text control loses focus.
+
+        If the value has changed, a :data:`FloatSpinEvent` is generated.
+        """
 
         val = self.__text.GetValue().strip()
 
@@ -210,16 +240,32 @@ class FloatSpinCtrl(wx.PyPanel):
 
 
     def __onSpinDown(self, ev=None):
+        """Called when the *down* button on the ``wx.SpinButton`` is pushed.
+
+        Decrements the value by the current increment and generates a
+        :data:`FloatSpinEvent`.
+        """
         if self.SetValue(self.__value - self.__increment):
             wx.PostEvent(self, FloatSpinEvent(value=self.__value))
 
         
     def __onSpinUp(self, ev=None):
+        """Called when the *up* button on the ``wx.SpinButton`` is pushed.
+
+        Increments the value by the current increment and generates a
+        :data:`FloatSpinEvent`.
+        """ 
         if self.SetValue(self.__value + self.__increment):
             wx.PostEvent(self, FloatSpinEvent(value=self.__value))
 
 
     def __onMouseWheel(self, ev):
+        """If the :data:`FSC_MOUSEWHEEL` style flag is set, this method is
+        called on mouse wheel events.
+
+        Calls :meth:`__onSpinUp` on an upwards rotation, and
+        :meth:`__onSpinDown` on a downwards rotation.
+        """
 
         rot = ev.GetWheelRotation()
         
@@ -229,6 +275,7 @@ class FloatSpinCtrl(wx.PyPanel):
         
     def __spinToReal(self, value):
         """Converts the given value from spin button space to real space."""
+        
         value = self.__realMin + (value - self.__spinMin) * \
             (float(self.__realRange) / self.__spinRange)
 
@@ -245,3 +292,37 @@ class FloatSpinCtrl(wx.PyPanel):
         value = self.__spinMin + (value - self.__realMin) * \
             (self.__spinRange / float(self.__realRange))
         return int(round(value))        
+
+
+
+
+_FloatSpinEvent, _EVT_FLOATSPIN = wxevent.NewEvent()
+
+
+EVT_FLOATSPIN = _EVT_FLOATSPIN
+"""Identifier for the :data:`FloatSpinEvent` event. """
+
+
+FloatSpinEvent = _FloatSpinEvent
+"""Event emitted when the floating point value is changed by the user. A
+``FloatSpinEvent`` has the following attributes:
+
+  - ``value``: The new value.
+"""
+
+
+FSC_MOUSEWHEEL = 1
+"""If set, mouse wheel events on the control will change the value. """
+
+
+FSC_EVENT_ON_TEXT = 2
+"""If set, a ``FloatSpinEvent`` is emitted on every text event. If not set, a
+``FloatSpinEvent`` is only emitted when the enter key is pressed, or the
+control loses focus.
+"""
+
+
+FSC_INTEGER = 4
+"""If set, the control stores an integer value, rather than a floating point
+value.
+"""
