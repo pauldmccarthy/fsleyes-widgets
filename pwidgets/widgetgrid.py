@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 #
-# widgetgrid.py -
+# widgetgrid.py - A tabular grid of widgets.
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
+"""This module provides the :class:`WidgetGrid` class, which can display a
+tabular grid of arbitrary widgets.
+"""
 
 
 import wx
@@ -11,14 +14,52 @@ import wx.lib.scrolledpanel as scrolledpanel
 
 
 class WidgetGrid(scrolledpanel.ScrolledPanel):
+    """A scrollable panel which displays a tabular grid of widgets.
+
+
+    The most important methods are:
+
+     .. autosummary::
+        :nosignatures:
+
+        SetGridSize
+        SetWidget
+        SetText
+        ClearGrid
+
+
+    A ``WidgetGrid`` looks something like this:
+
+      .. image:: images/widgetgrid.png
+        :scale: 50%
+        :align: center
+    """
 
 
     _defaultBorderColour = '#000000'
+    """The colour of border a border which is shown around every cell in the
+    grid. 
+    """
+
+    
     _defaultOddColour    = '#ffffff'
+    """Background colour for cells on odd rows."""
+
+    
     _defaultEvenColour   = '#eeeeee'
+    """Background colour for cells on even rows."""
+
+    
     _defaultLabelColour  = '#dddddd'
+    """Background colour for row and column labels."""
+    
 
     def __init__(self, parent):
+        """Create a ``WidgetGrid``.
+
+        :arg parent: The :mod:`wx` parent object.
+        """
+        
         scrolledpanel.ScrolledPanel.__init__(self, parent)
         self.SetupScrolling()
         self.SetAutoLayout(1)
@@ -44,6 +85,16 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
 
     def SetColours(self, **kwargs):
+        """Set the colours used in this ``WidgetGrid``.
+
+        :arg border: The cell border colour.
+
+        :arg label:  Background colour for row and column labels.
+
+        :arg odd:    Background colour for cells on odd rows.
+
+        :arg even:   Background colour for cells on even rows.
+        """
 
         border = kwargs.get('border', self)
         label  = kwargs.get('label',  self)
@@ -58,7 +109,10 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__refresh()
 
 
-    def __reparent(self,  widget, parent):
+    def __reparent(self, widget, parent):
+        """Convenience method which  re-parents the given widget. If
+        ``widget`` is a :class:`wx.Sizer` the sizer children are re-parented.
+        """
         if isinstance(widget, wx.Sizer):
             widget = [c.GetWindow() for c in widget.GetChildren()]
         else:
@@ -69,6 +123,10 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             
 
     def __setBackgroundColour(self, widget, colour):
+        """Convenience method which changes the background colour of the given
+        widget. If ``widget`` is a :class:`wx.Sizer` the background colours of
+        the sizer children is updated.
+        """        
         if isinstance(widget, wx.Sizer):
             widget = [c.GetWindow() for c in widget.GetChildren()]
         else:
@@ -79,6 +137,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
  
         
     def __refresh(self):
+        """Lays out and re-sizes the entire widget grid. """
 
         borderColour = self.__borderColour
         labelColour  = self.__labelColour
@@ -154,6 +213,12 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
 
     def SetGridSize(self, nrows, ncols):
+        """Set the size of the widdget grid.
+
+        :arg nrows: Number of rows
+
+        :arg ncols: Number of columns
+        """
 
         if nrows < 0 or ncols < 0:
             raise ValueError('Invalid size ({}, {})'.format(nrows, ncols))
@@ -211,6 +276,9 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
     
     def ClearGrid(self):
+        """Removes and destroys all widgets from the grid, and sets the grid
+        size to ``(0, 0)``.
+        """
 
         if self.__gridSizer is not None:
             self.__gridSizer.Clear(True)
@@ -227,17 +295,44 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
 
     def SetText(self, row, col, text):
+        """Convenience method which creates a :class:`wx.StaticText` widget
+        with the given text, and passes it to the :meth:`SetWidget` method.
+
+        :arg row:  Row index.
+
+        :arg col:  Column index.
+
+        :arg text: Text to display.
+        """
 
         txt = wx.StaticText(self.__gridPanel, label=text)
         self.SetWidget(row, col, txt)
 
 
     def SetWidget(self, row, col, widget):
+        """Adds the given widget to the grid.
+
+        The parent of the widget is changed to this ``WidgetGrid``.
+
+         .. note::
+            The provided widget may alternately be a :class:`wx.Sizer`.
+            However, nested sizers, i.e. sizers which contain other
+            sizers, are not supported.
+
+        :arg row:    Row index.
+
+        :arg col:    Column index.
+
+        :arg widget: The widget or sizer to add to the grid.
+
+        Raises an :exc:`IndexError` if the specified grid location ``(row,
+        col)`` is invalid.
+        """
         if row <  0            or \
            col <  0            or \
            row >= self.__nrows or \
            col >= self.__ncols:
-            raise ValueError('Grid location ({}, {}) out of bounds ({}, {})'.
+            raise IndexError('Grid location ({}, {}) out of bounds ({}, {})'.
                              format(row, col, self.__nrows, self.__ncols))
 
         # Embed the widget in a panel,
@@ -264,6 +359,11 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
 
     def __initWidget(self, widget):
+        """Called by the :meth:`AddWidget` method.
+
+        Performs some initialisation on a widget which has just been added to
+        the grid.
+        """
 
         # Under Linux/GTK, we need to bind a mousewheel
         # listener to every child of the panel in order
@@ -293,26 +393,36 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
     
 
     def ShowRowLabels(self, show=True):
+        """Shows/hides the grid row labels. """
         self.__showRowLabels = show
         self.__refresh()
 
     
     def ShowColLabels(self, show=True):
+        """Shows/hides the grid column labels. """
         self.__showColLabels = show
         self.__refresh()
     
     
     def SetRowLabel(self, row, label):
+        """Sets a label for the specified row.
+
+        Raises an :exc:`IndexError` if the row is invalid.
+        """
         if row < 0 or row >= self.__nrows:
-            raise ValueError('Row {} out of bounds ({})'.format(
+            raise IndexError('Row {} out of bounds ({})'.format(
                 row, self.__nrows))
 
         self.__rowLabels[row][1].SetLabel(label)
 
     
     def SetColLabel(self, col, label):
+        """Sets a label for the specified column.
+
+        Raises an :exc:`IndexError` if the column is invalid.
+        """
         if col < 0 or col >= self.__ncols:
-            raise ValueError('Column {} out of bounds ({})'.format(
+            raise IndexError('Column {} out of bounds ({})'.format(
                 col, self.__ncols))
 
         self.__colLabels[col][1].SetLabel(label)
