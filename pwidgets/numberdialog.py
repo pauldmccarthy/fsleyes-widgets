@@ -4,23 +4,36 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""An alternative to :class:`wx.NumberEntryDialog` which supports floating
-point numbers.
+"""This module provides the :class:`NumberDialog` class, a dialog which
+allows the user to enter a number.
 """
 
 import wx
 
+
 class NumberDialog(wx.Dialog):
     """A :class:`wx.Dialog` which prompts the user for a number.
-    
-    A dialog which contains a :class:`wx.TextCtrl`, and Ok/Cancel
-    buttons, allowing the user to specify a number. If the user
-    pushes the Ok button, the number they entered will be accessible
-    via the :meth:`GetValue` method.
 
-    I've specifically not used the :class:`wx.SpinCtrl` or
-    :class:`wx.SpinCtrlDouble`, because they are too limited in
-    their flexibility with regard to validation and events. 
+    This class differs from the :class:`wx.NumberEntryDialog` in that
+    it supports floating point numbers.
+    
+    A ``NumberDialog`` contains a :class:`wx.TextCtrl` and *Ok*/*Cancel*
+    buttons, allowing the user to specify a number. If the user pushes the
+    *Ok* button, the number they entered will be accessible via the
+    :meth:`GetValue` method.
+
+    If the user enters an invalid value (i.e. not a number, or outside
+    of the minimum/maximum range if specifed), an error message is
+    displayed, and the user is prompted to enter a new value.
+
+     .. note::
+        I've specifically not used the :class:`wx.SpinCtrl` or
+        :class:`wx.SpinCtrlDouble`, because they are too limited in their
+        flexibility with regard to validation and events.
+
+        This class was written before I wrote the :class:`.FloatSpinCtrl`
+        class - I may update this class at some stage in the future to
+        use ``FloatSpinCtrl``.
     """
 
     def __init__(self,
@@ -31,24 +44,24 @@ class NumberDialog(wx.Dialog):
                  initial=None,
                  minValue=None,
                  maxValue=None):
-        """Create and lay out a :class:`NumberDialog`.
+        """Create a :class:`NumberDialog`.
 
-        :param parent:          The :mod:`wx` parent object.
+        :arg parent:   The :mod:`wx` parent object.
 
-        :param bool real:       If ``True``, a floating point number will 
-                                be accepted. Otherwise, only integers are
-                                accepted.
+        :arg real:     If ``True``, a floating point number will 
+                       be accepted. Otherwise, only integers are
+                       accepted.
 
-        :param str title:       Dialog title.
+        :arg title:    Dialog title.
         
-        :param str message:     If not None, a :class:`wx.StaticText` label 
-                                is added, containing the message.
+        :arg message:  If not None, a :class:`wx.StaticText` label 
+                       is added, containing the message.
 
-        :param number initial:  Initial value.
+        :arg initial:  Initial value.
         
-        :param number minValue: Minimum value.
+        :arg minValue: Minimum value.
         
-        :param number maxValue: Maximum value.
+        :arg maxValue: Maximum value.
         """
 
         if title   is None: title   = ''
@@ -56,51 +69,55 @@ class NumberDialog(wx.Dialog):
 
         wx.Dialog.__init__(self, parent, title=title)
 
-        self._value    = None
-        self._real     = real
-        self._minValue = minValue
-        self._maxValue = maxValue
+        self.__value    = None
+        self.__real     = real
+        self.__minValue = minValue
+        self.__maxValue = maxValue
 
-        if self._real: initial = float(initial)
+        if self.__real: initial = float(initial)
         else:          initial = int(  initial)
 
-        self._panel = wx.Panel(self)
-        self._sizer = wx.BoxSizer(wx.VERTICAL)
-        self._panel.SetSizer(self._sizer)
+        self.__panel = wx.Panel(self)
+        self.__sizer = wx.BoxSizer(wx.VERTICAL)
+        self.__panel.SetSizer(self.__sizer)
 
-        self._buttonPanel = wx.Panel(self._panel)
-        self._buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self._buttonPanel.SetSizer(self._buttonSizer)
+        self.__buttonPanel = wx.Panel(self.__panel)
+        self.__buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.__buttonPanel.SetSizer(self.__buttonSizer)
 
         if message is not None:
-            self._label = wx.StaticText(self._panel, label=message)
-            self._sizer.Add(self._label, flag=wx.EXPAND)
+            self.__label = wx.StaticText(self.__panel, label=message)
+            self.__sizer.Add(self.__label, flag=wx.EXPAND)
 
-        self._textctrl = wx.TextCtrl(self._panel, style=wx.TE_PROCESS_ENTER)
-        self._textctrl.SetValue('{}'.format(initial))
+        self.__textctrl = wx.TextCtrl(self.__panel, style=wx.TE_PROCESS_ENTER)
+        self.__textctrl.SetValue('{}'.format(initial))
 
-        self._sizer.Add(self._textctrl, flag=wx.EXPAND)
+        self.__sizer.Add(self.__textctrl, flag=wx.EXPAND)
 
-        self._errorLabel = wx.StaticText(self._panel)
-        self._errorLabel.SetForegroundColour('#992222')
+        self.__errorLabel = wx.StaticText(self.__panel)
+        self.__errorLabel.SetForegroundColour('#992222')
         
-        self._sizer.Add(self._errorLabel)
-        self._sizer.Show(self._errorLabel, False)
+        self.__sizer.Add(self.__errorLabel)
+        self.__sizer.Show(self.__errorLabel, False)
 
-        self._okButton     = wx.Button(self._buttonPanel, label='Ok')
-        self._cancelButton = wx.Button(self._buttonPanel, label='Cancel')
+        self.__okButton     = wx.Button(self.__buttonPanel, label='Ok')
+        self.__cancelButton = wx.Button(self.__buttonPanel, label='Cancel')
 
-        self._buttonSizer.Add(self._okButton,     flag=wx.EXPAND, proportion=1)
-        self._buttonSizer.Add(self._cancelButton, flag=wx.EXPAND, proportion=1)
+        self.__buttonSizer.Add(self.__okButton,
+                               flag=wx.EXPAND,
+                               proportion=1)
+        self.__buttonSizer.Add(self.__cancelButton,
+                               flag=wx.EXPAND,
+                               proportion=1)
 
-        self._sizer.Add(self._buttonPanel, flag=wx.EXPAND)
+        self.__sizer.Add(self.__buttonPanel, flag=wx.EXPAND)
 
-        self._textctrl    .Bind(wx.EVT_TEXT_ENTER, self._onOk)
-        self._okButton    .Bind(wx.EVT_BUTTON,     self._onOk)
-        self._cancelButton.Bind(wx.EVT_BUTTON,     self._onCancel)
+        self.__textctrl    .Bind(wx.EVT_TEXT_ENTER, self.__onOk)
+        self.__okButton    .Bind(wx.EVT_BUTTON,     self.__onOk)
+        self.__cancelButton.Bind(wx.EVT_BUTTON,     self.__onCancel)
         
-        self._panel.Layout()
-        self._panel.Fit()
+        self.__panel.Layout()
+        self.__panel.Fit()
 
         self.Fit()
 
@@ -112,40 +129,40 @@ class NumberDialog(wx.Dialog):
         enter pressed), this method may be used to retrieve the value.
         Returns ``None`` in all other situations.
         """
-        return self._value
+        return self.__value
 
 
-    def _validate(self):
+    def __validate(self):
         """Validates the current value.
 
         If the value is valid, returns it.  Otherwise a :exc:`ValueError`
         is raised with an appropriate message.
         """
         
-        value = self._textctrl.GetValue()
+        value = self.__textctrl.GetValue()
 
-        if self._real: cast = float
-        else:          cast = int
+        if self.__real: cast = float
+        else:           cast = int
         
         try:
             value = cast(value)
         except:
-            if self._real: err = ' floating point'
-            else:          err = 'n integer'
+            if self.__real: err = ' floating point'
+            else:           err = 'n integer'
             raise ValueError('The value must be a{}'.format(err))
 
-        if self._minValue is not None and value < self._minValue:
+        if self.__minValue is not None and value < self.__minValue:
             raise ValueError('The value must be at '
-                             'least {}'.format(self._minValue))
+                             'least {}'.format(self.__minValue))
             
-        if self._maxValue is not None and value > self._maxValue:
+        if self.__maxValue is not None and value > self.__maxValue:
             raise ValueError('The value must be at '
-                             'most {}'.format(self._maxValue))
+                             'most {}'.format(self.__maxValue))
 
         return value
 
 
-    def _onOk(self, ev):
+    def __onOk(self, ev):
         """Called when the Ok button is pushed, or enter is pressed.
 
         If the entered value is valid, it is stored and the dialog is closed.
@@ -154,58 +171,23 @@ class NumberDialog(wx.Dialog):
         """
         
         try:
-            value = self._validate()
+            value = self.__validate()
             
         except ValueError as e:
-            self._errorLabel.SetLabel(e.message)
-            self._sizer.Show(self._errorLabel, True)
-            self._panel.Layout()
-            self._panel.Fit()
+            self.__errorLabel.SetLabel(e.message)
+            self.__sizer.Show(self.__errorLabel, True)
+            self.__panel.Layout()
+            self.__panel.Fit()
             self.Fit()
             return
             
-        self._value = value
+        self.__value = value
         self.EndModal(wx.ID_OK)
         self.Destroy()
 
         
-    def _onCancel(self, ev):
+    def __onCancel(self, ev):
         """Called when the Cancel button is pushed. Closes the dialog."""
-        self._value = None
+        self.__value = None
         self.EndModal(wx.ID_CANCEL)
         self.Destroy() 
-
-
-def _testNumberDialog():
-    """Little test program."""
-
-    app    = wx.App()
-    frame  = wx.Frame(None)
-    panel  = wx.Panel(frame)
-    sizer  = wx.BoxSizer(wx.HORIZONTAL)
-    button = wx.Button(panel, label='Show dialog!')
-
-    sizer.Add(button, flag=wx.EXPAND)
-    panel.SetSizer(sizer)
-
-
-    def _showDlg(ev):
-        dlg = NumberDialog(
-            frame,
-            real=True,
-            title='Enter number',
-            message='Enter a number between 0 and 100',
-            initial=20,
-            minValue=0,
-            maxValue=100)
-
-        if dlg.ShowModal() != wx.ID_OK:
-            print 'Not ok'
-        else:
-            print 'Number entered: {}'.format(dlg.GetValue())
-
-
-    button.Bind(wx.EVT_BUTTON, _showDlg)
-
-    frame.Show()
-    app.MainLoop()
