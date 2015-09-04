@@ -495,7 +495,7 @@ class EditableListBox(wx.PyPanel):
         """Returns the index of the selected item, or :data:`wx.NOT_FOUND`
         if no item is selected.
         """
-        return self._fixIndex(self.__selection)
+        return self.__fixIndex(self.__selection)
 
         
     def Insert(self,
