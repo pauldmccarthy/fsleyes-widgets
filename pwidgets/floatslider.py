@@ -382,8 +382,8 @@ class SliderSpinPanel(wx.PyPanel):
             self.__maxButton = wx.Button(self,
                                          label=self.__fmt.format(maxValue))
 
-            self.__sizer.Insert(0, self._minButton, flag=wx.EXPAND)
-            self.__sizer.Add(      self._maxButton, flag=wx.EXPAND)
+            self.__sizer.Insert(0, self.__minButton, flag=wx.EXPAND)
+            self.__sizer.Add(      self.__maxButton, flag=wx.EXPAND)
 
             self.__minButton.Enable(editLimits)
             self.__maxButton.Enable(editLimits)
