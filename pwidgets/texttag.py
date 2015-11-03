@@ -185,6 +185,7 @@ class TextTagPanel(wx.Panel):
 
         self.__allTags    = []
         self.__activeTags = {}
+        self.__tagColours = {}
 
         self.SetSizer(self.__mainSizer)
         self.Layout()
@@ -217,6 +218,9 @@ class TextTagPanel(wx.Panel):
         """
 
         if colour is None:
+            colour = self.__tagColours.get(tag, None)
+
+        if colour is None:
             colour = [random.randint(100, 255),
                       random.randint(100, 255),
                       random.randint(100, 255)]
@@ -228,6 +232,7 @@ class TextTagPanel(wx.Panel):
         self.__tagSizer.Add(stt, flag=wx.ALL, border=3)
         self.Layout()
 
+        self.__tagColours[tag] = colour
         self.__activeTags[tag] = self.__activeTags.get(tag, 0) + 1
         self.__updateComboOptions()
 
@@ -245,6 +250,8 @@ class TextTagPanel(wx.Panel):
         """
         if tag not in self.__activeTags:
             return
+
+        self.__tagColours[tag] = colour
 
         children = self.GetChildren()
 
