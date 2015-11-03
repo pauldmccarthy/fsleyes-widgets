@@ -453,6 +453,13 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         self.__refresh()
 
 
+    def GroupSize(self, groupName):
+        """Returns the number of widgets that have been added to the
+        specified group.
+        """
+        return len(self.__groups[groupName].widgets)
+
+
     def IsExpanded(self, groupName):
         """Returns ``True`` if the panel for the specified group is currently
         expanded, ``False`` if it is collapsed

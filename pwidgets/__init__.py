@@ -32,4 +32,6 @@ behaviour in the existing controls. The following controls are available:
     ~pwidgets.bitmapradio.BitmapRadioBox
     ~pwidgets.widgetgrid.WidgetGrid
     ~pwidgets.widgetlist.WidgetList
+    ~pwidgets.texttag.StaticTextTag
+    ~pwidgets.texttag.TextTagPanel
 """
