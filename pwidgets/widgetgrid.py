@@ -11,10 +11,16 @@ tabular grid of arbitrary widgets.
 
 import wx
 import wx.lib.scrolledpanel as scrolledpanel
+import wx.lib.newevent      as wxevent
 
 
 class WidgetGrid(scrolledpanel.ScrolledPanel):
-    """A scrollable panel which displays a tabular grid of widgets.
+    """A scrollable panel which displays a tabular grid of widgets.  A
+    ``WidgetGrid`` looks something like this:
+
+      .. image:: images/widgetgrid.png
+        :scale: 50%
+        :align: center
 
 
     The most important methods are:
@@ -22,17 +28,61 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
      .. autosummary::
         :nosignatures:
 
+        GetGridSize
         SetGridSize
+        SetColours
         SetWidget
         SetText
         ClearGrid
 
+    
+    *Labels*
 
-    A ``WidgetGrid`` looks something like this:
+    .. autosummary::
+       :nosignatures:
+    
+       ShowRowLabels
+       ShowColLabels
+       SetRowLabel
+       SetColLabel
 
-      .. image:: images/widgetgrid.png
-        :scale: 50%
-        :align: center
+    
+    *Selections*
+
+    .. autosummary::
+       :nosignatures:
+    
+       GetSelection
+       SetSelection
+
+    
+    *Styles*
+
+
+    The ``WidgetGrid`` supports the following styles:
+
+    ============================ ================================
+    ``wx.HSCROLL``               Use a horizontal scrollbar.
+    ``wx.VSCROLL``               Use a vertical scrollbar.
+    :data:`WG_SELECTABLE_CELLS`  Individual cells are selectable.
+    :data:`WG_SELECTABLE_ROWS`   Rows are selectable.
+    :data:`WG_SELECTABLE_COLUMN` Columns are selectable.
+    ============================ ================================
+
+
+    The ``*_SELECTABLE_*`` styles are mutualliy exclusive; their precedence
+    is equivalent to their order in the above table.
+
+
+    *Events*
+
+    The following events may be emitted by a ``WidgetGrid``:
+
+    .. autosummary::
+       :nosignatures:
+
+       :data:`WidgetGridSelectEvent`
+
     """
 
 
@@ -52,16 +102,37 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
     
     _defaultLabelColour  = '#dddddd'
     """Background colour for row and column labels."""
+
+    
+    _defaultSelectedColour = '#cdcdff'
+    """Background colour for selected cells. """
     
 
-    def __init__(self, parent):
+    def __init__(self, parent, style=None):
         """Create a ``WidgetGrid``.
 
         :arg parent: The :mod:`wx` parent object.
+        :arg style:  Style flags  - can be a combination of ``wx.HSCROLL``,
+                     ``wx.VSCROLL``, :data:`WG_SELECTABLE_CELLS`,
+                     :data:`WG_SELECTABLE_ROWS`, and
+                     :data:`WG_SELECTABLE_COLUMNS`.
         """
         
+        if style is None:
+            style = wx.HSCROLL | wx.VSCROLL
+
+        self.__hscroll = style & wx.HSCROLL
+        self.__vscroll = style & wx.VSCROLL
+        
+        if   style & WG_SELECTABLE_CELLS:   self.__selectable = 'cells'
+        elif style & WG_SELECTABLE_ROWS:    self.__selectable = 'rows'
+        elif style & WG_SELECTABLE_COLUMNS: self.__selectable = 'columns'
+        else:                               self.__selectable = None
+            
         scrolledpanel.ScrolledPanel.__init__(self, parent)
-        self.SetupScrolling()
+        
+        self.SetupScrolling(scroll_x=self.__hscroll,
+                            scroll_y=self.__vscroll)
         self.SetAutoLayout(1)
 
         self.__gridPanel = wx.Panel(self)
@@ -70,43 +141,59 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.SetSizer(self.__sizer)
         self.__sizer.Add(self.__gridPanel, flag=wx.EXPAND)
 
-        self.__gridSizer     = None
-        self.__nrows         = 0
-        self.__ncols         = 0
-        self.__widgets       = []
-        self.__rowLabels     = []
-        self.__colLabels     = []
-        self.__showRowLabels = False
-        self.__showColLabels = False
-        self.__borderColour  = WidgetGrid._defaultBorderColour
-        self.__labelColour   = WidgetGrid._defaultLabelColour
-        self.__oddColour     = WidgetGrid._defaultOddColour
-        self.__evenColour    = WidgetGrid._defaultEvenColour
+        self.__gridSizer      = None
+        self.__nrows          = 0
+        self.__ncols          = 0
+        self.__widgets        = []
+        self.__rowLabels      = []
+        self.__colLabels      = []
+        self.__showRowLabels  = False
+        self.__showColLabels  = False
+        self.__borderColour   = WidgetGrid._defaultBorderColour
+        self.__labelColour    = WidgetGrid._defaultLabelColour
+        self.__oddColour      = WidgetGrid._defaultOddColour
+        self.__evenColour     = WidgetGrid._defaultEvenColour
+        self.__selectedColour = WidgetGrid._defaultSelectedColour
+
+        self.__selected       = None
+
+        self.Bind(wx.EVT_SIZE, self.__onResize)
 
 
     def SetColours(self, **kwargs):
         """Set the colours used in this ``WidgetGrid``.
 
-        :arg border: The cell border colour.
+        :arg border:   The cell border colour.
 
-        :arg label:  Background colour for row and column labels.
+        :arg label:    Background colour for row and column labels.
 
-        :arg odd:    Background colour for cells on odd rows.
+        :arg odd:      Background colour for cells on odd rows.
 
-        :arg even:   Background colour for cells on even rows.
+        :arg even:     Background colour for cells on even rows.
+        
+        :arg selected: Background colour for selected cells.
         """
 
-        border = kwargs.get('border', self)
-        label  = kwargs.get('label',  self)
-        odd    = kwargs.get('odd',    self)
-        even   = kwargs.get('even',   self)
+        border   = kwargs.get('border',   self)
+        label    = kwargs.get('label',    self)
+        odd      = kwargs.get('odd',      self)
+        even     = kwargs.get('even',     self)
+        selected = kwargs.get('selected', self)
 
-        if border is not self: self.__borderColour = border
-        if label  is not self: self.__labelColour  = label
-        if odd    is not self: self.__oddColour    = odd
-        if even   is not self: self.__evenColour   = even
+        if border   is not self: self.__borderColour   = border
+        if label    is not self: self.__labelColour    = label
+        if odd      is not self: self.__oddColour      = odd
+        if even     is not self: self.__evenColour     = even
+        if selected is not self: self.__selectedColour = selected
 
         self.__refresh()
+
+
+    def __onResize(self, ev):
+        """Called when this ``WidgetGrid`` is resized. Makes sure the
+        scrollbars are up to date.
+        """
+        self.FitInside()
 
 
     def __reparent(self, widget, parent):
@@ -212,7 +299,13 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.Layout()
 
 
-    def SetGridSize(self, nrows, ncols):
+    def GetGridSize(self):
+        """Returns the current grid size as a tuple containing ``(rows, cols)``.
+        """
+        return self.__nrows, self.__ncols
+
+    
+    def SetGridSize(self, nrows, ncols, growCols=None):
         """Set the size of the widdget grid.
 
         :arg nrows: Number of rows
@@ -223,16 +316,19 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         if nrows < 0 or ncols < 0:
             raise ValueError('Invalid size ({}, {})'.format(nrows, ncols))
 
+        if growCols is None:
+            growCols = []
+
         self.ClearGrid()
 
         self.__nrows     = nrows
         self.__ncols     = ncols
         self.__gridSizer = wx.FlexGridSizer(nrows + 1, ncols + 1)
 
-        self.__gridSizer.SetFlexibleDirection(wx.HORIZONTAL)
+        self.__gridSizer.SetFlexibleDirection(wx.BOTH)
 
-        for coli in range(ncols + 1):
-            self.__gridSizer.AddGrowableCol(coli)
+        for col in growCols:
+            self.__gridSizer.AddGrowableCol(col + 1)
 
         # We use empty wx.Panels as placeholders
         # for empty grid cells
@@ -252,8 +348,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             panel.SetSizer(sizer)
             sizer.Add(lbl, flag=wx.CENTRE)
 
-            self.__initWidget(panel)
-            self.__initWidget(lbl)
+            self.__initWidget(panel, rowi, -1)
+            self.__initWidget(lbl,   rowi, -1)
             self.__rowLabels.append((panel, lbl))
 
         for coli in range(ncols):
@@ -267,8 +363,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             panel.SetSizer(sizer)
             sizer.Add(lbl, flag=wx.CENTRE)
 
-            self.__initWidget(panel)
-            self.__initWidget(lbl)
+            self.__initWidget(panel, -1, coli)
+            self.__initWidget(lbl,   -1, coli)
             self.__colLabels.append((panel, lbl))
             
         self.__gridPanel.SetSizer(self.__gridSizer)
@@ -345,8 +441,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
         self.__reparent(widget, panel)
 
-        self.__initWidget(widget)
-        self.__initWidget(panel)
+        self.__initWidget(widget, row, col)
+        self.__initWidget(panel,  row, col)
 
         sizer.Add(widget, flag=wx.EXPAND, proportion=1)
 
@@ -358,20 +454,17 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__refresh()
 
 
-    def __initWidget(self, widget):
+    def __initWidget(self, widget, row, col):
         """Called by the :meth:`AddWidget` method.
 
         Performs some initialisation on a widget which has just been added to
         the grid.
+
+        :arg widget: The widget to initialise
+        :arg row:    Row index of the widget in the grid.
+        :arg col:    Column index of the widget in the grid.
         """
 
-        # Under Linux/GTK, we need to bind a mousewheel
-        # listener to every child of the panel in order
-        # for scrolling to work correctly. This is not
-        # necessary under OSX/cocoa.
-        if wx.Platform != '__WXGTK__':
-            return
-            
         def scroll(ev):
             posx, posy = self.GetViewStart().Get()
             rotation   = ev.GetWheelRotation()
@@ -385,12 +478,132 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
             self.Scroll(posx, posy)
 
+        def initWidget(w):
+            
+            # Under Linux/GTK, we need to bind a mousewheel
+            # listener to every child of the panel in order
+            # for scrolling to work correctly. This is not
+            # necessary under OSX/cocoa.
+            if wx.Platform == '__WXGTK__':
+                w.Bind(wx.EVT_MOUSEWHEEL, scroll)
+
+            # Listen for mouse down events 
+            # if cells are selectable
+            if self.__selectable:
+                w.Bind(wx.EVT_LEFT_DOWN, self.__onLeftDown)
+
+            # Attach the row/column indices
+            # to the widget - they are used
+            # in the __onLeftDown method
+            w._wg_row = row
+            w._wg_col = col
+
         if isinstance(widget, wx.Sizer):
             for c in widget.GetChildren():
-                c.GetWindow().Bind(wx.EVT_MOUSEWHEEL, scroll)
+                initWidget(c.GetWindow())
         else:
-            widget.Bind(wx.EVT_MOUSEWHEEL, scroll)
-    
+            initWidget(widget)
+
+
+    def __onLeftDown(self, ev):
+        """If this ``WidgetGrid`` is selectable, this method is called
+        whenever an left mouse down event occurs on an item in the grid.
+        """
+        
+        ev.Skip()
+
+        widget = ev.GetEventObject() 
+        row    = widget._wg_row
+        col    = widget._wg_col
+
+        if   self.__selectable == 'rows':    col = -1
+        elif self.__selectable == 'columns': row = -1
+
+        event = WidgetGridSelectEvent(row=row, col=col) 
+
+        self.SetSelection(row, col)
+
+        event.SetEventObject(self)
+        wx.PostEvent(self, event)
+
+
+    def GetSelection(self):
+        """Returns the currently selected item, as a tuple of ``(row, col)`` indices.
+        If an entire row has been selected, the ``col`` index  will be -1, and
+        vice-versa.
+        """
+        return self.__selected
+
+
+    def SetSelection(self, row, col):
+        """Select the given item.
+
+        :arg row: Row index of item to select. Pass in -1 to select a whole
+                  column.
+
+        :arg col: Column index of item to select. Pass in -1 to select a whole
+                  row.
+        """
+
+        if self.__selected is not None:
+            
+            lsrow, lscol = self.__selected
+            self.__selected = None
+            self.__select(lsrow, lscol, self.__selectable, False)
+
+        self.__selected = row, col
+
+        self.__select(row, col, self.__selectable, True)
+
+
+    def __select(self, row, col, selectType, select=True):
+        """Called by the :meth:`__onLeftDown` method. Sets the background
+        colour of the specified row/column to the selection colour, or the
+        default colour.
+
+        :arg row:        Row index. If -1, the colour of the entire column is
+                         toggled.
+        
+        :arg col:        Column index. If -1, the colour of the entire row is
+                         toggled.
+        
+        :arg selectType: Either ``'rows'``, ``'columns'``, or ``'cells'``.
+        
+        :arg select:     If ``True``, the item background colour is set to the
+                         selected colour, otherwise it is set to its default
+                         colour.
+        """
+
+        nrows, ncols = self.GetGridSize()
+
+        if row == -1 and col == -1:
+            return
+
+        if nrows == 0 or ncols == 0:
+            return
+
+        if row == -1:
+            rows = range(nrows)
+            cols = [col] * nrows
+
+        elif col == -1:
+            rows = [row] * ncols
+            cols = range(ncols)
+            
+        else:
+            rows = [row]
+            cols = [col]
+
+        for row, col in zip(rows, cols):
+
+            if   select:  colour = self.__selectedColour
+            elif row % 2: colour = self.__oddColour
+            else:         colour = self.__evenColour
+
+            widget = self.__widgets[row][col]
+            widget.SetBackgroundColour(colour)
+            widget.Refresh()
+        
 
     def ShowRowLabels(self, show=True):
         """Shows/hides the grid row labels. """
@@ -426,3 +639,38 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
                 col, self.__ncols))
 
         self.__colLabels[col][1].SetLabel(label)
+
+
+
+WG_SELECTABLE_CELLS = 1
+"""If this style is enabled, individual cells can be selected. """
+
+
+
+WG_SELECTABLE_ROWS = 2
+"""If this style is enabled, whole rows can be selected. """
+
+
+
+WG_SELECTABLE_COLUMNS = 4
+"""If this style is enabled, whole columns can be selected. """
+
+
+_WidgetGridSelectEvent, _EVT_WG_SELECT = wxevent.NewEvent()
+
+
+
+EVT_WG_SELECT = _EVT_WG_SELECT
+"""Identifier for the :data:`WidgetGridSelectEvent`. """
+
+
+WidgetGridSelectEvent = _WidgetGridSelectEvent
+"""Event generated when an item in a ``WidgetGrid`` is selected. A
+``WidgetGridSelectEvent`` has the following attributes:
+
+ - ``row`` Row index of the selected item. If -1, an entire column
+   has been selected.
+
+ - ``col`` Column index of the selected item. If -1, an entire row
+   has been selected.
+"""

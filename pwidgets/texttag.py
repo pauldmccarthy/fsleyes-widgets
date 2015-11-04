@@ -70,7 +70,7 @@ class StaticTextTag(wx.Panel):
         self.__closeBtn.SetForegroundColour('#404040')
         self.SetText(text)
 
-        self.__closeBtn.Bind(wx.EVT_LEFT_DOWN, self.__onCloseButton)
+        self.__closeBtn.Bind(wx.EVT_LEFT_UP, self.__onCloseButton)
 
 
     def __str__(self):

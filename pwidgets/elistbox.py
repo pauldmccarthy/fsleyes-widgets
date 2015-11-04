@@ -84,7 +84,7 @@ class EditableListBox(wx.PyPanel):
     """Default foreground colour for unselected items."""
 
     
-    _selectedBG = '#7777FF'
+    _selectedBG = '#cdcdff'
     """Background colour for the currently selected item."""
 
     
@@ -172,7 +172,7 @@ class EditableListBox(wx.PyPanel):
             self.__downButton.Bind(wx.EVT_BUTTON, self.__moveItemDown)
 
             self.__buttonPanelSizer.Add(self.__upButton,   flag=wx.EXPAND)
-            self.__buttonPanelSizer.Add(self.__downButton, flag=wx.EXPAND) 
+            self.__buttonPanelSizer.Add(self.__downButton, flag=wx.EXPAND)
 
         # Button for adding new items
         if addSupport:
