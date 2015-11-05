@@ -171,8 +171,8 @@ class TextTagPanel(wx.Panel):
         self.__mainSizer    = wx.BoxSizer( wx.HORIZONTAL)
         self.__tagSizer     = wx.WrapSizer(wx.HORIZONTAL, 2)
         
-        # the WrapSizer style flags don't seem to
-        # have made it into wxPython:
+        # ^^ the WrapSizer style flags don't 
+        # seem to have made it into wxPython:
         #
         #     EXTEND_LAST_ON_EACH_LINE = 1
         #     REMOVE_LEADING_SPACES    = 2
@@ -191,16 +191,24 @@ class TextTagPanel(wx.Panel):
         self.Layout()
 
 
-    def SetOptions(self, options):
+    def SetOptions(self, options, colours=None):
         """Sets the tag options made available to the user via the
         ``ComboBox``.
+
+        :arg options: A sequence of tags that the user can choose from.
+        :arg colours: A sequence of corresponding colours for each tag.
         """
 
         self.__allTags = list(options)
         self.__updateComboOptions()
+
+        if colours is not None:
+            
+            for option, colour in zip(options, colours):
+                self.__tagColours[option] = colour
         
         # TODO delete any active tags
-        #      that are no longer valid
+        #      that are no longer valid?
 
     
     def GetOptions(self):
@@ -242,6 +250,13 @@ class TextTagPanel(wx.Panel):
         otherwise.
         """
         return tag in self.__activeTags
+
+
+    def GetTagColour(self, tag):
+        """Returns the background colour of the specified ``tag``, or ``None``
+        if there is no default colour for the tag.
+        """
+        return self.__tagColours.get(tag, None)
 
 
     def SetTagColour(self, tag, colour):

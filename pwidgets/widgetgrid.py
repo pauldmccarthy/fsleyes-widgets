@@ -61,17 +61,21 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
     The ``WidgetGrid`` supports the following styles:
 
-    ============================ ================================
-    ``wx.HSCROLL``               Use a horizontal scrollbar.
-    ``wx.VSCROLL``               Use a vertical scrollbar.
-    :data:`WG_SELECTABLE_CELLS`  Individual cells are selectable.
-    :data:`WG_SELECTABLE_ROWS`   Rows are selectable.
-    :data:`WG_SELECTABLE_COLUMN` Columns are selectable.
-    ============================ ================================
+    =============================== ================================
+    ``wx.HSCROLL``                  Use a horizontal scrollbar.
+    ``wx.VSCROLL``                  Use a vertical scrollbar.
+    :data:`WG_SELECTABLE_CELLS`     Individual cells are selectable.
+    :data:`WG_SELECTABLE_ROWS`      Rows are selectable.
+    :data:`WG_SELECTABLE_COLUMN`    Columns are selectable.
+    :data:`WG_KEY_NAVIGATION`       The keyboard can be used for
+                                    navigation
+    =============================== ================================
 
 
     The ``*_SELECTABLE_*`` styles are mutualliy exclusive; their precedence
-    is equivalent to their order in the above table.
+    is equivalent to their order in the above table. By default, the arrow
+    keys are used for keyboard navigation, but these are customisable via
+    the :meth:`SetNavKeys` method.
 
 
     *Events*
@@ -82,7 +86,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
        :nosignatures:
 
        :data:`WidgetGridSelectEvent`
-
     """
 
 
@@ -123,19 +126,24 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
         self.__hscroll = style & wx.HSCROLL
         self.__vscroll = style & wx.VSCROLL
+        self.__keynav  = style & WG_KEY_NAVIGATION
         
         if   style & WG_SELECTABLE_CELLS:   self.__selectable = 'cells'
         elif style & WG_SELECTABLE_ROWS:    self.__selectable = 'rows'
         elif style & WG_SELECTABLE_COLUMNS: self.__selectable = 'columns'
-        else:                               self.__selectable = None
+        else:
+            self.__keynav     = False
+            self.__selectable = None
             
-        scrolledpanel.ScrolledPanel.__init__(self, parent)
+        scrolledpanel.ScrolledPanel.__init__(self,
+                                             parent,
+                                             style=wx.WANTS_CHARS)
         
         self.SetupScrolling(scroll_x=self.__hscroll,
                             scroll_y=self.__vscroll)
         self.SetAutoLayout(1)
 
-        self.__gridPanel = wx.Panel(self)
+        self.__gridPanel = wx.Panel(self, style=wx.WANTS_CHARS)
 
         self.__sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.__sizer)
@@ -147,6 +155,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__widgets        = []
         self.__rowLabels      = []
         self.__colLabels      = []
+        self.__selected       = None
+        
         self.__showRowLabels  = False
         self.__showColLabels  = False
         self.__borderColour   = WidgetGrid._defaultBorderColour
@@ -154,10 +164,16 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__oddColour      = WidgetGrid._defaultOddColour
         self.__evenColour     = WidgetGrid._defaultEvenColour
         self.__selectedColour = WidgetGrid._defaultSelectedColour
+        self.__upKey          = wx.WXK_UP
+        self.__downKey        = wx.WXK_DOWN
+        self.__leftKey        = wx.WXK_LEFT
+        self.__rightKey       = wx.WXK_RIGHT
 
-        self.__selected       = None
 
         self.Bind(wx.EVT_SIZE, self.__onResize)
+
+        if self.__keynav:
+            self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
 
 
     def SetColours(self, **kwargs):
@@ -187,6 +203,28 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         if selected is not self: self.__selectedColour = selected
 
         self.__refresh()
+
+
+    def SetNavKeys(self, **kwargs):
+        """Set the keys used for keyboard navigation (if the
+        :data:`WG_KEY_NAVIGATION` style is enabled). Setting an argument
+        to ``None`` will disable navigation in that direction.
+
+        :arg up:    Key to use for up navigation.
+        :arg down:  Key to use for down navigation.
+        :arg left:  Key to use for left navigation.
+        :arg right: Key to use for right navigation.
+        """
+
+        up    = kwargs.get('up',    self)
+        down  = kwargs.get('down',  self)
+        left  = kwargs.get('left',  self)
+        right = kwargs.get('right', self)
+
+        self.__upKey    = up
+        self.__downKey  = down
+        self.__leftKey  = left
+        self.__rightKey = right
 
 
     def __onResize(self, ev):
@@ -294,6 +332,10 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
                 else:        colour = evenColour
 
                 self.__setBackgroundColour(widget, colour)
+
+        if self.__selected is not None:
+            row, col = self.__selected
+            self.SetSelection(row, col)
         
         self.FitInside()
         self.Layout()
@@ -308,9 +350,12 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
     def SetGridSize(self, nrows, ncols, growCols=None):
         """Set the size of the widdget grid.
 
-        :arg nrows: Number of rows
+        :arg nrows:    Number of rows
 
-        :arg ncols: Number of columns
+        :arg ncols:    Number of columns
+
+        :arg growCols: A sequence specifying which columns should be stretched
+                       to fit. 
         """
 
         if nrows < 0 or ncols < 0:
@@ -385,6 +430,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__widgets   = []
         self.__rowLabels = []
         self.__colLabels = []
+        self.__selected  = None
 
         self.__gridPanel.SetSizer(None)
         self.__refresh()
@@ -435,7 +481,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         # as Linux/GTK has trouble
         # changing the background colour
         # of some controls
-        panel = wx.Panel(self.__gridPanel)
+        panel = wx.Panel(self.__gridPanel, style=wx.WANTS_CHARS)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         panel.SetSizer(sizer)
 
@@ -490,7 +536,11 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             # Listen for mouse down events 
             # if cells are selectable
             if self.__selectable:
-                w.Bind(wx.EVT_LEFT_DOWN, self.__onLeftDown)
+                w.Bind(wx.EVT_LEFT_DOWN, self.__onLeftMouseDown)
+
+            # We want keyboard events to propagate
+            if self.__keynav:
+                w.SetWindowStyle(w.GetWindowStyle() | wx.WANTS_CHARS)
 
             # Attach the row/column indices
             # to the widget - they are used
@@ -505,7 +555,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             initWidget(widget)
 
 
-    def __onLeftDown(self, ev):
+    def __onLeftMouseDown(self, ev):
         """If this ``WidgetGrid`` is selectable, this method is called
         whenever an left mouse down event occurs on an item in the grid.
         """
@@ -522,21 +572,56 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         event = WidgetGridSelectEvent(row=row, col=col) 
 
         self.SetSelection(row, col)
+        self.SetFocus()
 
         event.SetEventObject(self)
         wx.PostEvent(self, event)
 
 
+    def __onKeyboard(self, ev):
+        """If the :data:`WG_KEY_NAVIGATION` style is enabled, this method is
+        called when the user pushes a key while this ``WidgetGrid`` has focus.
+        It changes the currently selected cell, row, or column.
+        """
+        ev.Skip()
+
+        key = ev.GetKeyCode()
+
+        up    = self.__upKey
+        down  = self.__downKey
+        left  = self.__leftKey
+        right = self.__rightKey
+
+        if key not in (up, down, left, right):
+            self.HandleAsNavigationKey(ev)            
+            return
+
+        row, col = self.__selected
+
+        if   key == up:    row -= 1
+        elif key == down:  row += 1
+        elif key == left:  col -= 1
+        elif key == right: col += 1
+
+        try:    self.SetSelection(row, col)
+        except: return
+
+        ev = WidgetGridSelectEvent(row=row, col=col)
+        ev.SetEventObject(self)
+        wx.PostEvent(self, ev)
+        
+
     def GetSelection(self):
         """Returns the currently selected item, as a tuple of ``(row, col)`` indices.
         If an entire row has been selected, the ``col`` index  will be -1, and
-        vice-versa.
+        vice-versa. If nothing is selected, ``None`` is returned.
         """
         return self.__selected
 
 
     def SetSelection(self, row, col):
-        """Select the given item.
+        """Select the given item. A :exc:`ValueError` is raised if the selection
+        is invalid.
 
         :arg row: Row index of item to select. Pass in -1 to select a whole
                   column.
@@ -544,6 +629,23 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         :arg col: Column index of item to select. Pass in -1 to select a whole
                   row.
         """
+
+        nrows, ncols = self.GetGridSize()
+
+        if self.__selectable == 'rows':
+            
+            if col != -1 or row < 0 or row >= nrows:
+                raise ValueError('Invalid row: {}'.format(row))
+            
+        elif self.__selectable == 'columns':
+
+            if row != -1 or col < 0 or col >= ncols:
+                raise ValueError('Invalid column: {}'.format(col))
+            
+        elif self.__selectable == 'cells':
+            
+            if row < 0 or row >= nrows or col < 0 or col >= ncols:
+                raise ValueError('Invalid cell: {}, {}'.format(row, col))
 
         if self.__selected is not None:
             
@@ -601,7 +703,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             else:         colour = self.__evenColour
 
             widget = self.__widgets[row][col]
-            widget.SetBackgroundColour(colour)
+            self.__setBackgroundColour(widget, colour)
             widget.Refresh()
         
 
@@ -641,23 +743,25 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__colLabels[col][1].SetLabel(label)
 
 
-
 WG_SELECTABLE_CELLS = 1
 """If this style is enabled, individual cells can be selected. """
-
 
 
 WG_SELECTABLE_ROWS = 2
 """If this style is enabled, whole rows can be selected. """
 
 
-
 WG_SELECTABLE_COLUMNS = 4
 """If this style is enabled, whole columns can be selected. """
 
 
-_WidgetGridSelectEvent, _EVT_WG_SELECT = wxevent.NewEvent()
+WG_KEY_NAVIGATION = 8
+"""If this style is enabled along with one of the ``*_SELECTABLE_*`` styles,
+the user may use the keyboard to navigate between cells, rows, or columns.
+"""
 
+
+_WidgetGridSelectEvent, _EVT_WG_SELECT = wxevent.NewEvent()
 
 
 EVT_WG_SELECT = _EVT_WG_SELECT
