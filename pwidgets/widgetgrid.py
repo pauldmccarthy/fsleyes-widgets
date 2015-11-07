@@ -9,9 +9,14 @@ tabular grid of arbitrary widgets.
 """
 
 
+import logging
+
 import wx
 import wx.lib.scrolledpanel as scrolledpanel
 import wx.lib.newevent      as wxevent
+
+
+log = logging.getLogger(__name__)
 
 
 class WidgetGrid(scrolledpanel.ScrolledPanel):
@@ -451,6 +456,12 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.SetWidget(row, col, txt)
 
 
+    def GetWidget(self, row, col):
+        """
+        """
+        return self.__widgets[row][col].GetChildren()[0]
+
+
     def SetWidget(self, row, col, widget):
         """Adds the given widget to the grid.
 
@@ -521,7 +532,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             
             if ev.GetWheelAxis() == wx.MOUSE_WHEEL_VERTICAL: posy -= delta
             else:                                            posx += delta
-
+ 
             self.Scroll(posx, posy)
 
         def initWidget(w):
@@ -569,6 +580,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         if   self.__selectable == 'rows':    col = -1
         elif self.__selectable == 'columns': row = -1
 
+        log.debug('Left mouse down on cell {}'.format((row, col)))
+
         event = WidgetGridSelectEvent(row=row, col=col) 
 
         self.SetSelection(row, col)
@@ -583,7 +596,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         called when the user pushes a key while this ``WidgetGrid`` has focus.
         It changes the currently selected cell, row, or column.
         """
-        ev.Skip()
 
         key = ev.GetKeyCode()
 
@@ -592,8 +604,10 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         left  = self.__leftKey
         right = self.__rightKey
 
+        log.debug('Keyboard event ({})'.format(key))
+
         if key not in (up, down, left, right):
-            self.HandleAsNavigationKey(ev)            
+            ev.Skip()
             return
 
         row, col = self.__selected
@@ -603,9 +617,13 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         elif key == left:  col -= 1
         elif key == right: col += 1
 
+        log.debug('Keyboard nav on cell {} ' '(new cell: '
+                  '{})'.format((row, col), self.__selected)) 
+
         try:    self.SetSelection(row, col)
         except: return
 
+        self.SetFocus()
         ev = WidgetGridSelectEvent(row=row, col=col)
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
@@ -656,6 +674,39 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__selected = row, col
 
         self.__select(row, col, self.__selectable, True)
+        self.__scrollTo(row, col)
+
+        
+    def __scrollTo(self, row, col):
+        """If scrolling is enabled, this method makes sure that the specified
+        row/column is visible.
+        """
+
+        # No scrolling
+        if not (self.__hscroll or self.__vscroll):
+            return
+
+        if row == -1: row = 0
+        if col == -1: col = 0
+
+        posx, posy = self.__widgets[row][col].GetPosition().Get()
+        pixx, pixy = self.GetScrollPixelsPerUnit()
+
+        if not self.__hscroll:
+            posx = 0
+            pixx = 1
+            
+        if not self.__vscroll:
+            posy = 0
+            pixy = 1
+
+        if pixx == 0 or pixy == 0:
+            return
+
+        posx = int(round(posx / float(pixx)))
+        posy = int(round(posy / float(pixy)))
+
+        self.Scroll(posx, posy)
 
 
     def __select(self, row, col, selectType, select=True):

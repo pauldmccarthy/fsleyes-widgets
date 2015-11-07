@@ -19,10 +19,16 @@
 """
 
 
+import logging
 import random
 
 import wx
 import wx.lib.newevent as wxevent
+
+import autotextctrl as atc
+
+
+log = logging.getLogger(__name__)
 
 
 class StaticTextTag(wx.Panel):
@@ -72,7 +78,7 @@ class StaticTextTag(wx.Panel):
 
         self.__closeBtn.Bind(wx.EVT_LEFT_UP, self.__onCloseButton)
 
-
+        
     def __str__(self):
         """Returns a string representation of this ``StaticTextTag``. """
         return 'StaticTextTag(\'{}\')'.format(self.GetText())
@@ -103,6 +109,9 @@ class StaticTextTag(wx.Panel):
         """Called when the close button is pushed. Generates an
         :data:`EVT_STT_CLOSE_EVENT`.
         """
+
+        log.debug('{} close button pressed'.format(str(self)))
+        
         ev = StaticTextTagCloseEvent()
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
@@ -122,11 +131,9 @@ StaticTextTagCloseEvent = _StaticTextTagCloseEvent
 
 
 class TextTagPanel(wx.Panel):
-    """The ``TextTagPanel`` is a panel which contains a ``wx.ComboBox``, and a
-    collection of :class:`StaticTextTag` controls. The user can add new
-    ``StaticTextTag` items via the combo box, and remove existing items via
-    the ``StaticTextTag`` close buttons.
-
+    """The ``TextTagPanel`` is a panel which contains a control allowing
+    the user to add new tags, and a collection of :class:`StaticTextTag`
+    controls. 
     
     The ``TextTagPanel`` supports the following styles:
 
@@ -160,13 +167,11 @@ class TextTagPanel(wx.Panel):
             style = TTP_ALLOW_NEW_TAGS | TTP_ADD_NEW_TAGS
 
         self.__allowNewTags = style & TTP_ALLOW_NEW_TAGS
-        self.__addNewTags   = style & TTP_ADD_NEW_TAGS
+        self.__addNewTags   = style & TTP_ADD_NEW_TAGS and self.__allowNewTags
         self.__noDuplicates = style & TTP_NO_DUPLICATES
 
-        if self.__allowNewTags:
-            self.__newCombo = wx.ComboBox(self, style=wx.TE_PROCESS_ENTER)
-        else:
-            self.__newCombo = wx.ComboBox(self, style=wx.TE_READONLY)
+        if self.__allowNewTags: self.__newTagCtrl = atc.AutoTextCtrl(self)
+        else:                   self.__newTagCtrl = wx.Choice(       self)
             
         self.__mainSizer    = wx.BoxSizer( wx.HORIZONTAL)
         self.__tagSizer     = wx.WrapSizer(wx.HORIZONTAL, 2)
@@ -177,11 +182,13 @@ class TextTagPanel(wx.Panel):
         #     EXTEND_LAST_ON_EACH_LINE = 1
         #     REMOVE_LEADING_SPACES    = 2
 
-        self.__mainSizer.Add(self.__newCombo)
+        self.__mainSizer.Add(self.__newTagCtrl)
         self.__mainSizer.Add(self.__tagSizer, flag=wx.EXPAND, proportion=1)
 
-        self.__newCombo.Bind(wx.EVT_COMBOBOX,   self.__onNewCombo)
-        self.__newCombo.Bind(wx.EVT_TEXT_ENTER, self.__onNewCombo)
+        if self.__allowNewTags:
+            self.__newTagCtrl.Bind(atc.EVT_ATC_TEXT_ENTER, self.__onTextCtrl)
+        else:
+            self.__newTagCtrl.Bind(wx.EVT_CHOICE,          self.__onChoice)
 
         self.__allTags    = []
         self.__activeTags = {}
@@ -200,7 +207,7 @@ class TextTagPanel(wx.Panel):
         """
 
         self.__allTags = list(options)
-        self.__updateComboOptions()
+        self.__updateNewTagOptions()
 
         if colours is not None:
             
@@ -240,9 +247,13 @@ class TextTagPanel(wx.Panel):
         self.__tagSizer.Add(stt, flag=wx.ALL, border=3)
         self.Layout()
 
+        if self.__addNewTags:
+            print 'Adding new tag: {}'.format(tag)
+            self.__allTags.append(tag)
+
         self.__tagColours[tag] = colour
         self.__activeTags[tag] = self.__activeTags.get(tag, 0) + 1
-        self.__updateComboOptions()
+        self.__updateNewTagOptions()
 
 
     def HasTag(self, tag):
@@ -280,33 +291,6 @@ class TextTagPanel(wx.Panel):
             child.SetBackgroundColour(colour)
 
 
-    def __onNewCombo(self, ev):
-        """Called when the user selects/enters a tag value via the
-        ``ComboBox``.
-
-        Adds a new ``StaticTextTag`` if it is appropriate to do so, and
-        generates a :data:`EVT_TTP_TAG_ADDED_EVENT`.
-        
-        """
-        tag  = self.__newCombo.GetValue()
-
-        if tag.strip() == '':
-            return
-
-        if self.__noDuplicates and tag in self.__activeTags:
-            return
-
-        self.AddTag(tag)
-
-        if self.__addNewTags and (tag not in self.__allTags):
-            opts = self.GetOptions()
-            self.SetOptions(opts + [tag])
-
-        ev = TextTagPanelTagAddedEvent(tag=tag)
-        ev.SetEventObject(self)
-        wx.PostEvent(self, ev)
-
-        
     def __onTagClose(self, ev):
         """Called when the user pushes the close button on a
         :class:`StaticTextTag`. Removes the tag, and generates a
@@ -314,6 +298,8 @@ class TextTagPanel(wx.Panel):
         """
         stt = ev.GetEventObject()
         tag = stt.GetText()
+
+        log.debug('Tag removed: "{}"'.format(tag))
         
         self.__tagSizer.Detach(stt)
 
@@ -325,25 +311,51 @@ class TextTagPanel(wx.Panel):
         stt.Destroy()
         self.Layout()
 
-        self.__updateComboOptions()
+        self.__updateNewTagOptions()
 
         ev = TextTagPanelTagRemovedEvent(tag=tag)
+        ev.SetEventObject(self)
+        wx.PostEvent(self, ev)
+
+
+    def __onTextCtrl(self, ev):
+
+        tag = self.__newTagCtrl.GetValue()
+
+        log.debug('New tag from text control: {}'.format(tag))
+        
+        self.AddTag(tag)
+
+        ev = TextTagPanelTagAddedEvent(tag=tag)
+        ev.SetEventObject(self)
+        wx.PostEvent(self, ev)        
+
+    
+    def __onChoice(self, ev):
+
+        tag = self.__newTagCtrl.GetString(self.__newTagCtrl.GetSelection())
+
+        log.debug('New tag from choice control: {}'.format(tag))
+        
+        self.AddTag(tag)
+
+        ev = TextTagPanelTagAddedEvent(tag=tag)
         ev.SetEventObject(self)
         wx.PostEvent(self, ev) 
 
 
-    def __updateComboOptions(self):
-        """Updates the options shown on the ``ComboBox`` """
+    def __updateNewTagOptions(self):
+        """Updates the options shown on the new tag control."""
 
         tags = list(self.__allTags)
 
         if self.__noDuplicates:
             tags = [t for t in tags if t not in self.__activeTags]
-        
-        # AutoComplete is not supported
-        # under OSX/Cocoa :(
-        self.__newCombo.Set(         tags)
-        self.__newCombo.AutoComplete(tags)
+
+        # The new tag control is either
+        # a wx.Choice, or a atc.AutoTextCtrl
+        if not self.__allowNewTags: self.__newTagCtrl.Set(         tags)
+        else:                       self.__newTagCtrl.AutoComplete(tags)
 
         
 TTP_ALLOW_NEW_TAGS  = 1
