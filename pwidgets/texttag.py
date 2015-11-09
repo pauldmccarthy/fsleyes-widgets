@@ -204,6 +204,14 @@ class TextTagPanel(wx.Panel):
         self.SetSizer(self.__mainSizer)
         self.Layout()
 
+        
+    def FocusNewTagCtrl(self):
+        """Gives focus to the new tag control (either an :class:`.AutoTextCtrl`
+        or a ``wx.Choice``, depending on whether the :data:`ATC_ALLOW_NEW_TAGS`
+        style is set.
+        """
+        self.__newTagCtrl.SetFocus()
+
 
     def SetOptions(self, options, colours=None):
         """Sets the tag options made available to the user via the

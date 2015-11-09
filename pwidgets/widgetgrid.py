@@ -178,7 +178,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.Bind(wx.EVT_SIZE, self.__onResize)
 
         if self.__keynav:
-            self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
+           self.Bind(wx.EVT_KEY_DOWN, self.__onKeyboard)
 
 
     def SetColours(self, **kwargs):
@@ -607,6 +607,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         log.debug('Keyboard event ({})'.format(key))
 
         if key not in (up, down, left, right):
+            ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
             ev.Skip()
             return
 
