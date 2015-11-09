@@ -178,7 +178,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.Bind(wx.EVT_SIZE, self.__onResize)
 
         if self.__keynav:
-           self.Bind(wx.EVT_KEY_DOWN, self.__onKeyboard)
+            self.Bind(wx.EVT_KEY_DOWN, self.__onKeyboard)
 
 
     def SetColours(self, **kwargs):
@@ -549,10 +549,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             if self.__selectable:
                 w.Bind(wx.EVT_LEFT_DOWN, self.__onLeftMouseDown)
 
-            # We want keyboard events to propagate
-            if self.__keynav:
-                w.SetWindowStyle(w.GetWindowStyle() | wx.WANTS_CHARS)
-
             # Attach the row/column indices
             # to the widget - they are used
             # in the __onLeftDown method
@@ -596,7 +592,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         called when the user pushes a key while this ``WidgetGrid`` has focus.
         It changes the currently selected cell, row, or column.
         """
-
+        ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
+        
         key = ev.GetKeyCode()
 
         up    = self.__upKey
@@ -607,7 +604,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         log.debug('Keyboard event ({})'.format(key))
 
         if key not in (up, down, left, right):
-            ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
             ev.Skip()
             return
 
@@ -622,7 +618,9 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
                   '{})'.format((row, col), self.__selected)) 
 
         try:    self.SetSelection(row, col)
-        except: return
+        except:
+            ev.Skip()
+            return
 
         self.SetFocus()
         ev = WidgetGridSelectEvent(row=row, col=col)

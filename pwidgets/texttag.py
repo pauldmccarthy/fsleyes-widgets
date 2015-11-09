@@ -44,13 +44,18 @@ class StaticTextTag(wx.Panel):
     def __init__(self,
                  parent,
                  text=None,
-                 colour='#aaaaaa'):
+                 bgColour='#aaaaaa',
+                 borderColour='#ffcdcd'):
         """Create a ``StaticTextTag``.
 
-        :arg parent: The :mod:`wx` parent object.
-        :arg text:   Initial text to display.
-        :arg colour: Initial background colour.
+        :arg parent:       The :mod:`wx` parent object.
+        :arg text:         Initial text to display.
+        :arg bgColour:     Initial background colour.
+        :arg borderColour: Initial background colour.
         """
+
+        self.__bgColour     = None
+        self.__borderColour = None
 
         wx.Panel.__init__(self, parent)
 
@@ -66,17 +71,37 @@ class StaticTextTag(wx.Panel):
 
         self.__closeBtn.SetFont(self.__closeBtn.GetFont().Smaller())
  
-        self.__sizer.Add(self.__closeBtn, flag=(wx.ALIGN_CENTRE_VERTICAL |
-                                                wx.ALIGN_CENTRE_HORIZONTAL))
-        self.__sizer.Add(self.__text,     flag=(wx.ALIGN_CENTRE_VERTICAL |
-                                                wx.ALIGN_CENTRE_HORIZONTAL))
+        self.__sizer.Add(self.__closeBtn,
+                         border=2,
+                         flag=(wx.EXPAND |
+                               wx.LEFT   |
+                               wx.TOP    |
+                               wx.BOTTOM))
+        self.__sizer.Add(self.__text,
+                         border=2,
+                         flag=(wx.EXPAND |
+                               wx.RIGHT  |
+                               wx.TOP    |
+                               wx.BOTTOM))
         self.SetSizer(self.__sizer)
         
-        self           .SetBackgroundColour(colour)
+        self           .SetBackgroundColour(bgColour)
+        self           .SetBorderColour(    borderColour)
         self.__closeBtn.SetForegroundColour('#404040')
         self.SetText(text)
 
-        self.__closeBtn.Bind(wx.EVT_LEFT_UP, self.__onCloseButton)
+        self.__text    .Bind(wx.EVT_LEFT_DOWN,   self.__onLeftDown)
+        self           .Bind(wx.EVT_LEFT_DOWN,   self.__onLeftDown) 
+        self.__closeBtn.Bind(wx.EVT_LEFT_UP,     self.__onCloseButton)
+        
+        self           .Bind(wx.EVT_KEY_DOWN,    self.__onKeyDown)
+
+        self.__closeBtn.Bind(wx.EVT_SET_FOCUS,   self.__onSetFocus)
+        self.__text    .Bind(wx.EVT_SET_FOCUS,   self.__onSetFocus)
+        self           .Bind(wx.EVT_SET_FOCUS,   self.__onSetFocus)
+        self.__closeBtn.Bind(wx.EVT_KILL_FOCUS,  self.__onKillFocus)
+        self.__text    .Bind(wx.EVT_KILL_FOCUS,  self.__onKillFocus)
+        self           .Bind(wx.EVT_KILL_FOCUS,  self.__onKillFocus) 
 
         
     def __str__(self):
@@ -86,11 +111,21 @@ class StaticTextTag(wx.Panel):
 
     def SetBackgroundColour(self, colour):
         """Sets the background colour of this ``StaticTextTag``. """
-        if colour is None:
-            return
-        wx.Panel       .SetBackgroundColour(self, colour)
+        
+        wx.Panel.SetBackgroundColour(self,  colour) 
         self.__text    .SetBackgroundColour(colour)
         self.__closeBtn.SetBackgroundColour(colour)
+
+        self.__bgColour = colour
+        
+        self.Refresh()
+
+
+    def SetBorderColour(self, colour):
+        """Sets the border colour of this ``StaticTextTag``, for when it
+        has focus.
+        """
+        self.__borderColour = colour
 
 
     def SetText(self, text):
@@ -105,6 +140,49 @@ class StaticTextTag(wx.Panel):
         return self.__text.GetLabel()
 
 
+    def __onSetFocus(self, ev):
+        """Called when this ``StaticTextTag`` gains focus. Changes the border
+        colour.
+        """ 
+        ev.Skip() 
+        wx.Panel.SetBackgroundColour(self, self.__borderColour)
+        self.Refresh()
+
+
+    def __onLeftDown(self, ev):
+        """Called on left mouse events on this ``StaticTextTag``. Makes sure
+        that this ``StaticTextTag`` has focus.
+        """ 
+        self.SetFocus()
+
+    
+    def __onKillFocus(self, ev):
+        """Called when this ``StaticTextTag`` loses focus. Clears the border
+        colour.
+        """
+        ev.Skip()
+        if ev.GetWindow() not in (self, self.__text, self.__closeBtn):
+            wx.Panel.SetBackgroundColour(self, self.__bgColour)
+            self.Refresh()
+
+
+    def __onKeyDown(self, ev):
+        """Called when a key is pushed. If delete or backspace was pushed,
+        an :data:`EVT_STT_CLOSE_EVENT` is generated.
+        """ 
+        
+        key       = ev.GetKeyCode()
+        delete    = wx.WXK_DELETE
+        backspace = wx.WXK_BACK
+        
+        if key not in (delete, backspace):
+            ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
+            ev.Skip()
+            return
+
+        self.__onCloseButton(None)
+
+        
     def __onCloseButton(self, ev):
         """Called when the close button is pushed. Generates an
         :data:`EVT_STT_CLOSE_EVENT`.
@@ -143,6 +221,7 @@ class TextTagPanel(wx.Panel):
        TTP_ADD_NEW_TAGS
        TTP_NO_DUPLICATES
        TTP_CASE_SENSITIVE
+       TTP_KEYBOARD_NAV
 
     
     The ``TextTagPanel`` generates the following events:
@@ -170,10 +249,12 @@ class TextTagPanel(wx.Panel):
         self.__allowNewTags  = style & TTP_ALLOW_NEW_TAGS
         self.__addNewTags    = style & TTP_ADD_NEW_TAGS and self.__allowNewTags
         self.__noDuplicates  = style & TTP_NO_DUPLICATES
+        self.__keyboardNav   = style & TTP_KEYBOARD_NAV
 
         self.__allTags    = []
         self.__activeTags = {}
         self.__tagColours = {}
+        self.__tagWidgets = []
 
         if self.__allowNewTags:
             
@@ -200,6 +281,10 @@ class TextTagPanel(wx.Panel):
             self.__newTagCtrl.Bind(atc.EVT_ATC_TEXT_ENTER, self.__onTextCtrl)
         else:
             self.__newTagCtrl.Bind(wx.EVT_CHOICE,          self.__onChoice)
+
+        if self.__keyboardNav:
+            self.__newTagCtrl.Bind(wx.EVT_KEY_DOWN, self.__onNewTagKeyDown)
+            self             .Bind(wx.EVT_KEY_DOWN, self.__onTagKeyDown)
 
         self.SetSizer(self.__mainSizer)
         self.Layout()
@@ -255,22 +340,54 @@ class TextTagPanel(wx.Panel):
                       random.randint(100, 255),
                       random.randint(100, 255)]
 
-        stt = StaticTextTag(self, tag, colour)
+        stt      = StaticTextTag(self, tag, colour)
         
         stt.Bind(EVT_STT_CLOSE_EVENT, self.__onTagClose)
-        
+
         self.__tagSizer.Add(stt, flag=wx.ALL, border=3)
         self.Layout()
+        self.GetParent().Layout()
 
         if self.__addNewTags and tag not in self.__allTags:
             log.debug('Adding new tag to options: {}'.format(tag))
             self.__allTags.append(tag)
             self.__updateNewTagOptions()
 
+        self.__tagWidgets.append(stt)
         self.__tagColours[tag] = colour
         self.__activeTags[tag] = self.__activeTags.get(tag, 0) + 1
         self.__updateNewTagOptions()
 
+
+    def RemoveTag(self, tag):
+        """Removes the specified tag. """
+
+        tagIdx   = self.GetTagIndex(tag)
+        stt      = self.__tagWidgets[tagIdx]
+        
+        self.__tagSizer  .Detach(stt)
+        self.__tagWidgets.remove(stt)
+
+        count = self.__activeTags[tag]
+
+        if count == 1: self.__activeTags.pop(tag)
+        else:          self.__activeTags[tag] = count - 1
+        
+        stt.Destroy()
+        self.Layout()
+        self.GetParent().Layout()
+
+        self.__updateNewTagOptions() 
+
+
+    def GetTagIndex(self, tag):
+        """Returns the index of the specified tag. """
+        for i, stt in enumerate(self.__tagWidgets):
+            if stt.GetText() == tag:
+                return i
+
+        raise IndexError('Unknown tag: "{}"'.format(tag))
+            
 
     def HasTag(self, tag):
         """Returns ``True`` if the given tag is currently shown, ``False``
@@ -295,16 +412,10 @@ class TextTagPanel(wx.Panel):
 
         self.__tagColours[tag] = colour
 
-        children = self.GetChildren()
+        for stt in self.__tagWidgets:
 
-        for child in children:
-            if not isinstance(child, StaticTextTag):
-                return
-
-            if child.GetText() != tag:
-                return
-
-            child.SetBackgroundColour(colour)
+            if stt.GetText() == tag:
+                stt.SetBackgroundColour(colour)
 
 
     def __onTagClose(self, ev):
@@ -315,25 +426,75 @@ class TextTagPanel(wx.Panel):
         stt = ev.GetEventObject()
         tag = stt.GetText()
 
+        idx = self.GetTagIndex(tag)
+
+        self.RemoveTag(tag)
+
+        if len(self.__tagWidgets) == 0:
+            self.FocusNewTagCtrl()
+        else:
+            if idx == len(self.__tagWidgets):
+                idx -= 1
+
+            self.__tagWidgets[idx].SetFocus()
+
         log.debug('Tag removed: "{}"'.format(tag))
-        
-        self.__tagSizer.Detach(stt)
-
-        count = self.__activeTags[tag]
-
-        if count == 1: self.__activeTags.pop(tag)
-        else:          self.__activeTags[tag] = count - 1
-        
-        stt.Destroy()
-        self.Layout()
-
-        self.__updateNewTagOptions()
 
         ev = TextTagPanelTagRemovedEvent(tag=tag)
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
 
+        
+    def __onNewTagKeyDown(self, ev):
+        """Called on key down events from the new tag control. If the right
+        arrow key is pushed, the first :class:`StaticTextTag` is given input
+        focus.
+        """
 
+        if ev.GetKeyCode() != wx.WXK_RIGHT or len(self.__tagWidgets) == 0:
+            ev.Skip()
+            return
+
+        log.debug('Right arrow key on new tag control - focusing tags')
+
+        self.__tagWidgets[0].SetFocus()
+
+        
+    def __onTagKeyDown(self, ev):
+        """Called on key down events from a :class:`StaticTextTag` object. If
+        the left/right arrow keys are pushed, the focus is shifted accordingly.
+        """
+
+        left      = wx.WXK_LEFT
+        right     = wx.WXK_RIGHT
+        key       = ev.GetKeyCode()
+        stt       = ev.GetEventObject()
+
+        if key not in (left, right):
+            ev.Skip()
+            return
+
+        sttIdx = self.__tagWidgets.index(stt)
+        
+        if   key == left:  sttIdx -= 1
+        elif key == right: sttIdx += 1
+
+        if sttIdx == -1:
+            log.debug('Arrow key on tag ({}) - focusing new '
+                      'tag control'.format(stt.GetText()))
+            self.FocusNewTagCtrl()
+            return
+
+        elif sttIdx == len(self.__tagWidgets):
+            ev.Skip()
+            return
+
+        log.debug('Arrow key on tag ({}) - focusing '
+                  'adjacent tag ({})'.format(
+                      stt.GetText(), self.__tagWidgets[sttIdx].GetText()))
+        self.__tagWidgets[sttIdx].SetFocus()
+
+        
     def __onTextCtrl(self, ev):
         """Called when the user enters a new value via the ``TextCtrl`` (if
         this ``TextTagPanel`` allows new tags). Adds the new tag, and generates
@@ -407,6 +568,14 @@ TTP_CASE_SENSITIVE = 8
 """Style flag for use with a :class:`TextTagPanel` - if set, the
 auto-completion options will be case sensitive. This flag only has an effect
 if the :data:`TTP_ALLOW_NEW_TAGS` flag is also set.
+"""
+
+
+TTP_KEYBOARD_NAV = 16
+"""Style flag for use with a :class:`TextTagPanel` - if set, the user
+can use the left and right arrow keys to move between the new tag control
+and the tags and, when a tag is focused can use the delete/backspace keys to
+remove it.
 """
 
 
