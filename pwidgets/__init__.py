@@ -19,19 +19,20 @@ behaviour in the existing controls. The following controls are available:
  .. autosummary::
     :nosignatures:
 
-    ~pwidgets.floatspin.FloatSpinCtrl
-    ~pwidgets.floatslider.FloatSlider
-    ~pwidgets.floatslider.SliderSpinPanel
-    ~pwidgets.rangeslider.RangePanel
-    ~pwidgets.rangeslider.RangeSliderSpinPanel
-    ~pwidgets.notebook.Notebook
-    ~pwidgets.numberdialog.NumberDialog
+    ~pwidgets.texttag.AutoTextCtrl
+    ~pwidgets.bitmapradio.BitmapRadioBox
+    ~pwidgets.bitmaptoggle.BitmapToggleButton
     ~pwidgets.colourbutton.ColourButton
     ~pwidgets.elistbox.EditableListBox
-    ~pwidgets.bitmaptoggle.BitmapToggleButton
-    ~pwidgets.bitmapradio.BitmapRadioBox
-    ~pwidgets.widgetgrid.WidgetGrid
-    ~pwidgets.widgetlist.WidgetList
+    ~pwidgets.floatslider.FloatSlider
+    ~pwidgets.floatspin.FloatSpinCtrl
+    ~pwidgets.notebook.Notebook
+    ~pwidgets.numberdialog.NumberDialog
+    ~pwidgets.rangeslider.RangePanel
+    ~pwidgets.rangeslider.RangeSliderSpinPanel
+    ~pwidgets.floatslider.SliderSpinPanel
     ~pwidgets.texttag.StaticTextTag
     ~pwidgets.texttag.TextTagPanel
+    ~pwidgets.widgetgrid.WidgetGrid
+    ~pwidgets.widgetlist.WidgetList
 """

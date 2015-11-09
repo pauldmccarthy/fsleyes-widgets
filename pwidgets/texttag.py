@@ -142,6 +142,7 @@ class TextTagPanel(wx.Panel):
        TTP_ALLOW_NEW_TAGS
        TTP_ADD_NEW_TAGS
        TTP_NO_DUPLICATES
+       TTP_CASE_SENSITIVE
 
     
     The ``TextTagPanel`` generates the following events:
@@ -166,12 +167,22 @@ class TextTagPanel(wx.Panel):
         if style is None:
             style = TTP_ALLOW_NEW_TAGS | TTP_ADD_NEW_TAGS
 
-        self.__allowNewTags = style & TTP_ALLOW_NEW_TAGS
-        self.__addNewTags   = style & TTP_ADD_NEW_TAGS and self.__allowNewTags
-        self.__noDuplicates = style & TTP_NO_DUPLICATES
+        self.__allowNewTags  = style & TTP_ALLOW_NEW_TAGS
+        self.__addNewTags    = style & TTP_ADD_NEW_TAGS and self.__allowNewTags
+        self.__noDuplicates  = style & TTP_NO_DUPLICATES
 
-        if self.__allowNewTags: self.__newTagCtrl = atc.AutoTextCtrl(self)
-        else:                   self.__newTagCtrl = wx.Choice(       self)
+        self.__allTags    = []
+        self.__activeTags = {}
+        self.__tagColours = {}
+
+        if self.__allowNewTags:
+            
+            if style & TTP_CASE_SENSITIVE: atcStyle = atc.ATC_CASE_SENSITIVE
+            else:                          atcStyle = 0
+            
+            self.__newTagCtrl = atc.AutoTextCtrl(self, style=atcStyle)
+        else:
+            self.__newTagCtrl = wx.Choice(self)
             
         self.__mainSizer    = wx.BoxSizer( wx.HORIZONTAL)
         self.__tagSizer     = wx.WrapSizer(wx.HORIZONTAL, 2)
@@ -189,10 +200,6 @@ class TextTagPanel(wx.Panel):
             self.__newTagCtrl.Bind(atc.EVT_ATC_TEXT_ENTER, self.__onTextCtrl)
         else:
             self.__newTagCtrl.Bind(wx.EVT_CHOICE,          self.__onChoice)
-
-        self.__allTags    = []
-        self.__activeTags = {}
-        self.__tagColours = {}
 
         self.SetSizer(self.__mainSizer)
         self.Layout()
@@ -247,9 +254,10 @@ class TextTagPanel(wx.Panel):
         self.__tagSizer.Add(stt, flag=wx.ALL, border=3)
         self.Layout()
 
-        if self.__addNewTags:
-            print 'Adding new tag: {}'.format(tag)
+        if self.__addNewTags and tag not in self.__allTags:
+            log.debug('Adding new tag to options: {}'.format(tag))
             self.__allTags.append(tag)
+            self.__updateNewTagOptions()
 
         self.__tagColours[tag] = colour
         self.__activeTags[tag] = self.__activeTags.get(tag, 0) + 1
@@ -319,12 +327,17 @@ class TextTagPanel(wx.Panel):
 
 
     def __onTextCtrl(self, ev):
+        """Called when the user enters a new value via the ``TextCtrl`` (if
+        this ``TextTagPanel`` allows new tags). Adds the new tag, and generates
+        an :data:`EVT_TTP_TAG_ADDED_EVENT`.
+        """
 
         tag = self.__newTagCtrl.GetValue()
 
         log.debug('New tag from text control: {}'.format(tag))
         
         self.AddTag(tag)
+        self.__newTagCtrl.SetValue('')
 
         ev = TextTagPanelTagAddedEvent(tag=tag)
         ev.SetEventObject(self)
@@ -332,6 +345,10 @@ class TextTagPanel(wx.Panel):
 
     
     def __onChoice(self, ev):
+        """Called when the user enters a new value via the ``wx.Choice`` (if
+        this ``TextTagPanel`` does not allow new tags). Adds the new tag, and
+        generates an :data:`EVT_TTP_TAG_ADDED_EVENT`.
+        """ 
 
         tag = self.__newTagCtrl.GetString(self.__newTagCtrl.GetSelection())
 
@@ -367,13 +384,21 @@ to type in tag names that are not in the ``ComboBox``.
 TTP_ADD_NEW_TAGS = 2
 """Style flag for use with a :class:`TextTagPanel` - if set, when the user
 types in a tag name that is not in the ``ComboBox``, that name is added to the
-list of options in the ``ComboBox``.
+list of options in the ``ComboBox``. This flag only has an effect if the
+:data:`TTP_ALLOW_NEW_TAGS` flag is also set.
 """
 
 
 TTP_NO_DUPLICATES = 4
 """Style flag for use with a :class:`TextTagPanel` - if set, the user will be
 prevented from adding the same tag more than once.
+"""
+
+
+TTP_CASE_SENSITIVE = 8
+"""Style flag for use with a :class:`TextTagPanel` - if set, the
+auto-completion options will be case sensitive. This flag only has an effect
+if the :data:`TTP_ALLOW_NEW_TAGS` flag is also set.
 """
 
 
