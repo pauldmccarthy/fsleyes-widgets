@@ -377,7 +377,13 @@ class TextTagPanel(wx.Panel):
         self.Layout()
         self.GetParent().Layout()
 
-        self.__updateNewTagOptions() 
+        self.__updateNewTagOptions()
+
+        
+    def ClearTags(self):
+        """Removes all tags from this ``TextTagPanel``. """
+        for tag in list(self.__tagWidgets):
+            self.RemoveTag(tag.GetText())
 
 
     def GetTagIndex(self, tag):
@@ -387,8 +393,13 @@ class TextTagPanel(wx.Panel):
                 return i
 
         raise IndexError('Unknown tag: "{}"'.format(tag))
-            
 
+
+    def TagCount(self):
+        """Returns the number of tags currently visible. """
+        return len(self.__tagWidgets)
+
+    
     def HasTag(self, tag):
         """Returns ``True`` if the given tag is currently shown, ``False``
         otherwise.
@@ -501,12 +512,15 @@ class TextTagPanel(wx.Panel):
         an :data:`EVT_TTP_TAG_ADDED_EVENT`.
         """
 
-        tag = self.__newTagCtrl.GetValue()
+        tag = self.__newTagCtrl.GetValue().strip()
+
+        if tag == '':
+            return
 
         log.debug('New tag from text control: {}'.format(tag))
         
         self.AddTag(tag)
-        self.__newTagCtrl.SetValue('')
+        self.__newTagCtrl.ChangeValue('')
 
         ev = TextTagPanelTagAddedEvent(tag=tag)
         ev.SetEventObject(self)

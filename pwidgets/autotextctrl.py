@@ -228,7 +228,7 @@ class AutoCompletePopup(wx.PopupWindow):
         self.__listBox       = wx.ListBox(self,  style=(wx.LB_SINGLE))
         
         self.__listBox .Set(self.__getMatches(text))
-        self.__textCtrl.SetValue(text)
+        self.__textCtrl.ChangeValue(text)
         self.__textCtrl.SetInsertionPointEnd()
 
         self.__sizer = wx.BoxSizer(wx.VERTICAL)

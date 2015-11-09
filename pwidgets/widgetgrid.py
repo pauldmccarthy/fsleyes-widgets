@@ -688,24 +688,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         if row == -1: row = 0
         if col == -1: col = 0
 
-        posx, posy = self.__widgets[row][col].GetPosition().Get()
-        pixx, pixy = self.GetScrollPixelsPerUnit()
-
-        if not self.__hscroll:
-            posx = 0
-            pixx = 1
-            
-        if not self.__vscroll:
-            posy = 0
-            pixy = 1
-
-        if pixx == 0 or pixy == 0:
-            return
-
-        posx = int(round(posx / float(pixx)))
-        posy = int(round(posy / float(pixy)))
-
-        self.Scroll(posx, posy)
+        self.ScrollChildIntoView(self.__widgets[row][col])
 
 
     def __select(self, row, col, selectType, select=True):
