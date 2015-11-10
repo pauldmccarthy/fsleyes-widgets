@@ -670,7 +670,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             ev.Skip()
             return
 
-        self.SetFocus()
         ev = WidgetGridSelectEvent(row=row, col=col)
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)

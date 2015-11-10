@@ -162,6 +162,8 @@ class StaticTextTag(wx.Panel):
         key       = ev.GetKeyCode()
         delete    = wx.WXK_DELETE
         backspace = wx.WXK_BACK
+
+        log.debug('StaticTextTag key event ({})'.format(key))
         
         if key not in (delete, backspace):
             ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
@@ -245,17 +247,12 @@ class TextTagPanel(wx.Panel):
         self.__tagColours = {}
         self.__tagWidgets = []
 
-        if self.__allowNewTags:
-            
-            if style & TTP_CASE_SENSITIVE: atcStyle = atc.ATC_CASE_SENSITIVE
-            else:                          atcStyle = 0
-            
-            self.__newTagCtrl = atc.AutoTextCtrl(self, style=atcStyle)
-        else:
-            self.__newTagCtrl = wx.Choice(self)
-            
-        self.__mainSizer    = wx.BoxSizer( wx.HORIZONTAL)
-        self.__tagSizer     = wx.WrapSizer(wx.HORIZONTAL, 2)
+        if style & TTP_CASE_SENSITIVE: atcStyle = atc.ATC_CASE_SENSITIVE
+        else:                          atcStyle = 0
+        
+        self.__newTagCtrl = atc.AutoTextCtrl(self, style=atcStyle)
+        self.__mainSizer  = wx.BoxSizer( wx.HORIZONTAL)
+        self.__tagSizer   = wx.WrapSizer(wx.HORIZONTAL, 2)
         
         # ^^ the WrapSizer style flags don't 
         # seem to have made it into wxPython:
@@ -266,10 +263,7 @@ class TextTagPanel(wx.Panel):
         self.__mainSizer.Add(self.__newTagCtrl)
         self.__mainSizer.Add(self.__tagSizer, flag=wx.EXPAND, proportion=1)
 
-        if self.__allowNewTags:
-            self.__newTagCtrl.Bind(atc.EVT_ATC_TEXT_ENTER, self.__onTextCtrl)
-        else:
-            self.__newTagCtrl.Bind(wx.EVT_CHOICE,          self.__onChoice)
+        self.__newTagCtrl.Bind(atc.EVT_ATC_TEXT_ENTER, self.__onTextCtrl)
 
         if self.__keyboardNav:
             self.__newTagCtrl.Bind(wx.EVT_KEY_DOWN, self.__onNewTagKeyDown)
@@ -287,7 +281,8 @@ class TextTagPanel(wx.Panel):
 
 
     def SelectTag(self, tag):
-        """
+        """Gives focus to the :class:`StaticTextTag` control with the
+        specified tag, if it exists.
         """
         tagIdx = self.GetTagIndex(tag)
         self.__tagWidgets[tagIdx].SetFocus()
@@ -295,7 +290,7 @@ class TextTagPanel(wx.Panel):
 
     def SetOptions(self, options, colours=None):
         """Sets the tag options made available to the user via the
-        ``ComboBox``.
+        :class:`.AutoTextCtrl`.
 
         :arg options: A sequence of tags that the user can choose from.
         :arg colours: A sequence of corresponding colours for each tag.
@@ -335,9 +330,9 @@ class TextTagPanel(wx.Panel):
                       random.randint(100, 255),
                       random.randint(100, 255)]
 
-        stt      = StaticTextTag(self, tag, colour)
+        stt = StaticTextTag(self, tag, colour)
         
-        stt.Bind(EVT_STT_CLOSE,    self.__onTagClose)
+        stt.Bind(EVT_STT_CLOSE, self.__onTagClose)
 
         if self.__keyboardNav:
             stt.Bind(wx.EVT_LEFT_DOWN, self.__onTagLeftDown)
@@ -497,7 +492,11 @@ class TextTagPanel(wx.Panel):
         focus.
         """
 
-        if ev.GetKeyCode() != wx.WXK_RIGHT or len(self.__tagWidgets) == 0:
+        key = ev.GetKeyCode()
+
+        log.debug('TextTagPanel key down [new tag control] ({})'.format(key))
+
+        if key != wx.WXK_RIGHT or len(self.__tagWidgets) == 0:
             ev.Skip()
             return
 
@@ -517,6 +516,8 @@ class TextTagPanel(wx.Panel):
         backspace = wx.WXK_BACK
         key       = ev.GetKeyCode()
         stt       = ev.GetEventObject()
+
+        log.debug('TextTagPanel key event ({})'.format(key))
 
         if key not in (left, right, delete, backspace):
             ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
@@ -560,31 +561,20 @@ class TextTagPanel(wx.Panel):
         if tag == '':
             return
 
+        self.__newTagCtrl.ChangeValue('')
+
+        if not self.__allowNewTags and tag not in self.__allTags:
+            log.debug('New tag {} ignored (allowNewTags is False)'.format(tag))
+            return
+        
         log.debug('New tag from text control: {}'.format(tag))
         
         self.AddTag(tag)
-        self.__newTagCtrl.ChangeValue('')
+        
 
         ev = TextTagPanelTagAddedEvent(tag=tag)
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)        
-
-    
-    def __onChoice(self, ev):
-        """Called when the user enters a new value via the ``wx.Choice`` (if
-        this ``TextTagPanel`` does not allow new tags). Adds the new tag, and
-        generates an :data:`EVT_TTP_TAG_ADDED`.
-        """ 
-
-        tag = self.__newTagCtrl.GetString(self.__newTagCtrl.GetSelection())
-
-        log.debug('New tag from choice control: {}'.format(tag))
-        
-        self.AddTag(tag)
-
-        ev = TextTagPanelTagAddedEvent(tag=tag)
-        ev.SetEventObject(self)
-        wx.PostEvent(self, ev) 
 
 
     def __updateNewTagOptions(self):
@@ -595,10 +585,7 @@ class TextTagPanel(wx.Panel):
         if self.__noDuplicates:
             tags = [t for t in tags if t not in self.__activeTags]
 
-        # The new tag control is either
-        # a wx.Choice, or a atc.AutoTextCtrl
-        if not self.__allowNewTags: self.__newTagCtrl.Set(         tags)
-        else:                       self.__newTagCtrl.AutoComplete(tags)
+        self.__newTagCtrl.AutoComplete(tags)
 
         
 TTP_ALLOW_NEW_TAGS  = 1
