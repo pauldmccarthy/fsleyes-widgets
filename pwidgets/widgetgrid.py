@@ -174,7 +174,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__leftKey        = wx.WXK_LEFT
         self.__rightKey       = wx.WXK_RIGHT
 
-
         self.Bind(wx.EVT_SIZE, self.__onResize)
 
         if self.__keynav:
@@ -582,6 +581,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
         if not self.SetSelection(row, col):
             return
+
+        log.debug('Posting grid select event ({}, {})'.format(row, col))
 
         event = WidgetGridSelectEvent(row=row, col=col) 
         event.SetEventObject(self)
