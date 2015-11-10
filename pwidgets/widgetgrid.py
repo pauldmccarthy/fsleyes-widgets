@@ -180,6 +180,9 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         if self.__keynav:
             self.Bind(wx.EVT_KEY_DOWN, self.__onKeyboard)
 
+        if self.__selectable:
+            self.Bind(wx.EVT_CHILD_FOCUS, self.__onChildFocus)
+
 
     def SetColours(self, **kwargs):
         """Set the colours used in this ``WidgetGrid``.
@@ -457,8 +460,15 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
 
     def GetWidget(self, row, col):
-        """
-        """
+        """Returns the widget located at the specified row/column. """
+
+        # This is a hack - widgets added to the grid are
+        # embedded in a wx.Panel, so I'm just returning
+        # the first child of that panel. This will break 
+        # for Sizer objects passed to SetWidget.
+        #
+        # Perhaps I should separately keep track of the
+        # references that are passed to the SetWidget method.
         return self.__widgets[row][col].GetChildren()[0]
 
 
@@ -467,10 +477,9 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
         The parent of the widget is changed to this ``WidgetGrid``.
 
-         .. note::
-            The provided widget may alternately be a :class:`wx.Sizer`.
-            However, nested sizers, i.e. sizers which contain other
-            sizers, are not supported.
+         .. note:: The provided widget may alternately be a
+                   :class:`wx.Sizer`. However, nested sizers, i.e. sizers
+                   which contain other sizers, are not supported.
 
         :arg row:    Row index.
 
@@ -544,14 +553,14 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             if wx.Platform == '__WXGTK__':
                 w.Bind(wx.EVT_MOUSEWHEEL, scroll)
 
-            # Listen for mouse down events 
+            # Listen for mouse down events
             # if cells are selectable
-            if self.__selectable:
+            if self.__selectable and not w.AcceptsFocus():
                 w.Bind(wx.EVT_LEFT_DOWN, self.__onLeftMouseDown)
 
-            # Attach the row/column indices
-            # to the widget - they are used
-            # in the __onLeftDown method
+            # Attach the row/column indices to the
+            # widget - they are used in the
+            # __onLeftDown and __onChildFocus methods
             w._wg_row = row
             w._wg_col = col
 
@@ -562,29 +571,67 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             initWidget(widget)
 
 
+    def __selectCell(self, row, col):
+        """Called by the :meth:`__onChildFocus` and :meth:`__onLeftMouseDown`
+        methods. Selects the specified row/column, and generates an
+        :data:`EVT_WG_SELECT` event.
+        """
+        
+        if   self.__selectable == 'rows':    col = -1
+        elif self.__selectable == 'columns': row = -1
+
+        if not self.SetSelection(row, col):
+            return
+
+        event = WidgetGridSelectEvent(row=row, col=col) 
+        event.SetEventObject(self)
+        wx.PostEvent(self, event)
+
+
+    def __onChildFocus(self, ev):
+        """If this ``WidgetGrid`` is selectable, this metyhod is called when a
+        widget in the grid gains focus. Ensures that the containing cell is
+        selected.
+        """
+
+        ev.Skip()
+
+        gridWidget = ev.GetEventObject()
+
+        row = None
+        col = None
+
+        # The event source may be a child of the
+        # widget that was added to the grid, so we
+        # search up the hierarchy to find the
+        # parent that has row and column attributes
+        while gridWidget is not None:
+
+            if hasattr(gridWidget, '_wg_row'):
+                row = gridWidget._wg_row
+                col = gridWidget._wg_col
+                break
+            else:
+                gridWidget = gridWidget.GetParent()
+
+        if row is not None and col is not None:
+            
+            log.debug('Focus on cell {}'.format((row, col))) 
+            self.__selectCell(row, col)
+
+
     def __onLeftMouseDown(self, ev):
         """If this ``WidgetGrid`` is selectable, this method is called
         whenever an left mouse down event occurs on an item in the grid.
         """
         
-        ev.Skip()
-
         widget = ev.GetEventObject() 
         row    = widget._wg_row
         col    = widget._wg_col
 
-        if   self.__selectable == 'rows':    col = -1
-        elif self.__selectable == 'columns': row = -1
-
         log.debug('Left mouse down on cell {}'.format((row, col)))
-
-        event = WidgetGridSelectEvent(row=row, col=col) 
-
-        self.SetSelection(row, col)
-        self.SetFocus()
-
-        event.SetEventObject(self)
-        wx.PostEvent(self, event)
+        
+        self.__selectCell(row, col)
 
 
     def __onKeyboard(self, ev):
@@ -629,23 +676,29 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         
 
     def GetSelection(self):
-        """Returns the currently selected item, as a tuple of ``(row, col)`` indices.
-        If an entire row has been selected, the ``col`` index  will be -1, and
-        vice-versa. If nothing is selected, ``None`` is returned.
+        """Returns the currently selected item, as a tuple of ``(row, col)``
+        indices. If an entire row has been selected, the ``col`` index  will
+        be -1, and vice-versa. If nothing is selected, ``None`` is returned.
         """
         return self.__selected
 
 
     def SetSelection(self, row, col):
-        """Select the given item. A :exc:`ValueError` is raised if the selection
-        is invalid.
+        """Select the given item. A :exc:`ValueError` is raised if the
+        selection is invalid.
 
         :arg row: Row index of item to select. Pass in -1 to select a whole
                   column.
 
         :arg col: Column index of item to select. Pass in -1 to select a whole
                   row.
+
+        :returns: ``True`` if the selected item was changed, ``False``
+                  otherwise.
         """
+
+        if self.__selected == (row, col):
+            return False
 
         nrows, ncols = self.GetGridSize()
 
@@ -674,6 +727,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
         self.__select(row, col, self.__selectable, True)
         self.__scrollTo(row, col)
+
+        return True
 
         
     def __scrollTo(self, row, col):
