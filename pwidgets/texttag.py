@@ -241,14 +241,16 @@ class TextTagPanel(wx.Panel):
         self.__addNewTags    = style & TTP_ADD_NEW_TAGS and self.__allowNewTags
         self.__noDuplicates  = style & TTP_NO_DUPLICATES
         self.__keyboardNav   = style & TTP_KEYBOARD_NAV
+        self.__caseSensitive = style & TTP_CASE_SENSITIVE
 
-        self.__allTags    = []
-        self.__activeTags = {}
-        self.__tagColours = {}
-        self.__tagWidgets = []
+        self.__allTags     = []
+        self.__tagDisplays = {}
+        self.__activeTags  = {}
+        self.__tagColours  = {}
+        self.__tagWidgets  = []
 
-        if style & TTP_CASE_SENSITIVE: atcStyle = atc.ATC_CASE_SENSITIVE
-        else:                          atcStyle = 0
+        if self.__caseSensitive: atcStyle = atc.ATC_CASE_SENSITIVE
+        else:                    atcStyle = 0
         
         self.__newTagCtrl = atc.AutoTextCtrl(self, style=atcStyle)
         self.__mainSizer  = wx.BoxSizer( wx.HORIZONTAL)
@@ -296,13 +298,30 @@ class TextTagPanel(wx.Panel):
         :arg colours: A sequence of corresponding colours for each tag.
         """
 
-        self.__allTags = list(options)
+        origOptions = options
+
+        if not self.__caseSensitive:
+            lowered = [o.lower() for o in options]
+            uniq    = []
+            orig    = []
+
+            for i, o in enumerate(lowered):
+                if o not in uniq:
+                    uniq.append(o)
+                    orig.append(origOptions[i])
+
+            options     = uniq
+            origOptions = orig
+
+        self.__allTags     = list(options)
+        self.__tagDisplays = {o : oo for (o, oo) in zip(options, origOptions)}
+        
         self.__updateNewTagOptions()
 
         if colours is not None:
             
             for option, colour in zip(options, colours):
-                self.__tagColours[option] = colour
+                self.SetTagColour(option, colour)
         
         # TODO delete any active tags
         #      that are no longer valid?
@@ -312,7 +331,7 @@ class TextTagPanel(wx.Panel):
         """Returns a list of all the tags that are currently available to the
         user.
         """
-        return list(self.__allTags)
+        return [self.__tagDisplays[o] for o in self.__allTags]
 
 
     def AddTag(self, tag, colour=None):
@@ -322,6 +341,11 @@ class TextTagPanel(wx.Panel):
         :arg colour: The tag background colour.
         """
 
+        origTag = tag
+
+        if not self.__caseSensitive:
+            tag = tag.lower()
+
         if colour is None:
             colour = self.__tagColours.get(tag, None)
 
@@ -330,7 +354,7 @@ class TextTagPanel(wx.Panel):
                       random.randint(100, 255),
                       random.randint(100, 255)]
 
-        stt = StaticTextTag(self, tag, colour)
+        stt = StaticTextTag(self, origTag, colour)
         
         stt.Bind(EVT_STT_CLOSE, self.__onTagClose)
 
@@ -345,7 +369,7 @@ class TextTagPanel(wx.Panel):
         if self.__addNewTags and tag not in self.__allTags:
             log.debug('Adding new tag to options: {}'.format(tag))
             self.__allTags.append(tag)
-            self.__updateNewTagOptions()
+            self.__tagDisplays[tag] = origTag
 
         self.__tagWidgets.append(stt)
         self.__tagColours[tag] = colour
@@ -356,8 +380,11 @@ class TextTagPanel(wx.Panel):
     def RemoveTag(self, tag):
         """Removes the specified tag. """
 
-        tagIdx   = self.GetTagIndex(tag)
-        stt      = self.__tagWidgets[tagIdx]
+        if not self.__caseSensitive:
+            tag = tag.lower()
+
+        tagIdx = self.GetTagIndex(tag)
+        stt    = self.__tagWidgets[tagIdx]
         
         self.__tagSizer  .Detach(stt)
         self.__tagWidgets.remove(stt)
@@ -388,8 +415,15 @@ class TextTagPanel(wx.Panel):
 
     def GetTagIndex(self, tag):
         """Returns the index of the specified tag. """
-        for i, stt in enumerate(self.__tagWidgets):
-            if stt.GetText() == tag:
+
+        tags = self.GetTags()
+        
+        if not self.__caseSensitive:
+            tag  = tag.lower()
+            tags = [t.lower() for t in tags]
+        
+        for i, t in enumerate(tags):
+            if t == tag:
                 return i
 
         raise IndexError('Unknown tag: "{}"'.format(tag))
@@ -404,6 +438,9 @@ class TextTagPanel(wx.Panel):
         """Returns ``True`` if the given tag is currently shown, ``False``
         otherwise.
         """
+        if not self.__caseSensitive:
+            tag = tag.lower()
+            
         return tag in self.__activeTags
 
 
@@ -411,6 +448,9 @@ class TextTagPanel(wx.Panel):
         """Returns the background colour of the specified ``tag``, or ``None``
         if there is no default colour for the tag.
         """
+        if not self.__caseSensitive:
+            tag = tag.lower()
+            
         return self.__tagColours.get(tag, None)
 
 
@@ -418,14 +458,21 @@ class TextTagPanel(wx.Panel):
         """Sets the background colour on all :class:`StaticTextTag` items
         which have the given tag text.
         """
-        if tag not in self.__activeTags:
+
+        if not self.__caseSensitive:
+            tag = tag.lower()
+        
+        if tag not in self.__allTags:
             return
 
         self.__tagColours[tag] = colour
 
         for stt in self.__tagWidgets:
 
-            if stt.GetText() == tag:
+            if self.__caseSensitive: sttText = stt.GetText()
+            else:                    sttText = stt.GetText().lower()
+
+            if sttText == tag:
                 stt.SetBackgroundColour(colour)
 
 
@@ -558,10 +605,14 @@ class TextTagPanel(wx.Panel):
 
         tag = self.__newTagCtrl.GetValue().strip()
 
+        self.__newTagCtrl.ChangeValue('')
+
         if tag == '':
             return
 
-        self.__newTagCtrl.ChangeValue('')
+        if self.__noDuplicates and self.HasTag(tag):
+            log.debug('New tag {} ignored (noDuplicates is True)'.format(tag))
+            return
 
         if not self.__allowNewTags and tag not in self.__allTags:
             log.debug('New tag {} ignored (allowNewTags is False)'.format(tag))
@@ -570,7 +621,6 @@ class TextTagPanel(wx.Panel):
         log.debug('New tag from text control: {}'.format(tag))
         
         self.AddTag(tag)
-        
 
         ev = TextTagPanelTagAddedEvent(tag=tag)
         ev.SetEventObject(self)
@@ -584,6 +634,8 @@ class TextTagPanel(wx.Panel):
 
         if self.__noDuplicates:
             tags = [t for t in tags if t not in self.__activeTags]
+
+        tags = [self.__tagDisplays[t] for t in tags]
 
         self.__newTagCtrl.AutoComplete(tags)
 
