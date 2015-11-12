@@ -543,7 +543,14 @@ class TextTagPanel(wx.Panel):
 
         log.debug('TextTagPanel key down [new tag control] ({})'.format(key))
 
-        if key != wx.WXK_RIGHT or len(self.__tagWidgets) == 0:
+        # Only process right arrows if the text
+        # control cursor is on the far right
+        value  = self.__newTagCtrl.GetValue()
+        cursor = self.__newTagCtrl.GetInsertionPoint()
+
+        if key != wx.WXK_RIGHT         or \
+           len(self.__tagWidgets) == 0 or \
+           cursor != len(value):
             ev.Skip()
             return
 
@@ -619,6 +626,8 @@ class TextTagPanel(wx.Panel):
             return
         
         log.debug('New tag from text control: {}'.format(tag))
+
+        self.__newTagCtrl.Refresh()
         
         self.AddTag(tag)
 
