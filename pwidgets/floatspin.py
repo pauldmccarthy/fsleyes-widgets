@@ -10,10 +10,15 @@ modifying a floating point value.
 """
 
 
+import                    logging
+
 import                    wx
 import wx.lib.newevent as wxevent
 
 import re
+
+
+log = logging.getLogger(__name__)
 
 
 class FloatSpinCtrl(wx.PyPanel):
@@ -122,6 +127,15 @@ class FloatSpinCtrl(wx.PyPanel):
         
         self.SetSizer(self.__sizer)
 
+        # Under wx/GTK, calling spin.SetValue() from
+        # within an EVT_SPIN event handler seems to
+        # generate another EVT_SPIN event, which
+        # triggers an infinite recursive loop. The
+        # skipSpin attribute  is used as an internal
+        # semaphore in the SetValue method, telling
+        # it not to update the spin button value.
+        self.__skipSpin = False
+
         self.SetRange(minValue, maxValue)
         self.SetValue(value)
         self.SetIncrement(increment)
@@ -207,7 +221,9 @@ class FloatSpinCtrl(wx.PyPanel):
         self.__value = value
 
         self.__text.ChangeValue(self.__format.format(value))
-        self.__spin.SetValue(   self.__realToSpin(value))
+
+        if not self.__skipSpin:
+            self.__spin.SetValue(self.__realToSpin(value))
 
         return value != oldValue
     
@@ -223,10 +239,13 @@ class FloatSpinCtrl(wx.PyPanel):
         """
 
         val = self.__text.GetValue().strip()
-
+        
         if self.__textPattern.match(val) is None:
             self.SetValue(self.__value)
             return
+
+        log.debug('Spin text - attempting to change value '
+                  'from {} to {}'.format(self.__value, val))
 
         try:
             if self.__integer: val = int(  val)
@@ -245,8 +264,17 @@ class FloatSpinCtrl(wx.PyPanel):
         Decrements the value by the current increment and generates a
         :data:`FloatSpinEvent`.
         """
+        
+        log.debug('Spin down button - attempting to change value '
+                  'from {} to {}'.format(self.__value,
+                                         self.__value - self.__increment))
+
+        self.__skipSpin = True
+        
         if self.SetValue(self.__value - self.__increment):
             wx.PostEvent(self, FloatSpinEvent(value=self.__value))
+            
+        self.__skipSpin = False
 
         
     def __onSpinUp(self, ev=None):
@@ -254,9 +282,19 @@ class FloatSpinCtrl(wx.PyPanel):
 
         Increments the value by the current increment and generates a
         :data:`FloatSpinEvent`.
-        """ 
-        if self.SetValue(self.__value + self.__increment):
-            wx.PostEvent(self, FloatSpinEvent(value=self.__value))
+        """
+        
+        log.debug('Spin up button - attempting to change value '
+                  'from {} to {}'.format(self.__value,
+                                         self.__value + self.__increment))
+
+        self.__skipSpin = True
+
+        try:
+            if self.SetValue(self.__value + self.__increment):
+                wx.PostEvent(self, FloatSpinEvent(value=self.__value))
+        finally:
+            self.__skipSpin = False
 
 
     def __onMouseWheel(self, ev):
@@ -266,6 +304,8 @@ class FloatSpinCtrl(wx.PyPanel):
         Calls :meth:`__onSpinUp` on an upwards rotation, and
         :meth:`__onSpinDown` on a downwards rotation.
         """
+
+        log.debug('Mouse wheel - delegating to spin event handlers')
 
         rot = ev.GetWheelRotation()
         
@@ -292,8 +332,6 @@ class FloatSpinCtrl(wx.PyPanel):
         value = self.__spinMin + (value - self.__realMin) * \
             (self.__spinRange / float(self.__realRange))
         return int(round(value))        
-
-
 
 
 _FloatSpinEvent, _EVT_FLOATSPIN = wxevent.NewEvent()
