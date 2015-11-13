@@ -19,7 +19,7 @@ behaviour in the existing controls. The following controls are available:
  .. autosummary::
     :nosignatures:
 
-    ~pwidgets.texttag.AutoTextCtrl
+    ~pwidgets.autotextctrl.AutoTextCtrl
     ~pwidgets.bitmapradio.BitmapRadioBox
     ~pwidgets.bitmaptoggle.BitmapToggleButton
     ~pwidgets.colourbutton.ColourButton
