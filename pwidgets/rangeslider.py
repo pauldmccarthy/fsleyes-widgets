@@ -15,12 +15,17 @@ four control widgets are linked.
 """
 
 
+import logging
+
 import wx
 import wx.lib.newevent as wxevent
 
 import floatspin
 import floatslider
 import numberdialog
+
+
+log = logging.getLogger(__name__)
 
 
 class RangePanel(wx.PyPanel):
@@ -32,8 +37,9 @@ class RangePanel(wx.PyPanel):
     When the user changes the low range value to a value beyond the current
     high value, the high value is increased such that it remains at least a
     minimum value above the low value. The inverse relationship is also
-    enforced. Whenever the user chenges either the *low* or *high* range value,
-    a :data:`RangeEvent` is generated.
+    enforced. Whenever the user chenges the *low* or *high* range values,
+    :data:`EVT_LOW_RANGE` or :data:`EVT_HIGH_RANGE`  events are generated
+    respectively. 
     
 
     The following style flags are available:
@@ -183,9 +189,11 @@ class RangePanel(wx.PyPanel):
             self.SetHigh(highValue)
             highValue = self.GetHigh()
 
-        ev = RangeEvent(low=lowValue, high=highValue)
-        ev.SetEventObject(self)
+        log.debug('Low range value changed - posting events: '
+                  '[{} - {}]'.format(lowValue, highValue))
 
+        ev = LowRangeEvent(low=lowValue)
+        ev.SetEventObject(self)
         wx.PostEvent(self, ev)
 
             
@@ -207,10 +215,12 @@ class RangePanel(wx.PyPanel):
             lowValue = highValue - self.__minDistance
             self.SetLow(lowValue)
             lowValue = self.GetLow()
-            
-        ev = RangeEvent(low=lowValue, high=highValue)
-        ev.SetEventObject(self) 
 
+        log.debug('High range value changed - posting events: '
+                  '[{} - {}]'.format(lowValue, highValue))
+
+        ev = HighRangeEvent(high=highValue)
+        ev.SetEventObject(self)
         wx.PostEvent(self, ev)
 
         
@@ -420,8 +430,10 @@ class RangeSliderSpinPanel(wx.PyPanel):
         self.__sizer.Add(self.__sliderPanel, flag=wx.EXPAND, proportion=1)
         self.__sizer.Add(self.__spinPanel,   flag=wx.EXPAND)
 
-        self.__sliderPanel.Bind(EVT_RANGE, self.__onRangeChange)
-        self.__spinPanel  .Bind(EVT_RANGE, self.__onRangeChange)
+        self.__sliderPanel.Bind(EVT_LOW_RANGE,  self.__onLowRangeChange)
+        self.__spinPanel  .Bind(EVT_LOW_RANGE,  self.__onLowRangeChange)
+        self.__sliderPanel.Bind(EVT_HIGH_RANGE, self.__onHighRangeChange)
+        self.__spinPanel  .Bind(EVT_HIGH_RANGE, self.__onHighRangeChange) 
 
         if showLimits:
             self.__minButton = wx.Button(self)
@@ -449,25 +461,58 @@ class RangeSliderSpinPanel(wx.PyPanel):
             
         self.Layout()
 
+
+    def __onLowRangeChange(self, ev):
+        """Called when the slider or spin panel generates an
+        :data:`EVT_LOW_RANGE` event. Calls the :meth:`__onRangeChange`
+        method.
+        """
+
+        src = ev.GetEventObject()
+        self.__onRangeChange(src, low=ev.low)
+
+    
+    def __onHighRangeChange(self, ev):
+        """Called when the slider or spin panel generates an
+        :data:`EVT_HIGH_RANGE` event. Calls the :meth:`__onRangeChange`
+        method.
+        """ 
+        src = ev.GetEventObject()
+        self.__onRangeChange(src, high=ev.high)
+
         
-    def __onRangeChange(self, ev):
-        """Called when the user modifies the low or high range values.
+    def __onRangeChange(self, source, low=None, high=None):
+        """Called by :meth:`__onLowRangeChange` and :meth:`onHighRangeChange`.
         Syncs the change between the sliders and spinboxes, and emits
         a :data:`RangeEvent`.
         """
-        source = ev.GetEventObject()
+
+        slider = self.__sliderPanel
+        spin   = self.__spinPanel
+
+        # Get a reference to the panel
+        # that needs to be synced.
+        if   source is slider: slave = spin
+        elif source is spin:   slave = slider
+
+        if low is not None: slave.SetLow( low)
+        else:               slave.SetHigh(high)
 
         lowValue, highValue = source.GetRange()
 
-        if source == self.__sliderPanel:
-            self.__spinPanel.SetRange(lowValue, highValue)
-        elif source == self.__spinPanel:
-            self.__sliderPanel.SetRange(lowValue, highValue)
+        log.debug('Range values changed - posting event: [{} - {}]'.format(
+            lowValue, highValue))
 
-        ev = RangeEvent(low=lowValue, high=highValue)
-        ev.SetEventObject(self)
+        if low is not None: ev = LowRangeEvent( low=low)
+        else:               ev = HighRangeEvent(high=high)
+
+        rev = RangeEvent(low=lowValue, high=highValue)
+        
+        ev .SetEventObject(self)
+        rev.SetEventObject(self)
 
         wx.PostEvent(self, ev)
+        wx.PostEvent(self, rev)
 
             
     def __onLimitButton(self, ev):
@@ -626,11 +671,22 @@ range limits.
 
 
 _RangeEvent,      _EVT_RANGE       = wxevent.NewEvent()
+_LowRangeEvent,   _EVT_LOW_RANGE   = wxevent.NewEvent()
+_HighRangeEvent,  _EVT_HIGH_RANGE  = wxevent.NewEvent()
 _RangeLimitEvent, _EVT_RANGE_LIMIT = wxevent.NewEvent()
 
 
 EVT_RANGE = _EVT_RANGE
 """Identifier for the :data:`RangeEvent`."""
+
+
+EVT_LOW_RANGE = _EVT_LOW_RANGE
+"""Identifier for the :data:`LowRangeEvent`."""
+
+
+EVT_HIGH_RANGE = _EVT_HIGH_RANGE
+"""Identifier for the :data:`HighRangeEvent`."""
+
 
 EVT_RANGE_LIMIT = _EVT_RANGE_LIMIT
 """Identifier for the :data:`RangeLimitEvent`."""
@@ -640,6 +696,20 @@ RangeEvent = _RangeEvent
 """Event emitted by :class:`RangePanel` and :class:`RangeSliderSpinPanel`
 objects  when either of their low or high values change. Contains two
 attributes, ``low`` and ``high``, containing the new low/high range values.
+"""
+
+
+LowRangeEvent = _LowRangeEvent
+"""Event emitted by :class:`RangePanel` and :class:`RangeSliderSpinPanel`
+objects when their low value changes. Contains one attributes, ``low``,
+containing the new low range value.
+"""
+
+
+HighRangeEvent = _HighRangeEvent
+"""Event emitted by :class:`RangePanel` and :class:`RangeSliderSpinPanel`
+objects when their high value changes. Contains one attributes, ``high``,
+containing the new high range value.
 """
 
 
