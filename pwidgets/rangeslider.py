@@ -99,6 +99,7 @@ class RangePanel(wx.PyPanel):
         if minDistance is None: minDistance = 0
 
         self.__minDistance = minDistance
+        self.__centreVal   = None
 
         if widgetType == 'slider':
 
@@ -177,22 +178,46 @@ class RangePanel(wx.PyPanel):
         min distance), then posts a :data:`RangeEvent`.
         """
 
-        lowValue  = self.GetLow()
-        highValue = self.GetHigh()
+        lowValue    = self.GetLow()
+        highValue   = self.GetHigh()
+        maxValue    = self.GetMax()
+        minDist     = self.__minDistance
+        centreVal   = self.__centreVal
+        highChanged = False
 
-        if lowValue >= (self.GetMax() - self.__minDistance):
-            self.SetLow(self.GetMax() - self.__minDistance)
-            lowValue = self.GetLow()
+        # Adjust the max limit for the low
+        # value if are centering the range
+        if centreVal is not None: maxValue = centreVal - minDist / 2.0
+        else:                     maxValue = maxValue  - minDist 
 
-        if highValue <= (lowValue + self.__minDistance):
-            highValue = lowValue + self.__minDistance
-            self.SetHigh(highValue)
-            highValue = self.GetHigh()
+        # Throttle the low value
+        if lowValue >= maxValue:
+            lowValue = maxValue
 
-        log.debug('Low range value changed - posting events: '
-                  '[{} - {}]'.format(lowValue, highValue))
+        # Adjust the high value if we
+        # are centering the range
+        if centreVal is not None:
+            highChanged = True
+            highValue   = centreVal + (centreVal - lowValue)
 
-        ev = LowRangeEvent(low=lowValue)
+        # Or if the low value has moved
+        # too close to the high value
+        elif highValue <= (lowValue + minDist):
+            highChanged = True 
+            highValue   = lowValue + minDist
+            
+        self.SetRange(lowValue, highValue)
+
+        if highChanged:
+            evType = 'RangeEvent'
+            ev     = RangeEvent(   low=lowValue, high=highValue)
+        else:
+            evType = 'LowRangeEvent'
+            ev     = LowRangeEvent(low=lowValue, high=highValue)
+
+        log.debug('Low range value changed - posting {}: '
+                  '[{} - {}]'.format(evType, lowValue, highValue))
+        
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
 
@@ -202,24 +227,48 @@ class RangePanel(wx.PyPanel):
 
         Attempts to make sure that the low widget is at least (high value -
         min distance), then posts a :data:`RangeEvent`.
-        """ 
+        """
 
-        lowValue  = self.GetLow()
-        highValue = self.GetHigh()
+        lowValue   = self.GetLow()
+        highValue  = self.GetHigh()
+        minValue   = self.GetMin()
+        minDist    = self.__minDistance
+        centreVal  = self.__centreVal
+        lowChanged = False
 
-        if highValue <= (self.GetMin() + self.__minDistance):
-            self.SetHigh(self.GetMin() + self.__minDistance)
-            highValue = self.GetHigh() 
+        # Adjust the min limit for the high
+        # value if are centering the range
+        if centreVal is not None: minValue = centreVal + minDist / 2.0
+        else:                     minValue = minValue  + minDist 
 
-        if lowValue >= (highValue - self.__minDistance):
-            lowValue = highValue - self.__minDistance
-            self.SetLow(lowValue)
-            lowValue = self.GetLow()
+        # Throttle the high value
+        if highValue <= minValue:
+            highValue = minValue
 
-        log.debug('High range value changed - posting events: '
-                  '[{} - {}]'.format(lowValue, highValue))
+        # Adjust the low value if we
+        # are centering the range
+        if centreVal is not None:
+            lowChanged = True
+            lowValue   = centreVal - (highValue - centreVal)
 
-        ev = HighRangeEvent(high=highValue)
+        # Or if the high value has moved
+        # too close to the high value
+        elif lowValue >= (highValue - minDist):
+            lowChanged = True 
+            lowValue   = highValue - minDist
+
+        self.SetRange(lowValue, highValue) 
+
+        if lowChanged:
+            evType = 'RangeEvent'
+            ev     = RangeEvent(    low=lowValue, high=highValue)
+        else:
+            evType = 'HighRangeEvent'
+            ev     = HighRangeEvent(low=lowValue, high=highValue)
+
+        log.debug('High range value changed - posting {}: '
+                  '[{} - {}]'.format(evType, lowValue, highValue))
+        
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
 
@@ -301,6 +350,40 @@ class RangePanel(wx.PyPanel):
         """Sets the current maximum range value."""
         self.__lowWidget .SetMax(maxValue)
         self.__highWidget.SetMax(maxValue)
+
+
+    def CentreAt(self, centreVal, postEv=True):
+        """Centres the range at the given centre value. The low and high
+        values are forced to be symmetric about the given centre. Pass
+        in ``None`` to disable range centering.
+        """
+
+        if centreVal is None:        
+            self.__centreVal = None
+            return
+
+        lowVal  = self.GetLow()
+        highVal = self.GetHigh() 
+        minVal  = self.GetMin()
+        maxVal  = self.GetMax()
+        minDist = self.__minDistance
+
+        if centreVal < minVal + minDist / 2.0:
+            raise ValueError('Invalid centre value: {}'.format(centreVal))
+
+        if centreVal > maxVal - minDist / 2.0:
+            raise ValueError('Invalid centre value: {}'.format(centreVal))
+
+        self.__centreVal = centreVal
+
+        currentRange = highVal - lowVal
+        newLow       = centreVal - currentRange / 2.0
+        newHigh      = centreVal + currentRange / 2.0
+
+        self.SetLow(newLow)
+
+        if postEv: self.__onLowChange()
+        else:      self.SetHigh(newHigh)
 
 
 class RangeSliderSpinPanel(wx.PyPanel):
@@ -430,10 +513,12 @@ class RangeSliderSpinPanel(wx.PyPanel):
         self.__sizer.Add(self.__sliderPanel, flag=wx.EXPAND, proportion=1)
         self.__sizer.Add(self.__spinPanel,   flag=wx.EXPAND)
 
-        self.__sliderPanel.Bind(EVT_LOW_RANGE,  self.__onLowRangeChange)
-        self.__spinPanel  .Bind(EVT_LOW_RANGE,  self.__onLowRangeChange)
-        self.__sliderPanel.Bind(EVT_HIGH_RANGE, self.__onHighRangeChange)
-        self.__spinPanel  .Bind(EVT_HIGH_RANGE, self.__onHighRangeChange) 
+        self.__sliderPanel.Bind(EVT_RANGE,      self.__onRangeChange)
+        self.__spinPanel  .Bind(EVT_RANGE,      self.__onRangeChange) 
+        self.__sliderPanel.Bind(EVT_LOW_RANGE,  self.__onRangeChange)
+        self.__spinPanel  .Bind(EVT_LOW_RANGE,  self.__onRangeChange)
+        self.__sliderPanel.Bind(EVT_HIGH_RANGE, self.__onRangeChange)
+        self.__spinPanel  .Bind(EVT_HIGH_RANGE, self.__onRangeChange) 
 
         if showLimits:
             self.__minButton = wx.Button(self)
@@ -461,32 +546,16 @@ class RangeSliderSpinPanel(wx.PyPanel):
             
         self.Layout()
 
-
-    def __onLowRangeChange(self, ev):
-        """Called when the slider or spin panel generates an
-        :data:`EVT_LOW_RANGE` event. Calls the :meth:`__onRangeChange`
-        method.
-        """
-
-        src = ev.GetEventObject()
-        self.__onRangeChange(src, low=ev.low)
-
-    
-    def __onHighRangeChange(self, ev):
-        """Called when the slider or spin panel generates an
-        :data:`EVT_HIGH_RANGE` event. Calls the :meth:`__onRangeChange`
-        method.
-        """ 
-        src = ev.GetEventObject()
-        self.__onRangeChange(src, high=ev.high)
-
         
-    def __onRangeChange(self, source, low=None, high=None):
+    def __onRangeChange(self, ev):
         """Called by :meth:`__onLowRangeChange` and :meth:`onHighRangeChange`.
         Syncs the change between the sliders and spinboxes, and emits
         a :data:`RangeEvent`.
         """
 
+        source = ev.GetEventObject()
+        low    = ev.low
+        high   = ev.high
         slider = self.__sliderPanel
         spin   = self.__spinPanel
 
@@ -495,24 +564,16 @@ class RangeSliderSpinPanel(wx.PyPanel):
         if   source is slider: slave = spin
         elif source is spin:   slave = slider
 
-        if low is not None: slave.SetLow( low)
-        else:               slave.SetHigh(high)
+        if low  is not None: slave.SetLow( low)
+        if high is not None: slave.SetHigh(high)
 
         lowValue, highValue = source.GetRange()
 
         log.debug('Range values changed - posting event: [{} - {}]'.format(
             lowValue, highValue))
 
-        if low is not None: ev = LowRangeEvent( low=low)
-        else:               ev = HighRangeEvent(high=high)
-
-        rev = RangeEvent(low=lowValue, high=highValue)
-        
-        ev .SetEventObject(self)
-        rev.SetEventObject(self)
-
+        ev.SetEventObject(self)
         wx.PostEvent(self, ev)
-        wx.PostEvent(self, rev)
 
             
     def __onLimitButton(self, ev):
@@ -624,6 +685,12 @@ class RangeSliderSpinPanel(wx.PyPanel):
         """Set the current low and high range values."""
         self.__sliderPanel.SetRange(lowValue, highValue)
         self.__spinPanel  .SetRange(lowValue, highValue)
+
+
+    def CentreAt(self, centreVal):
+        """Sets the current range centre - see :meth:`RangePanel.CentreAt`. """
+        self.__sliderPanel.CentreAt(centreVal, postEv=False)
+        self.__spinPanel  .CentreAt(centreVal, postEv=True)
 
         
 RP_INTEGER = 1
