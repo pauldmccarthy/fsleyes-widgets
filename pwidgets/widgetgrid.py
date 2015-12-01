@@ -368,8 +368,11 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         if nrows < 0 or ncols < 0:
             raise ValueError('Invalid size ({}, {})'.format(nrows, ncols))
 
+        # If the caller has not specified which columns
+        # should stretch, then stretch them all so the
+        # grid is sized to fit the available space.
         if growCols is None:
-            growCols = []
+            growCols = range(ncols)
 
         self.ClearGrid()
 
