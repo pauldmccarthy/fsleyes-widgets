@@ -35,6 +35,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
         GetGridSize
         SetGridSize
+        Refresh 
         SetColours
         SetWidget
         SetText
@@ -183,8 +184,16 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             self.Bind(wx.EVT_CHILD_FOCUS, self.__onChildFocus)
 
 
+    def Refresh(self):
+        """Redraws the contents of this ``WidgetGrid``. This method must be
+        called after the contents of the grid are changed.
+        """
+        self.__refresh()
+
+
     def SetColours(self, **kwargs):
-        """Set the colours used in this ``WidgetGrid``.
+        """Set the colours used in this ``WidgetGrid``. The :meth:`Refresh`
+        method must be called afterwards for this method to take effect.
 
         :arg border:   The cell border colour.
 
@@ -208,8 +217,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         if odd      is not self: self.__oddColour      = odd
         if even     is not self: self.__evenColour     = even
         if selected is not self: self.__selectedColour = selected
-
-        self.__refresh()
 
 
     def SetNavKeys(self, **kwargs):
@@ -355,7 +362,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
     
     def SetGridSize(self, nrows, ncols, growCols=None):
-        """Set the size of the widdget grid.
+        """Set the size of the widdget grid. The :meth:`Refresh` method must
+        be called afterwards for this method to take effect.
 
         :arg nrows:    Number of rows
 
@@ -423,12 +431,12 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             self.__colLabels.append((panel, lbl))
             
         self.__gridPanel.SetSizer(self.__gridSizer)
-        self.__refresh()
 
     
     def ClearGrid(self):
         """Removes and destroys all widgets from the grid, and sets the grid
-        size to ``(0, 0)``.
+        size to ``(0, 0)``. The :meth:`Refresh` method must be called
+        afterwards for this method to take effect.
         """
 
         if self.__gridSizer is not None:
@@ -443,7 +451,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         self.__selected  = None
 
         self.__gridPanel.SetSizer(None)
-        self.__refresh()
 
 
     def SetText(self, row, col, text):
@@ -475,7 +482,8 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
 
     def SetWidget(self, row, col, widget):
-        """Adds the given widget to the grid.
+        """Adds the given widget to the grid. The :meth:`Refresh` method
+        must be called afterwards for this method to take effect.
 
         The parent of the widget is changed to this ``WidgetGrid``.
 
@@ -518,8 +526,6 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             self.__widgets[row][col].Destroy()
 
         self.__widgets[row][col] = panel
-
-        self.__refresh()
 
 
     def __initWidget(self, widget, row, col):
@@ -799,15 +805,17 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         
 
     def ShowRowLabels(self, show=True):
-        """Shows/hides the grid row labels. """
+        """Shows/hides the grid row labels.  The :meth:`Refresh` method must
+        be called afterwards for this method to take effect.
+        """
         self.__showRowLabels = show
-        self.__refresh()
 
     
     def ShowColLabels(self, show=True):
-        """Shows/hides the grid column labels. """
+        """Shows/hides the grid column labels. The :meth:`Refresh` method must
+        be called afterwards for this method to take effect.
+        """
         self.__showColLabels = show
-        self.__refresh()
     
     
     def SetRowLabel(self, row, label):
