@@ -120,6 +120,16 @@ class FloatSpinCtrl(wx.PyPanel):
             self.__spin.Bind(wx.EVT_MOUSEWHEEL, wheel)
             self.__text.Bind(wx.EVT_MOUSEWHEEL, wheel)
 
+        # Under linux/GTK, double-clicking the
+        # textctrl selects the word underneath
+        # the cursor, whereas we want it to
+        # select the entire textctrl contents.
+        # Mouse event behaviour cannot be overridden
+        # under OSX, but its behaviour is more
+        # sensible, so a hack is not necessary.
+        if wx.Platform == '__WXGTK__':
+            self.__text.Bind(wx.EVT_LEFT_DCLICK, self.__onDoubleClick)
+
         self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
         
         self.__sizer.Add(self.__text, flag=wx.EXPAND, proportion=1)
@@ -127,13 +137,14 @@ class FloatSpinCtrl(wx.PyPanel):
         
         self.SetSizer(self.__sizer)
 
-        # Under wx/GTK, calling spin.SetValue() from
-        # within an EVT_SPIN event handler seems to
-        # generate another EVT_SPIN event, which
-        # triggers an infinite recursive loop. The
-        # skipSpin attribute  is used as an internal
-        # semaphore in the SetValue method, telling
-        # it not to update the spin button value.
+        # Under linus/GTK, calling spin.SetValue()
+        # from within an EVT_SPIN event handler
+        # seems to generate another EVT_SPIN event,
+        # which triggers an infinite recursive loop.
+        # The skipSpin attribute  is used as an
+        # internal semaphore in the SetValue method,
+        # telling it not to update the spin button
+        # value.
         self.__skipSpin = False
 
         self.SetRange(minValue, maxValue)
@@ -311,6 +322,13 @@ class FloatSpinCtrl(wx.PyPanel):
         
         if   rot > 0: self.__onSpinUp()
         elif rot < 0: self.__onSpinDown()
+
+
+    def __onDoubleClick(self, ev):
+        """Called when the user double clicks in the ``TextCtrl``. Selects
+        the entire contents of the ``TextCtrl``.
+        """
+        self.__text.SelectAll()
     
         
     def __spinToReal(self, value):
