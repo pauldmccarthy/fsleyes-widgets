@@ -152,10 +152,17 @@ class WidgetGrid(wx.ScrolledWindow):
         self.SetSizer(self.__sizer)
         self.__sizer.Add(self.__gridPanel, flag=wx.EXPAND)
 
+        # The __widgets array contains wx.Panel
+        # objects which are used as containers
+        # for all widgets added to the grid.
+        # The __widgetRefs array contains the
+        # actual widget objects that were passed
+        # to the SetWidget method.
         self.__gridSizer      = None
         self.__nrows          = 0
         self.__ncols          = 0
         self.__widgets        = []
+        self.__widgetRefs     = []
         self.__rowLabels      = []
         self.__colLabels      = []
         self.__selected       = None
@@ -314,9 +321,10 @@ class WidgetGrid(wx.ScrolledWindow):
             self.__gridSizer.Add( lblPanel, border=1, flag=wx.EXPAND | flag)
             self.__gridSizer.Show(lblPanel, self.__showColLabels)
 
+        # Rows
         for rowi in range(self.__nrows):
+            
             lblPanel, rowLabel = self.__rowLabels[rowi]
-            widgets            = self.__widgets[  rowi]
 
             if rowi == self.__nrows - 1: flag = wx.TOP | wx.LEFT | wx.BOTTOM
             else:                        flag = wx.TOP | wx.LEFT
@@ -327,14 +335,18 @@ class WidgetGrid(wx.ScrolledWindow):
             self.__gridSizer.Add( lblPanel, border=1, flag=wx.EXPAND | flag)
             self.__gridSizer.Show(lblPanel, self.__showRowLabels)
 
-            for coli, widget in enumerate(widgets):
+            # Widgets
+            for coli in range(self.__ncols):
+
+                widget    = self.__widgetRefs[rowi][coli]
+                container = self.__widgets[   rowi][coli]
 
                 flag = wx.TOP | wx.LEFT
 
                 if rowi == self.__nrows - 1: flag |= wx.BOTTOM
                 if coli == self.__ncols - 1: flag |= wx.RIGHT
 
-                self.__gridSizer.Add(widget,
+                self.__gridSizer.Add(container,
                                      flag=wx.EXPAND | flag,
                                      border=1,
                                      proportion=1)
@@ -342,7 +354,8 @@ class WidgetGrid(wx.ScrolledWindow):
                 if rowi % 2: colour = oddColour
                 else:        colour = evenColour
 
-                self.__setBackgroundColour(widget, colour)
+                self.__setBackgroundColour(container, colour)
+                self.__setBackgroundColour(widget,    colour)
 
         if self.__selected is not None:
             row, col = self.__selected
@@ -392,11 +405,13 @@ class WidgetGrid(wx.ScrolledWindow):
 
         # We use empty wx.Panels as placeholders
         # for empty grid cells
-        self.__widgets = []
+        self.__widgets    = [[None] * ncols for i in range(nrows)]
+        self.__widgetRefs = [[None] * ncols for i in range(nrows)]
         for rowi in range(nrows):
-            self.__widgets.append([])
             for coli in range(ncols):
-                self.__widgets[-1].append(wx.Panel(self.__gridPanel))
+                placeholder = wx.Panel(self.__gridPanel)
+                self.__widgets[   rowi][coli] = placeholder
+                self.__widgetRefs[rowi][coli] = placeholder
 
         for rowi in range(nrows):
             panel = wx.Panel(self.__gridPanel)
@@ -439,13 +454,14 @@ class WidgetGrid(wx.ScrolledWindow):
         if self.__gridSizer is not None:
             self.__gridSizer.Clear(True)
 
-        self.__gridSizer = None
-        self.__nrows     = 0
-        self.__ncols     = 0
-        self.__widgets   = []
-        self.__rowLabels = []
-        self.__colLabels = []
-        self.__selected  = None
+        self.__gridSizer  = None
+        self.__nrows      = 0
+        self.__ncols      = 0
+        self.__widgets    = []
+        self.__widgetRefs = []
+        self.__rowLabels  = []
+        self.__colLabels  = []
+        self.__selected   = None
 
         self.__gridPanel.SetSizer(None)
 
@@ -468,14 +484,7 @@ class WidgetGrid(wx.ScrolledWindow):
     def GetWidget(self, row, col):
         """Returns the widget located at the specified row/column. """
 
-        # This is a hack - widgets added to the grid are
-        # embedded in a wx.Panel, so I'm just returning
-        # the first child of that panel. This will break 
-        # for Sizer objects passed to SetWidget.
-        #
-        # Perhaps I should separately keep track of the
-        # references that are passed to the SetWidget method.
-        return self.__widgets[row][col].GetChildren()[0]
+        return self.__widgetRefs[row][col]
 
 
     def SetWidget(self, row, col, widget):
@@ -522,7 +531,8 @@ class WidgetGrid(wx.ScrolledWindow):
         if self.__widgets[row][col] is not None:
             self.__widgets[row][col].Destroy()
 
-        self.__widgets[row][col] = panel
+        self.__widgetRefs[row][col] = widget
+        self.__widgets[   row][col] = panel
 
 
     def __initWidget(self, widget, row, col):
@@ -829,8 +839,10 @@ class WidgetGrid(wx.ScrolledWindow):
             elif row % 2: colour = self.__oddColour
             else:         colour = self.__evenColour
 
-            widget = self.__widgets[row][col]
-            self.__setBackgroundColour(widget, colour)
+            container = self.__widgets[   row][col]
+            widget    = self.__widgetRefs[row][col]
+            self.__setBackgroundColour(container, colour)
+            self.__setBackgroundColour(widget,    colour)
             widget.Refresh()
         
 
