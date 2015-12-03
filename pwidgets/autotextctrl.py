@@ -69,7 +69,7 @@ class AutoTextCtrl(wx.Panel):
 
         ev.Skip()
         
-        log.debug('Text control gained focus ({})'.format(
+        log.debug('Text control gained focus: {}'.format(
             wx.Window.FindFocus()))
 
         # Under wx/GTK, when a text control gains focus,
@@ -342,7 +342,7 @@ class AutoCompletePopup(wx.Frame):
 
         ev.Skip()
 
-        log.debug('Popup gained focus ({})'.format(ev.GetWindow()))
+        log.debug('Popup gained focus: {}'.format(ev.GetWindow()))
 
         # See note in AutoTextCtrl.__onSetFocus
         text = self.__textCtrl.GetValue()
@@ -359,7 +359,7 @@ class AutoCompletePopup(wx.Frame):
 
         focused = ev.GetWindow()
 
-        log.debug('Kill focus event on popup (gained: {}'.format(focused))
+        log.debug('Kill focus event on popup: {}'.format(focused))
 
         objs = (self, self.__textCtrl, self.__listBox)
 
