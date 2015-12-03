@@ -46,14 +46,19 @@ class AutoTextCtrl(wx.Panel):
         
         self.__sizer.Add(self.__textCtrl, flag=wx.EXPAND, proportion=1)
         self.SetSizer(self.__sizer)
-        
-        self.__options = []
 
-        self.__textCtrl.Bind(wx.EVT_TEXT,       self.__onText)
-        self.__textCtrl.Bind(wx.EVT_TEXT_ENTER, self.__onEnter)
-        self.__textCtrl.Bind(wx.EVT_KEY_DOWN,   self.__onKeyDown)
-        self.__textCtrl.Bind(wx.EVT_SET_FOCUS,  self.__onSetFocus)
-        self           .Bind(wx.EVT_SET_FOCUS,  self.__onSetFocus)
+        # The takeFocus flag is set by SetTakeFocus,
+        # and used in __showPopup. The options array
+        # contains the auto complete options.
+        self.__takeFocus = False
+        self.__options   = []
+
+        self.__textCtrl.Bind(wx.EVT_TEXT,        self.__onText)
+        self.__textCtrl.Bind(wx.EVT_LEFT_DCLICK, self.__onDoubleClick)
+        self.__textCtrl.Bind(wx.EVT_TEXT_ENTER,  self.__onEnter)
+        self.__textCtrl.Bind(wx.EVT_KEY_DOWN,    self.__onKeyDown)
+        self.__textCtrl.Bind(wx.EVT_SET_FOCUS,   self.__onSetFocus)
+        self           .Bind(wx.EVT_SET_FOCUS,   self.__onSetFocus)
 
         
     def __onSetFocus(self, ev):
@@ -119,6 +124,13 @@ class AutoTextCtrl(wx.Panel):
         self.__onEnter(None)
 
 
+    def SetTakeFocus(self, takeFocus):
+        """If ``takeFocus`` is ``True``, this ``AutoTextCtrl`` will give
+        itself focus when its ``AutoCompletePopup`` is closed.
+        """
+        self.__takeFocus = takeFocus
+
+
     def __onKeyDown(self, ev):
         """Called on ``EVT_KEY_DOWN`` events in the text control. """
 
@@ -143,6 +155,14 @@ class AutoTextCtrl(wx.Panel):
         else:
             ev.Skip()
 
+
+    def __onDoubleClick(self, ev):
+        """Called when the user double clicks in this ``AutoTextCtrl``.
+        Creates an :class:`AutoCompletePopup`.
+        """
+        print 'What'
+        self.__onText(None)
+        
 
     def __onText(self, ev):
         """Called when the user changes the text shown on this ``AutoTextCtrl``.
@@ -175,8 +195,8 @@ class AutoTextCtrl(wx.Panel):
         prefix.
         """
 
-        text  = text.strip()
-        style = 0
+        text            = text.strip()
+        style           = 0
         
         if self.__caseSensitive:
             style |= ATC_CASE_SENSITIVE
@@ -192,11 +212,22 @@ class AutoTextCtrl(wx.Panel):
             popup.Destroy()
             return
 
+        # Don't take focus unless the AutoCompletePopup
+        # tells us to (it will call the SetTakeFocus method)
+        self.__takeFocus = False
+
         # Make sure we get the focus back 
         # when the popup is destroyed
         def refocus(ev):
-            self.GetTopLevelParent().Raise()
-            self.__textCtrl.SetFocus()
+
+            # A call to Raise is required under
+            # GTK, as otherwise the main window
+            # won't be given focus.
+            if wx.Platform == '__WXGTK__':
+                self.GetTopLevelParent().Raise()
+
+            if self.__takeFocus:
+                self.__textCtrl.SetFocus()
 
         popup.Bind(wx.EVT_WINDOW_DESTROY, refocus)
 
@@ -275,6 +306,18 @@ class AutoCompletePopup(wx.Frame):
         self.__textCtrl.Bind(wx.EVT_KEY_DOWN,       self.__onKeyDown)
         self.__listBox .Bind(wx.EVT_KEY_DOWN,       self.__onListKeyDown)
         self.__listBox .Bind(wx.EVT_LISTBOX_DCLICK, self.__onListMouseDblClick)
+
+        # Under GTK, the SetFocus/KillFocus event
+        # objects often don't have a reference to
+        # the window that received/is about to
+        # receive focus. In particular, if the
+        # list box is clicked, a killFocus event
+        # is triggered, but the list box is not
+        # passed in. So on mouse down events, we
+        # force the list box to have focus.
+        if wx.Platform == '__WXGTK__':
+            self.__listBox .Bind(wx.EVT_LEFT_DOWN,  self.__onListMouseDown)
+            self.__listBox .Bind(wx.EVT_RIGHT_DOWN, self.__onListMouseDown)
         
         self           .Bind(wx.EVT_KILL_FOCUS,     self.__onKillFocus)
         self.__textCtrl.Bind(wx.EVT_KILL_FOCUS,     self.__onKillFocus)
@@ -298,8 +341,8 @@ class AutoCompletePopup(wx.Frame):
         """
 
         ev.Skip()
-        
-        log.debug('Popup gained focus ({})'.format(wx.Window.FindFocus()))
+
+        log.debug('Popup gained focus ({})'.format(ev.GetWindow()))
 
         # See note in AutoTextCtrl.__onSetFocus
         text = self.__textCtrl.GetValue()
@@ -314,16 +357,18 @@ class AutoCompletePopup(wx.Frame):
 
         ev.Skip()
 
-        log.debug('Kill focus event on popup')
+        focused = ev.GetWindow()
+
+        log.debug('Kill focus event on popup (gained: {}'.format(focused))
 
         objs = (self, self.__textCtrl, self.__listBox)
-        
-        if wx.Window.FindFocus() not in objs:
+
+        if focused not in objs:
             log.debug('Focus lost - destroying popup')
-            self.__destroy(False)
+            self.__destroy(False, False)
 
         
-    def __destroy(self, genEnter=True):
+    def __destroy(self, genEnter=True, returnFocus=True):
         """Called by various event handlers. Copies the current value in
         this ``AutoCompletePopup`` to the owning :class:`AutoTextCtrl`,
         and then (asynchronously) destroys this ``AutoCompletePopup``.
@@ -345,13 +390,17 @@ class AutoCompletePopup(wx.Frame):
 
         atc.ChangeValue(      value)
         atc.SetInsertionPoint(idx)
-                
+
+        # Tell the atc whether or not it
+        # should take the focus when this
+        # popup is destroyed.
+        atc.SetTakeFocus(returnFocus)
+        
         if genEnter:
-            atc.GenEnterEvent()
+            atc.GenEnterEvent() 
 
         def destroy():
             try:
-
                 self.Close()
                 self.Destroy()
                 
@@ -481,6 +530,14 @@ class AutoCompletePopup(wx.Frame):
         # will result in this popup being
         # destroyed
         self.__destroy(genEnter)
+
+
+    def __onListMouseDown(self, ev):
+        """Called on GTK when the user clicks in the list box. Forces
+        the list box to have focus.
+        """
+        ev.Skip()
+        self.__listBox.SetFocus()
 
 
     def __onListMouseDblClick(self, ev):
