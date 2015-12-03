@@ -12,14 +12,13 @@ tabular grid of arbitrary widgets.
 import logging
 
 import wx
-import wx.lib.scrolledpanel as scrolledpanel
-import wx.lib.newevent      as wxevent
+import wx.lib.newevent as wxevent
 
 
 log = logging.getLogger(__name__)
 
 
-class WidgetGrid(scrolledpanel.ScrolledPanel):
+class WidgetGrid(wx.ScrolledWindow):
     """A scrollable panel which displays a tabular grid of widgets.  A
     ``WidgetGrid`` looks something like this:
 
@@ -141,14 +140,12 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
             self.__keynav     = False
             self.__selectable = None
             
-        scrolledpanel.ScrolledPanel.__init__(self,
-                                             parent,
-                                             style=wx.WANTS_CHARS)
-        
-        self.SetupScrolling(scroll_x=self.__hscroll,
-                            scroll_y=self.__vscroll)
-        self.SetAutoLayout(1)
+        wx.ScrolledWindow.__init__(self, parent, style=wx.WANTS_CHARS)
 
+        hrate = 1 if self.__hscroll else 0
+        vrate = 1 if self.__vscroll else 0
+        self.SetScrollRate(hrate, vrate)
+        
         self.__gridPanel = wx.Panel(self, style=wx.WANTS_CHARS)
 
         self.__sizer = wx.BoxSizer(wx.VERTICAL)
@@ -402,7 +399,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
                 self.__widgets[-1].append(wx.Panel(self.__gridPanel))
 
         for rowi in range(nrows):
-            panel = wx.Panel(self)
+            panel = wx.Panel(self.__gridPanel)
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             lbl   = wx.StaticText(
                 panel,
@@ -417,7 +414,7 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
         for coli in range(ncols):
 
-            panel = wx.Panel(self)
+            panel = wx.Panel(self.__gridPanel)
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             lbl   = wx.StaticText(
                 panel,
@@ -599,12 +596,20 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
 
 
     def __onChildFocus(self, ev):
-        """If this ``WidgetGrid`` is selectable, this metyhod is called when a
-        widget in the grid gains focus. Ensures that the containing cell is
-        selected.
+        """Overrides ``wx.ScrolledPanel.OnChildFocus`. If this ``WidgetGrid``
+        is selectable, this metyhod is called when a widget in the grid gains
+        focus. Ensures that the containing cell is selected.
         """
 
-        ev.Skip()
+        # We explicitly do not call ev.Skip
+        # because otherwise the native wx code
+        # will automatically scroll to show the
+        # focused child, which potentially
+        # interferes with application code. The
+        # __selectCell method calls SetSelection
+        # which then calls __scrollTo, which
+        # makes sure that the selected cell is
+        # visible.
 
         gridWidget = ev.GetEventObject()
 
@@ -752,7 +757,32 @@ class WidgetGrid(scrolledpanel.ScrolledPanel):
         if row == -1: row = 0
         if col == -1: col = 0
 
-        self.ScrollChildIntoView(self.__widgets[row][col])
+        # We're assuming that the
+        # scroll rate is in pixels
+        startx,    starty    = self                    .GetViewStart() .Get()
+        sizex,     sizey     = self                    .GetClientSize().Get()
+        posx,      posy      = self.__widgets[row][col].GetPosition()  .Get()
+        widgSizex, widgSizey = self.__widgets[row][col].GetSize()      .Get()
+
+        # Take into account the size
+        # of the widget in the cell
+        sizex -= widgSizex
+        sizey -= widgSizey
+
+        scrollx = startx
+        scrolly = starty
+
+        # Figure out if the widget is
+        # currently visible and, if
+        # not, scroll so that it is.
+        if   posx < startx:         scrollx = posx
+        elif posx > startx + sizex: scrollx = posx - sizex
+        
+        if   posy < starty:         scrolly = posy
+        elif posy > starty + sizey: scrolly = posy - sizey 
+
+        if scrollx != startx or scrolly != starty:
+            self.Scroll(scrollx, scrolly)
 
 
     def __select(self, row, col, selectType, select=True):

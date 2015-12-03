@@ -204,10 +204,9 @@ class AutoTextCtrl(wx.Panel):
         # position the popup so that its textctrl
         # is displayed on top of our textctrl,
         # with the option list underneath.
-        width, height = self.__textCtrl.GetSize().Get()
-        posx, posy    = self.__textCtrl.GetScreenPosition().Get()
+        posx, posy = self.__textCtrl.GetScreenPosition().Get()
 
-        popup.SetSize((width, -1))
+        popup.SetSize((-1, -1))
         popup.SetPosition((posx,  posy))
         popup.Show()
 
