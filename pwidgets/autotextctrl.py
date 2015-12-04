@@ -160,9 +160,9 @@ class AutoTextCtrl(wx.Panel):
         """Called when the user double clicks in this ``AutoTextCtrl``.
         Creates an :class:`AutoCompletePopup`.
         """
-        print 'What'
+        log.debug('Double click on text control - simulating text entry')
         self.__onText(None)
-        
+
 
     def __onText(self, ev):
         """Called when the user changes the text shown on this ``AutoTextCtrl``.
@@ -429,17 +429,22 @@ class AutoCompletePopup(wx.Frame):
 
     def __onKeyDown(self, ev):
         """Called on an ``EVT_KEY_DOWN`` event from the text control. """
-        
+
+        up    = wx.WXK_UP
         down  = wx.WXK_DOWN
         esc   = wx.WXK_ESCAPE
         enter = wx.WXK_RETURN
         key   = ev.GetKeyCode()
 
-        log.debug('Key event on popup text control: {}'.format(key))
+        log.debug('Key down event on popup text control: {}'.format(key))
 
-        if key not in (down, enter, esc):
+        if key not in (up, down, enter, esc):
             ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
             ev.Skip()
+            return
+
+        # Absorb the up arrow
+        if key == up:
             return
 
         # The user hitting enter/escape will result
