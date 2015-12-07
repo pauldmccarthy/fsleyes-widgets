@@ -185,6 +185,12 @@ class WidgetGrid(wx.ScrolledWindow):
             self.Bind(wx.EVT_KEY_DOWN, self.__onKeyboard)
 
         if self.__selectable:
+            # A silly internal multi-level semaphore
+            # used to ignore child focus events when
+            # this WidgetGrid generated them.  See
+            # the __selectCell method for more silly
+            # comments.
+            self.__ignoreFocus = 0
             self.Bind(wx.EVT_CHILD_FOCUS, self.__onChildFocus)
 
 
@@ -595,20 +601,51 @@ class WidgetGrid(wx.ScrolledWindow):
         if   self.__selectable == 'rows':    col = -1
         elif self.__selectable == 'columns': row = -1
 
-        if not self.SetSelection(row, col):
+        try:
+            if not self.SetSelection(row, col):
+                return
+            
+        except ValueError:
             return
 
         log.debug('Posting grid select event ({}, {})'.format(row, col))
 
-        event = WidgetGridSelectEvent(row=row, col=col) 
+        # This is a ridiculous workaround to a
+        # ridiculous problem. Certain users of
+        # the WidgetGrid focus a widget within
+        # the grid on a select event. This
+        # triggers a call to __onChildFocus.
+        # Now, the logic in __onChildFocus
+        # should be smart enough to not generate
+        # another select event when the selected
+        # cell hasn't changed. But under GTK it
+        # seems that if keyboard/mouse events
+        # occur fast enough, the order in which
+        # event objects are passed becomes
+        # unstable. This means that we can get
+        # caught in a silly infinite focus
+        # switching loop.
+        #
+        # To avoid this, I'm setting a flag here,
+        # to tell the __onChildFocus method to
+        # do nothing while any grid select event
+        # handlers are running.
+        self.__ignoreFocus += 1
+
+        event = WidgetGridSelectEvent(row=row, col=col)
         event.SetEventObject(self)
         wx.PostEvent(self, event)
 
+        def resetFocus():
+            self.__ignoreFocus -= 1
+
+        wx.CallAfter(resetFocus)
+
 
     def __onChildFocus(self, ev):
-        """Overrides ``wx.ScrolledPanel.OnChildFocus`. If this ``WidgetGrid``
-        is selectable, this metyhod is called when a widget in the grid gains
-        focus. Ensures that the containing cell is selected.
+        """If this ``WidgetGrid`` is selectable, this method is called when a
+        widget in the grid gains focus. Ensures that the containing cell is
+        selected.
         """
 
         # We explicitly do not call ev.Skip
@@ -620,6 +657,10 @@ class WidgetGrid(wx.ScrolledWindow):
         # which then calls __scrollTo, which
         # makes sure that the selected cell is
         # visible.
+
+        # See silliness in __selectCell
+        if self.__ignoreFocus > 0:
+            return
 
         gridWidget = ev.GetEventObject()
 
@@ -640,7 +681,6 @@ class WidgetGrid(wx.ScrolledWindow):
                 gridWidget = gridWidget.GetParent()
 
         if row is not None and col is not None:
-            
             log.debug('Focus on cell {}'.format((row, col))) 
             self.__selectCell(row, col)
 
@@ -687,17 +727,10 @@ class WidgetGrid(wx.ScrolledWindow):
         elif key == right: col += 1
 
         log.debug('Keyboard nav on cell {} ' '(new cell: '
-                  '{})'.format((row, col), self.__selected)) 
+                  '{})'.format(self.__selected, (row, col))) 
 
-        try:    self.SetSelection(row, col)
-        except:
-            ev.Skip()
-            return
+        self.__selectCell(row, col)
 
-        ev = WidgetGridSelectEvent(row=row, col=col)
-        ev.SetEventObject(self)
-        wx.PostEvent(self, ev)
-        
 
     def GetSelection(self):
         """Returns the currently selected item, as a tuple of ``(row, col)``
