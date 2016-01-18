@@ -49,7 +49,6 @@ class FloatSpinCtrl(wx.PyPanel):
         The following style flags are available:
           .. autosummary::
              FSC_MOUSEWHEEL
-             FSC_EVENT_ON_TEXT
              FSC_INTEGER
 
         :arg parent:    The parent of this control (e.g. a :class:`wx.Panel`).
@@ -63,8 +62,8 @@ class FloatSpinCtrl(wx.PyPanel):
 
         :arg value:     Initial value.
 
-        :arg style:     Style flags - a combination of :data:`FSC_MOUSEWHEEL`,
-                        :data:`FSC_EVENT_ON_TEXT`, and :data:`FSC_INTEGER`.
+        :arg style:     Style flags - a combination of :data:`FSC_MOUSEWHEEL`
+                        and :data:`FSC_INTEGER`.
 
         """
         wx.PyPanel.__init__(self, parent)
@@ -95,18 +94,16 @@ class FloatSpinCtrl(wx.PyPanel):
             self.__format      = '{:.7G}'
             self.__textPattern = re.compile('^-?[0-9]*\.?[0-9]*$')
 
-        # Event whenever the text changes
-        if style & FSC_EVENT_ON_TEXT:
-            self.__text.Bind(wx.EVT_TEXT, self.__onText)
+        # Events on key down, enter, focus
+        # lost, and on the spin control
+        self.__text.Bind(wx.EVT_KEY_DOWN,   self.__onKeyDown)
+        self.__text.Bind(wx.EVT_TEXT_ENTER, self.__onText)
+        self.__text.Bind(wx.EVT_KILL_FOCUS, self.__onKillFocus)
+        self.__spin.Bind(wx.EVT_SPIN_UP,    self.__onSpinUp)
+        self.__spin.Bind(wx.EVT_SPIN_DOWN,  self.__onSpinDown)
 
-        # Event on enter or lose focus
-        else:
-            self.__text.Bind(wx.EVT_TEXT_ENTER, self.__onText)
-            self.__text.Bind(wx.EVT_KILL_FOCUS, self.__onText)
-            
-        self.__spin.Bind(wx.EVT_SPIN_UP,   self.__onSpinUp)
-        self.__spin.Bind(wx.EVT_SPIN_DOWN, self.__onSpinDown)
-
+        # Event on mousewheel
+        # if style enabled
         if style & FSC_MOUSEWHEEL:
             self.__spin.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
             self.__text.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
@@ -237,14 +234,40 @@ class FloatSpinCtrl(wx.PyPanel):
             self.__spin.SetValue(self.__realToSpin(value))
 
         return value != oldValue
-    
 
+
+    def __onKillFocus(self, ev):
+        """Called when the text field of this ``FloatSpinCtrl`` loses focus.
+        Generates an :attr:`.EVT_FLOATSPIN` event.
+        """
+        ev.Skip()
+
+        log.debug('Spin lost focus - generating '
+                  'event [{}]'.format(self.__value))
+        wx.PostEvent(self, FloatSpinEvent(value=self.__value))
+
+
+    def __onKeyDown(self, ev):
+        """Called on ``wx.EVT_KEY_DOWN`` events. If the user pushes the up or
+        down arrow keys, the value is changed (using the :meth:`__onSpinUp`
+        and :meth:`__onSpinDown` methods).
+        """
+        up   = wx.WXK_UP
+        down = wx.WXK_DOWN
+        key  = ev.GetKeyCode()
+
+        log.debug('Key down event: {} (looking for up [{}] '
+                  'or down [{}])'.format(key, up, down))
+
+        if   key == up:   self.__onSpinUp()
+        elif key == down: self.__onSpinDown()
+        else:             ev.Skip()
+
+        
     def __onText(self, ev):
         """Called when the user changes the value via the text control.
 
-        If the :data:`FSC_EVENT_ON_TEXT` style is set, this method is called
-        on every text event. Otherwise, this method is called when the enter
-        key is pressed, or when the text control loses focus.
+        This method is called when the enter key is pressed.
 
         If the value has changed, a :data:`FloatSpinEvent` is generated.
         """
@@ -371,14 +394,7 @@ FSC_MOUSEWHEEL = 1
 """If set, mouse wheel events on the control will change the value. """
 
 
-FSC_EVENT_ON_TEXT = 2
-"""If set, a ``FloatSpinEvent`` is emitted on every text event. If not set, a
-``FloatSpinEvent`` is only emitted when the enter key is pressed, or the
-control loses focus.
-"""
-
-
-FSC_INTEGER = 4
+FSC_INTEGER = 2
 """If set, the control stores an integer value, rather than a floating point
 value.
 """
