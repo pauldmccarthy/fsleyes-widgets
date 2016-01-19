@@ -11,6 +11,8 @@ which uses bitmap toggle buttons.
 import wx
 import wx.lib.newevent as wxevent
 
+import bitmaptoggle
+
 
 # TODO Button tooltips
 
@@ -58,23 +60,23 @@ class BitmapRadioBox(wx.PyPanel):
         self.SetSizer(self.__sizer)
 
 
-    def AddChoice(self, bitmap, clientData=None):
+    def AddChoice(self, selectedBmp, unselectedBmp=None, clientData=None):
         """Add a button to this ``BitmapRadioBox``.
 
-        :arg bitmap:     A :class:`wx.Bitmap` to display on the button.
+        :arg selectedBmp:   A :class:`wx.Bitmap` to display on the button when
+                            it is selected.
 
-        :arg clientData: Arbitrary data which is associated with the choice.
+        :arg unselectedBmp: Optional. A :class:`wx.Bitmap` to display on the 
+                            button when it is not selected.
+
+        :arg clientData:    Arbitrary data which is associated with the choice.
         """
 
-        # BU_NOTEXT causes a segfault under OSX
-        if wx.Platform == '__WXMAC__':
-            style = wx.BU_EXACTFIT | wx.ALIGN_CENTRE
-            
-        else:
-            style = wx.BU_EXACTFIT | wx.ALIGN_CENTRE | wx.BU_NOTEXT
-        
-        button = wx.ToggleButton(self, style=style)
-        button.SetBitmap(bitmap)
+        style  = wx.BU_EXACTFIT | wx.ALIGN_CENTRE | wx.BU_NOTEXT
+        button = bitmaptoggle.BitmapToggleButton(self,
+                                                 trueBmp=selectedBmp,
+                                                 falseBmp=unselectedBmp,
+                                                 style=style)
 
         self.__buttons   .append(button)
         self.__clientData.append(clientData)
@@ -82,7 +84,7 @@ class BitmapRadioBox(wx.PyPanel):
         self.__sizer.Add(button, flag=wx.EXPAND)
         self.Layout()
 
-        button.Bind(wx.EVT_TOGGLEBUTTON, self.__onButton)
+        button.Bind(bitmaptoggle.EVT_BITMAP_TOGGLE, self.__onButton)
 
         if self.__selection == -1:
             self.SetSelection(0)

@@ -13,75 +13,88 @@ import wx
 import wx.lib.newevent as wxevent
 
 
-class BitmapToggleButton(wx.Button):
-    """A :class:`wx.Button` which stores a boolean state (``True``/``False``),
-    and displays one of two bitmaps depending on the state.
+class BitmapToggleButton(wx.ToggleButton):
+    """A :class:`wx.ToggleButton` which stores a boolean state
+    (``True``/``False``), and displays one of two bitmaps depending on the
+    state.
 
     When the user presses the button, the boolean state and the displayed
-    bitmap changes accordingly. A :data:`EVT_BITMAP_TOGGLE_EVENT` is generated
+    bitmap changes accordingly. A :data:`EVT_BITMAP_TOGGLE` event is generated
     on button presses.
     """
 
-    def __init__(self, parent, trueBitmap, falseBitmap):
+    def __init__(self, parent, trueBmp, *args, **kwargs):
         """Create a ``BitmapToggleButton``.
 
-        :arg parent:      The :mod:`wx` parent window.
+        :arg parent:   The :mod:`wx` parent window.
 
-        :arg trueBitmap:  :class:`wx.Bitmap` to display when the button state
-                          is ``True``. 
+        :arg trueBmp:  Required. A :class:`wx.Bitmap` to display when
+                       the button state is ``True``. 
 
-        :arg falseBitmap: :class:`wx.Bitmap` to display when the button state
-                          is ``False``.
+        :arg falseBmp: Optional. A :class:`wx.Bitmap` to display when the
+                       button state is ``False``.
+
+        All other arguemnts are passed through to the
+        ``wx.ToggleButton.__init__` method.
         """
 
-        # BU_NOTEXT causes crash under OSX
-        if wx.Platform == '__WXMAC__': style = wx.BU_EXACTFIT
-        else:                          style = wx.BU_EXACTFIT | wx.BU_NOTEXT
+        falseBmp = kwargs.pop('falseBmp', None)
 
-        wx.Button.__init__(self, parent, style=style)
-
-        self.__trueBmp  = trueBitmap
-        self.__falseBmp = falseBitmap
-        self.__state    = False
-
-        self.Bind(wx.EVT_BUTTON, self.__onClick)
+        style = kwargs.get('style', 0)
         
-        self.__toggle()
+        if wx.Platform == '__WXMAC__' and (style | wx.BU_NOTEXT):
+            kwargs['style'] = style & ~wx.BU_NOTEXT
+
+        wx.ToggleButton.__init__(self, parent, *args, **kwargs)
+
+        if falseBmp is None:
+            falseBmp = trueBmp
+
+        self.__trueBmp  = trueBmp
+        self.__falseBmp = falseBmp
+
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.__onToggle)
+        
+        self.__updateBitmap()
 
 
-    def GetValue(self):
-        """Returns the current boolean state of this ``BitmapToggleButton``."""
-        return self.__state
+    def SetBitmap(self):
+        raise NotImplementedError('Bitmaps must be set in __init__')
 
     
     def SetValue(self, state):
         """Sets the current boolean state of this ``BitmapToggleButton``."""
-        if state != self.__state:
-            self.__toggle()
+        wx.ToggleButton.SetValue(self, state)
+        self.__updateBitmap()
 
 
-    def __toggle(self):
+    def __updateBitmap(self):
         """Toggles the state of this ``BitmapToggleButton``."""
+
+        trueBmp  = self.__trueBmp
+        falseBmp = self.__falseBmp
         
-        self.__state = not self.__state
-        
-        if self.__state: self.SetBitmap(self.__trueBmp)
-        else:            self.SetBitmap(self.__falseBmp)
+        if self.GetValue(): wx.ToggleButton.SetBitmap(self, trueBmp)
+        else:               wx.ToggleButton.SetBitmap(self, falseBmp)
 
 
-    def __onClick(self, ev):
+    def __onToggle(self, ev):
         """Called when this button is pressed.
 
         Flips the button state, and emits a :data:`BitmapToggleEvent`.
         """
-        self.__toggle()
-        wx.PostEvent(self, BitmapToggleEvent(value=self.__state))
+        self.__updateBitmap()
+        
+        ev = BitmapToggleEvent(value=self.GetValue())
+        ev.SetEventObject(self)
+        
+        wx.PostEvent(self, ev)
 
 
-_BitmapToggleEvent, _EVT_BITMAP_TOGGLE_EVENT = wxevent.NewEvent()
+_BitmapToggleEvent, _EVT_BITMAP_TOGGLE = wxevent.NewEvent()
 
 
-EVT_BITMAP_TOGGLE_EVENT = _EVT_BITMAP_TOGGLE_EVENT
+EVT_BITMAP_TOGGLE = _EVT_BITMAP_TOGGLE
 """Identifier for the :data:`BitmapToggleEvent` event."""
 
 
