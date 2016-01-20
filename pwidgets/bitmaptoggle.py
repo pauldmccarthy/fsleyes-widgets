@@ -23,7 +23,7 @@ class BitmapToggleButton(wx.ToggleButton):
     on button presses.
     """
 
-    def __init__(self, parent, trueBmp, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         """Create a ``BitmapToggleButton``.
 
         :arg parent:   The :mod:`wx` parent window.
@@ -38,6 +38,7 @@ class BitmapToggleButton(wx.ToggleButton):
         ``wx.ToggleButton.__init__` method.
         """
 
+        trueBmp  = kwargs.pop('trueBmp',  None)
         falseBmp = kwargs.pop('falseBmp', None)
 
         style = kwargs.get('style', 0)
@@ -47,19 +48,22 @@ class BitmapToggleButton(wx.ToggleButton):
 
         wx.ToggleButton.__init__(self, parent, *args, **kwargs)
 
+        self.__trueBmp  = None
+        self.__falseBmp = None
+
+        self.Bind(wx.EVT_TOGGLEBUTTON, self.__onToggle)
+        
+        self.SetBitmap(trueBmp, falseBmp)
+
+
+    def SetBitmap(self, trueBmp, falseBmp=None):
         if falseBmp is None:
             falseBmp = trueBmp
 
         self.__trueBmp  = trueBmp
         self.__falseBmp = falseBmp
 
-        self.Bind(wx.EVT_TOGGLEBUTTON, self.__onToggle)
-        
         self.__updateBitmap()
-
-
-    def SetBitmap(self):
-        raise NotImplementedError('Bitmaps must be set in __init__')
 
     
     def SetValue(self, state):
@@ -73,6 +77,9 @@ class BitmapToggleButton(wx.ToggleButton):
 
         trueBmp  = self.__trueBmp
         falseBmp = self.__falseBmp
+
+        if trueBmp is None:
+            return
         
         if self.GetValue(): wx.ToggleButton.SetBitmap(self, trueBmp)
         else:               wx.ToggleButton.SetBitmap(self, falseBmp)
