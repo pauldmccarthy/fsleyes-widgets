@@ -35,7 +35,7 @@ class BitmapToggleButton(wx.ToggleButton):
                        button state is ``False``.
 
         All other arguemnts are passed through to the
-        ``wx.ToggleButton.__init__` method.
+        ``wx.ToggleButton.__init__`` method.
         """
 
         trueBmp  = kwargs.pop('trueBmp',  None)

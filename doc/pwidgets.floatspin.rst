@@ -1,3 +1,5 @@
+:orphan:
+   
 pwidgets.floatspin module
 =========================
 
