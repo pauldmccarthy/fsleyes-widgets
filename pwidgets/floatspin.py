@@ -220,12 +220,12 @@ class FloatSpinCtrl(wx.PyPanel):
         :returns ``True`` if the value was changed, ``False`` otherwise.
         """
 
-        if self.__integer:
-            value = int(round(value))
-
         if value < self.__realMin: value = self.__realMin
         if value > self.__realMax: value = self.__realMax
 
+        if self.__integer:
+            value = int(round(value))
+        
         oldValue     = self.__value
         self.__value = value
 
