@@ -11,7 +11,6 @@ the user to modify a range.
 The :class:`RangeSliderSpinPanel` is a widget which contains two
 :class:`RangePanel` widgets - one with sliders, and one with spinboxes. All
 four control widgets are linked.
-
 """
 
 
@@ -48,6 +47,7 @@ class RangePanel(wx.PyPanel):
          RP_INTEGER
          RP_MOUSEWHEEL
          RP_SLIDER
+         RP_NO_LIMIT
     """ 
 
     def __init__(self,
@@ -84,7 +84,8 @@ class RangePanel(wx.PyPanel):
                           low/high values.
 
         :arg style:       A combination of :data:`RP_MOUSEWHEEL`,
-                          :data:`RP_INTEGER`, and :data:`RP_SLIDER`.
+                          :data:`RP_INTEGER`, :data:`RP_SLIDER`, and
+                          :data:`RP_NO_LIMIT`.
         """
 
         if style & RP_SLIDER: widgetType = 'slider'
@@ -100,6 +101,9 @@ class RangePanel(wx.PyPanel):
 
         self.__minDistance = minDistance
         self.__centreVal   = None
+        
+        self.__limit       = not (style & RP_NO_LIMIT)
+        self.__controlType = widgetType
 
         if widgetType == 'slider':
 
@@ -342,12 +346,19 @@ class RangePanel(wx.PyPanel):
     def SetMin(self, minValue):
         """Sets the current minimum range value."""
 
+        if self.__controlType == 'spin' and (not self.__limit):
+            return
+
         self.__lowWidget .SetMin(minValue)
         self.__highWidget.SetMin(minValue)
 
         
     def SetMax(self, maxValue):
         """Sets the current maximum range value."""
+        
+        if self.__controlType == 'spin' and (not self.__limit):
+            return
+        
         self.__lowWidget .SetMax(maxValue)
         self.__highWidget.SetMax(maxValue)
 
@@ -455,8 +466,8 @@ class RangeSliderSpinPanel(wx.PyPanel):
 
         :arg style:       A combination of :data:`RSSP_INTEGER`,
                           :data:`RSSP_MOUSEWHEEL`, :data:`RSSP_SHOW_LIMITS`,
-                          and :data:`RSSP_EDIT_LIMITS`. Defaults to
-                          :data:`RSSP_SHOW_LIMITS`.
+                          :data:`RSSP_EDIT_LIMITS`, and :data:`RSSP_NO_LIMIT`.
+                          Defaults to :data:`RSSP_SHOW_LIMITS`.
         """
 
         if style is None:
@@ -466,6 +477,7 @@ class RangeSliderSpinPanel(wx.PyPanel):
         editLimits =     style & RSSP_EDIT_LIMITS
         mousewheel =     style & RSSP_MOUSEWHEEL
         real       = not style & RSSP_INTEGER
+        limit      = not style & RSSP_NO_LIMIT
 
         wx.PyPanel.__init__(self, parent)
 
@@ -495,6 +507,7 @@ class RangeSliderSpinPanel(wx.PyPanel):
 
         if mousewheel: style |= RP_MOUSEWHEEL
         if not real:   style |= RP_INTEGER
+        if not limit:  style |= RP_NO_LIMIT
         
         self.__sliderPanel = RangePanel(
             self,
@@ -710,6 +723,12 @@ RP_SLIDER = 4
 values. If not set, :class:`.FloatSpinCtrl` widgets are used.
 """
 
+RP_NO_LIMIT = 8
+"""If set, and :attr:`RP_SLIDER` is not set, the user will be able to
+enter values into the spin controls that are beyond the current
+minimum/maximum range values.
+"""
+
 
 RSSP_INTEGER = 1
 """If set, the :class:`RangeSliderSpinPanel` stores integer values, rather
@@ -734,6 +753,12 @@ RSSP_EDIT_LIMITS = 8
 range values are shown alongside the range controls on buttons. When
 the presses a button, a dialog is displayed allowing them to change the
 range limits.
+"""
+
+
+RSSP_NO_LIMIT = 16
+"""If set, the user is able to enter values into the spin controls which
+are outside of the current minimum/maximum.
 """
 
 

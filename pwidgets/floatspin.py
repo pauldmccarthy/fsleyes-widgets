@@ -10,12 +10,11 @@ modifying a floating point value.
 """
 
 
-import                    logging
+import re
+import logging
 
 import                    wx
 import wx.lib.newevent as wxevent
-
-import re
 
 
 log = logging.getLogger(__name__)
@@ -39,8 +38,8 @@ class FloatSpinCtrl(wx.PyPanel):
 
     def __init__(self,
                  parent,
-                 minValue=0,
-                 maxValue=100,
+                 minValue=None,
+                 maxValue=None,
                  increment=1,
                  value=0,
                  style=0):
@@ -68,13 +67,16 @@ class FloatSpinCtrl(wx.PyPanel):
         """
         wx.PyPanel.__init__(self, parent)
 
+        self.__integer = style & FSC_INTEGER > 0
+
+        if minValue is None: minValue = -2 ** 63
+        if maxValue is None: maxValue =  2 ** 63 - 1
+
         self.__value     = value
         self.__increment = increment
         self.__realMin   = float(minValue)
         self.__realMax   = float(maxValue)
         self.__realRange = abs(self.__realMax - self.__realMin)
-        
-        self.__integer   = style & FSC_INTEGER > 0
 
         self.__spinMin   = -2 ** 31
         self.__spinMax   =  2 ** 31 - 1
@@ -156,12 +158,12 @@ class FloatSpinCtrl(wx.PyPanel):
 
     def GetMin(self):
         """Returns the current minimum value."""
-        return self.__realMin
+        return float(self.__realMin)
 
     
     def GetMax(self):
         """Returns the current maximum value."""
-        return self.__realMax
+        return float(self.__realMax)
 
 
     def GetIncrement(self):
@@ -194,21 +196,20 @@ class FloatSpinCtrl(wx.PyPanel):
     
     def SetRange(self, minval, maxval):
         """Sets the minimum and maximum values."""
-        
-        inc = (maxval - minval) / 100.0
 
+        if minval is None: minval = -2 ** 63
+        if maxval is None: maxval =  2 ** 63 - 1
+            
         if self.__integer:
             minval = int(round(minval))
             maxval = int(round(maxval))
-            inc    = 1
 
         if minval >= maxval:
             maxval = minval + 1
 
-        self.__realMin   = minval
-        self.__realMax   = maxval
-        self.__realRange = abs(maxval - minval)
-        self.__increment = inc
+        self.__realMin   = float(minval)
+        self.__realMax   = float(maxval)
+        self.__realRange = abs(self.__realMax - self.__realMin)
 
         self.SetValue(self.__value)
 
@@ -356,12 +357,18 @@ class FloatSpinCtrl(wx.PyPanel):
         
     def __spinToReal(self, value):
         """Converts the given value from spin button space to real space."""
+
+
+        value     = float(value)
+        spinMin   = float(self.__spinMin)
+        realMin   = float(self.__realMin)
+        realRange = float(self.__realRange)
+        spinRange = float(self.__spinRange)
         
-        value = self.__realMin + (value - self.__spinMin) * \
-            (float(self.__realRange) / self.__spinRange)
+        value     = realMin + (value - spinMin) * (realRange / spinRange)
 
         if self.__integer: return int(round(value))
-        else:              return value
+        else:              return float(value)
 
         
     def __realToSpin(self, value):
@@ -369,9 +376,15 @@ class FloatSpinCtrl(wx.PyPanel):
 
         if self.__integer:
             value = int(round(value))
+
+        value     = float(value)
+        spinMin   = float(self.__spinMin)
+        realMin   = float(self.__realMin)
+        realRange = float(self.__realRange)
+        spinRange = float(self.__spinRange)
+
+        value     = spinMin + (value - realMin) * (spinRange / realRange)
         
-        value = self.__spinMin + (value - self.__realMin) * \
-            (self.__spinRange / float(self.__realRange))
         return int(round(value))        
 
 
