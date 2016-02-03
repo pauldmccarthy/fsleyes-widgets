@@ -38,8 +38,8 @@ class FloatSpinCtrl(wx.PyPanel):
 
     def __init__(self,
                  parent,
-                 minValue=None,
-                 maxValue=None,
+                 minValue=0,
+                 maxValue=100,
                  increment=1,
                  value=0,
                  style=0):
@@ -49,6 +49,7 @@ class FloatSpinCtrl(wx.PyPanel):
           .. autosummary::
              FSC_MOUSEWHEEL
              FSC_INTEGER
+             FSC_NO_LIMIT
 
         :arg parent:    The parent of this control (e.g. a :class:`wx.Panel`).
 
@@ -61,25 +62,41 @@ class FloatSpinCtrl(wx.PyPanel):
 
         :arg value:     Initial value.
 
-        :arg style:     Style flags - a combination of :data:`FSC_MOUSEWHEEL`
-                        and :data:`FSC_INTEGER`.
-
+        :arg style:     Style flags - a combination of :data:`FSC_MOUSEWHEEL`,
+                        :data:`FSC_INTEGER`, and :data:`FSC_NO_LIMIT`.
         """
         wx.PyPanel.__init__(self, parent)
 
-        self.__integer = style & FSC_INTEGER > 0
+        self.__integer = style & FSC_INTEGER
+        self.__nolimit = style & FSC_NO_LIMIT
 
-        if minValue is None: minValue = -2 ** 63
-        if maxValue is None: maxValue =  2 ** 63 - 1
-
-        self.__value     = value
+        # The value is set at the
+        # end of this method
+        self.__value     = None
         self.__increment = increment
         self.__realMin   = float(minValue)
         self.__realMax   = float(maxValue)
         self.__realRange = abs(self.__realMax - self.__realMin)
 
-        self.__spinMin   = -2 ** 31
-        self.__spinMax   =  2 ** 31 - 1
+        # We use the full signed 32 bit integer
+        # range offered by the wx.SpinButton class.
+        self.__realSpinMin = -2 ** 31
+        self.__realSpinMax =  2 ** 31 - 1
+
+        # Unless the no limit style has been
+        # specified, in which case we map the
+        # real data range to 16 bits, and
+        # allow the rest of the 32 bit range
+        # to account for overflow. In either
+        # case, the spin button is configured
+        # to use the full 32 bit range.
+        if  self.__nolimit:
+            self.__spinMin = -2 ** 15
+            self.__spinMax =  2 ** 15 - 1
+        else:
+            self.__spinMin = self.__realSpinMin
+            self.__spinMax = self.__realSpinMax
+            
         self.__spinRange = abs(self.__spinMax - self.__spinMin)
 
         self.__text = wx.TextCtrl(  self,
@@ -87,7 +104,7 @@ class FloatSpinCtrl(wx.PyPanel):
         self.__spin = wx.SpinButton(self,
                                     style=wx.SP_VERTICAL | wx.SP_ARROW_KEYS)
 
-        self.__spin.SetRange(self.__spinMin, self.__spinMax)
+        self.__spin.SetRange(self.__realSpinMin, self.__realSpinMax)
 
         if self.__integer:
             self.__format      = '{:d}'
@@ -197,12 +214,13 @@ class FloatSpinCtrl(wx.PyPanel):
     def SetRange(self, minval, maxval):
         """Sets the minimum and maximum values."""
 
-        if minval is None: minval = -2 ** 63
-        if maxval is None: maxval =  2 ** 63 - 1
             
         if self.__integer:
             minval = int(round(minval))
             maxval = int(round(maxval))
+            inc    = 1
+        else:
+            inc = (maxval - minval) / 100.0
 
         if minval >= maxval:
             maxval = minval + 1
@@ -210,6 +228,7 @@ class FloatSpinCtrl(wx.PyPanel):
         self.__realMin   = float(minval)
         self.__realMax   = float(maxval)
         self.__realRange = abs(self.__realMax - self.__realMin)
+        self.__increment = inc
 
         self.SetValue(self.__value)
 
@@ -220,8 +239,15 @@ class FloatSpinCtrl(wx.PyPanel):
         :returns ``True`` if the value was changed, ``False`` otherwise.
         """
 
-        if value < self.__realMin: value = self.__realMin
-        if value > self.__realMax: value = self.__realMax
+        if value == self.__value:
+            return
+
+        # Throttle the value so it stays
+        # within the min/max, unless the 
+        # FSC_NO_LIMIT style flag is set.
+        if not self.__nolimit:
+            if value < self.__realMin: value = self.__realMin
+            if value > self.__realMax: value = self.__realMax
 
         if self.__integer:
             value = int(round(value))
@@ -353,22 +379,6 @@ class FloatSpinCtrl(wx.PyPanel):
         the entire contents of the ``TextCtrl``.
         """
         self.__text.SelectAll()
-    
-        
-    def __spinToReal(self, value):
-        """Converts the given value from spin button space to real space."""
-
-
-        value     = float(value)
-        spinMin   = float(self.__spinMin)
-        realMin   = float(self.__realMin)
-        realRange = float(self.__realRange)
-        spinRange = float(self.__spinRange)
-        
-        value     = realMin + (value - spinMin) * (realRange / spinRange)
-
-        if self.__integer: return int(round(value))
-        else:              return float(value)
 
         
     def __realToSpin(self, value):
@@ -384,6 +394,11 @@ class FloatSpinCtrl(wx.PyPanel):
         spinRange = float(self.__spinRange)
 
         value     = spinMin + (value - realMin) * (spinRange / realRange)
+
+        # Don't allow the value to flow over
+        # the real wx.SpinButton range.
+        if   value < self.__realSpinMin: value = self.__realSpinMin
+        elif value > self.__realSpinMax: value = self.__realSpinMax
         
         return int(round(value))        
 
@@ -410,4 +425,9 @@ FSC_MOUSEWHEEL = 1
 FSC_INTEGER = 2
 """If set, the control stores an integer value, rather than a floating point
 value.
+"""
+
+FSC_NO_LIMIT = 4
+"""If set, the control will allow the user to enter values that are outside
+of the current minimum/maximum limits.
 """

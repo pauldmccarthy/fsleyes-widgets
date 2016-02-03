@@ -99,19 +99,18 @@ class RangePanel(wx.PyPanel):
         if highValue   is None: highValue   = 100
         if minDistance is None: minDistance = 0
 
+        self.__nolimit     = style & RP_NO_LIMIT
         self.__minDistance = minDistance
         self.__centreVal   = None
         
-        self.__limit       = not (style & RP_NO_LIMIT)
         self.__controlType = widgetType
 
         if widgetType == 'slider':
 
-            if style & RP_MOUSEWHEEL: widgStyle = floatslider.FS_MOUSEWHEEL
-            else:                     widgStyle = 0
-            
-            if style & RP_INTEGER:
-                widgStyle |= floatslider.FS_INTEGER
+            widgStyle = 0
+
+            if style & RP_MOUSEWHEEL: widgStyle |= floatslider.FS_MOUSEWHEEL
+            if style & RP_INTEGER:    widgStyle |= floatslider.FS_INTEGER
                 
             self.__lowWidget  = floatslider.FloatSlider(self, style=widgStyle)
             self.__highWidget = floatslider.FloatSlider(self, style=widgStyle)
@@ -121,11 +120,11 @@ class RangePanel(wx.PyPanel):
             
         elif widgetType == 'spin':
 
-            if style & RP_MOUSEWHEEL: widgStyle = floatspin.FSC_MOUSEWHEEL
-            else:                     widgStyle = 0
-            
-            if style & RP_INTEGER:
-                widgStyle |= floatspin.FSC_INTEGER
+            widgStyle = 0
+
+            if style & RP_MOUSEWHEEL: widgStyle |= floatspin.FSC_MOUSEWHEEL
+            if style & RP_INTEGER:    widgStyle |= floatspin.FSC_INTEGER
+            if style & RP_NO_LIMIT:   widgStyle |= floatspin.FSC_NO_LIMIT
             
             self.__lowWidget  = floatspin.FloatSpinCtrl(self, style=widgStyle)
             self.__highWidget = floatspin.FloatSpinCtrl(self, style=widgStyle)
@@ -195,8 +194,8 @@ class RangePanel(wx.PyPanel):
         else:                     maxValue = maxValue  - minDist 
 
         # Throttle the low value
-        if lowValue >= maxValue:
-            lowValue = maxValue
+        if lowValue >= highValue:
+            lowValue = highValue - minDist
 
         # Adjust the high value if we
         # are centering the range
@@ -246,8 +245,8 @@ class RangePanel(wx.PyPanel):
         else:                     minValue = minValue  + minDist 
 
         # Throttle the high value
-        if highValue <= minValue:
-            highValue = minValue
+        if highValue <= lowValue:
+            highValue = lowValue + minDist
 
         # Adjust the low value if we
         # are centering the range
@@ -346,18 +345,12 @@ class RangePanel(wx.PyPanel):
     def SetMin(self, minValue):
         """Sets the current minimum range value."""
 
-        if self.__controlType == 'spin' and (not self.__limit):
-            return
-
         self.__lowWidget .SetMin(minValue)
         self.__highWidget.SetMin(minValue)
 
         
     def SetMax(self, maxValue):
         """Sets the current maximum range value."""
-        
-        if self.__controlType == 'spin' and (not self.__limit):
-            return
         
         self.__lowWidget .SetMax(maxValue)
         self.__highWidget.SetMax(maxValue)
@@ -421,6 +414,7 @@ class RangeSliderSpinPanel(wx.PyPanel):
         RSSP_MOUSEWHEEL
         RSSP_SHOW_LIMITS
         RSSP_EDIT_LIMITS
+        RSSP_NO_LIMIT
 
 
     A ``RangeSliderSpinPanel`` will look something like this:
