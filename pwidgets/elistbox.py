@@ -614,9 +614,6 @@ class EditableListBox(wx.PyPanel):
         If :data:`ELB_TOOLTIP` is not enabled, a regular tooltip is configured.
         """
 
-        if listItem.tooltip is None:
-            return
-
         if not self.__showTooltips:
             listItem.container  .SetToolTipString(listItem.tooltip)
             listItem.labelWidget.SetToolTipString(listItem.tooltip)
@@ -624,7 +621,8 @@ class EditableListBox(wx.PyPanel):
         else:
 
             def mouseOver(ev):
-                listItem.labelWidget.SetLabel(listItem.tooltip)
+                if listItem.tooltip is not None:
+                    listItem.labelWidget.SetLabel(listItem.tooltip)
             def mouseOut(ev):
                 listItem.labelWidget.SetLabel(listItem.label)
 
@@ -769,6 +767,17 @@ class EditableListBox(wx.PyPanel):
         """
 
         return self.__listItems[i].extraWidget
+
+    def SetItemTooltip(self, n, tooltip=None):
+        """Sets the tooltip associated with the item at index ``n``."""
+        n = self.__fixIndex(n)
+        self.__listItems[n].tooltip = tooltip
+
+    
+    def GetItemTooltip(self, n):
+        """Returns the tooltip associated with the item at index ``n``."""
+        n = self.__fixIndex(n)
+        return self.__listItems[n].tooltip
 
 
     def SetItemData(self, n, data=None):

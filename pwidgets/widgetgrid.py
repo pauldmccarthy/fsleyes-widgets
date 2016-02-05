@@ -201,6 +201,26 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__refresh()
 
 
+    def Hide(self):
+        """Hides this ``WidgetGrid``. """
+        self.Show(False)
+
+
+    def Show(self, show=True):
+        """Shows/hides this ``WidgetGrid``, and recursively does the same
+        to all of its children.
+        """
+
+        def realShow(obj):
+            if obj is self: wx.ScrolledWindow.Show(self, show)
+            else:           obj.Show(show)
+            
+            for child in obj.GetChildren():
+                realShow(child)
+
+        realShow(self)
+
+
     def SetColours(self, **kwargs):
         """Set the colours used in this ``WidgetGrid``. The :meth:`Refresh`
         method must be called afterwards for this method to take effect.
