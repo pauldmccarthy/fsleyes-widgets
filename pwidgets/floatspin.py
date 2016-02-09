@@ -269,9 +269,8 @@ class FloatSpinCtrl(wx.PyPanel):
         """
         ev.Skip()
 
-        log.debug('Spin lost focus - generating '
-                  'event [{}]'.format(self.__value))
-        wx.PostEvent(self, FloatSpinEvent(value=self.__value))
+        log.debug('Spin lost focus - simulating text event')
+        self.__onText(ev)
 
 
     def __onKeyDown(self, ev):
@@ -369,7 +368,10 @@ class FloatSpinCtrl(wx.PyPanel):
         log.debug('Mouse wheel - delegating to spin event handlers')
 
         rot = ev.GetWheelRotation()
-        
+
+        if ev.GetWheelAxis() == wx.MOUSE_WHEEL_HORIZONTAL:
+            rot = -rot
+
         if   rot > 0: self.__onSpinUp()
         elif rot < 0: self.__onSpinDown()
 
