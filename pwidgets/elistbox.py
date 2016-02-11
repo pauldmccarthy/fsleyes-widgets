@@ -615,8 +615,9 @@ class EditableListBox(wx.PyPanel):
         """
 
         if not self.__showTooltips:
-            listItem.container  .SetToolTipString(listItem.tooltip)
-            listItem.labelWidget.SetToolTipString(listItem.tooltip)
+            if listItem.tooltip is not None:
+                listItem.container  .SetToolTipString(listItem.tooltip)
+                listItem.labelWidget.SetToolTipString(listItem.tooltip)
             
         else:
 
