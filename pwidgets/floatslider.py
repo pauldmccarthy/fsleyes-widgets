@@ -12,8 +12,8 @@ values.
 import wx
 import wx.lib.newevent as wxevent
 
-import floatspin
-import numberdialog
+from . import floatspin
+from . import numberdialog
 
 
 class FloatSlider(wx.Slider):

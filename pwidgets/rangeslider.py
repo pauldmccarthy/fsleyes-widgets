@@ -19,9 +19,9 @@ import logging
 import wx
 import wx.lib.newevent as wxevent
 
-import floatspin
-import floatslider
-import numberdialog
+from . import floatspin
+from . import floatslider
+from . import numberdialog
 
 
 log = logging.getLogger(__name__)

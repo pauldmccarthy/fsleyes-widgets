@@ -11,7 +11,7 @@ which uses bitmap toggle buttons.
 import wx
 import wx.lib.newevent as wxevent
 
-import bitmaptoggle
+from . import bitmaptoggle
 
 
 # TODO Button tooltips
