@@ -261,7 +261,7 @@ class FloatSlider(wx.Slider):
         return self.__sliderToReal(value)
 
     
-class SliderSpinPanel(wx.PyPanel):
+class SliderSpinPanel(wx.Panel):
     """A panel containing a :class:`FloatSlider` and a :class:`.FloatSpinCtrl`.
 
     The slider and spinbox are linked such that changes to one are reflected
@@ -313,7 +313,7 @@ class SliderSpinPanel(wx.PyPanel):
                        :data:`SSP_SHOW_LIMITS`.
         """
 
-        wx.PyPanel.__init__(self, parent)
+        wx.Panel.__init__(self, parent)
 
         if style is None: style = SSP_SHOW_LIMITS
 

@@ -17,7 +17,7 @@ from . import bitmaptoggle
 # TODO Button tooltips
 
 
-class BitmapRadioBox(wx.PyPanel):
+class BitmapRadioBox(wx.Panel):
     """A radio control which displays a collection of :class:`wx.ToggleButton`
     controls, each of which displays an image.
 
@@ -44,7 +44,7 @@ class BitmapRadioBox(wx.PyPanel):
         :arg style:  Either ``wx.HORIZONTAL`` (the default) or ``wx.VERTICAL``,
                      to control the button layout direction.
         """
-        wx.PyPanel.__init__(self, parent)
+        wx.Panel.__init__(self, parent)
 
         if style is None:
             style = wx.HORIZONTAL

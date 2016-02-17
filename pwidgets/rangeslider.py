@@ -27,7 +27,7 @@ from . import numberdialog
 log = logging.getLogger(__name__)
 
 
-class RangePanel(wx.PyPanel):
+class RangePanel(wx.Panel):
     """``RangePanel`` is a widget which contains two sliders or spinboxes (either
     :class:`.FloatSlider`, or :class:`.FloatSpinCtrl`), allowing a range to be
     set.
@@ -91,7 +91,7 @@ class RangePanel(wx.PyPanel):
         if style & RP_SLIDER: widgetType = 'slider'
         else:                 widgetType = 'spin'
 
-        wx.PyPanel.__init__(self, parent)
+        wx.Panel.__init__(self, parent)
 
         if minValue    is None: minValue    = 0
         if maxValue    is None: maxValue    = 100
@@ -390,7 +390,7 @@ class RangePanel(wx.PyPanel):
         else:      self.SetHigh(newHigh)
 
 
-class RangeSliderSpinPanel(wx.PyPanel):
+class RangeSliderSpinPanel(wx.Panel):
     """A :class:`wx.Panel` which contains two sliders and two spinboxes.
 
     
@@ -473,7 +473,7 @@ class RangeSliderSpinPanel(wx.PyPanel):
         real       = not style & RSSP_INTEGER
         limit      = not style & RSSP_NO_LIMIT
 
-        wx.PyPanel.__init__(self, parent)
+        wx.Panel.__init__(self, parent)
 
         if minValue    is None: minValue    = 0
         if maxValue    is None: maxValue    = 1

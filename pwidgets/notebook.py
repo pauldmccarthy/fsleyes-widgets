@@ -13,8 +13,8 @@ similar to the :class:`wx.Notebook`.
 import wx
 
 
-class Notebook(wx.PyPanel):
-    """A :class:`wx.PyPanel` which provides :class:`wx.Notebook`-like
+class Notebook(wx.Panel):
+    """A :class:`wx.Panel` which provides :class:`wx.Notebook`-like
     functionality. Manages the display of multiple child windows. A row of
     buttons along the top allows the user to select which child window to
     display.
@@ -29,7 +29,7 @@ class Notebook(wx.PyPanel):
         :arg parent: The :mod:`wx` parent object.
         """
         
-        wx.PyPanel.__init__(self, parent, style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
         
         self.__buttonPanel = wx.Panel(self)
 

@@ -21,7 +21,7 @@ import wx.lib.newevent as wxevent
 log = logging.getLogger(__name__)
 
 
-class EditableListBox(wx.PyPanel):
+class EditableListBox(wx.Panel):
     """A panel which displays a list of items.
 
     
@@ -118,7 +118,7 @@ class EditableListBox(wx.PyPanel):
                          :data:`ELB_NO_LABEL`.
         """
 
-        wx.PyPanel.__init__(self, parent, style=wx.WANTS_CHARS)
+        wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
 
         reverseOrder  =      style & ELB_REVERSE
         addScrollbar  = not (style & ELB_NO_SCROLL)

@@ -20,8 +20,8 @@ import wx.lib.newevent as wxevent
 log = logging.getLogger(__name__)
 
 
-class FloatSpinCtrl(wx.PyPanel):
-    """A ``FloatSpinCtrl`` is a :class:`wx.PyPanel` which contains a
+class FloatSpinCtrl(wx.Panel):
+    """A ``FloatSpinCtrl`` is a :class:`wx.Panel` which contains a
     :class:`wx.TextCtrl` and a :class:`wx.SpinButton`, allowing the user to
     modify a floating point (or integer) value.
 
@@ -65,7 +65,7 @@ class FloatSpinCtrl(wx.PyPanel):
         :arg style:     Style flags - a combination of :data:`FSC_MOUSEWHEEL`,
                         :data:`FSC_INTEGER`, and :data:`FSC_NO_LIMIT`.
         """
-        wx.PyPanel.__init__(self, parent)
+        wx.Panel.__init__(self, parent)
 
         self.__integer = style & FSC_INTEGER
         self.__nolimit = style & FSC_NO_LIMIT
