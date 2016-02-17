@@ -361,7 +361,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
         widgDict[key] = widg
 
-        self.__setLabelWidths(widgDict.values())
+        self.__setLabelWidths(list(widgDict.values()))
         self.__refresh()
 
         

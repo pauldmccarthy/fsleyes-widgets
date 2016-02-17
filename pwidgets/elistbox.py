@@ -12,6 +12,8 @@
 import math
 import logging
 
+import six
+
 import wx
 import wx.lib.newevent as wxevent
 
@@ -164,9 +166,11 @@ class EditableListBox(wx.PyPanel):
 
         # Buttons for moving the selected item up/down
         if moveSupport:
-            self.__upButton   = wx.Button(self.__buttonPanel, label=u'\u25B2',
+            self.__upButton   = wx.Button(self.__buttonPanel,
+                                          label=six.u('\u25B2'),
                                           style=wx.BU_EXACTFIT)
-            self.__downButton = wx.Button(self.__buttonPanel, label=u'\u25BC',
+            self.__downButton = wx.Button(self.__buttonPanel,
+                                          label=six.u('\u25BC'),
                                           style=wx.BU_EXACTFIT)
             self.__upButton  .Bind(wx.EVT_BUTTON, self.__moveItemUp)
             self.__downButton.Bind(wx.EVT_BUTTON, self.__moveItemDown)

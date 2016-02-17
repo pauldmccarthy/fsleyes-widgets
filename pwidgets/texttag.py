@@ -25,7 +25,7 @@ import random
 import wx
 import wx.lib.newevent as wxevent
 
-import autotextctrl as atc
+from . import autotextctrl as atc
 
 
 log = logging.getLogger(__name__)

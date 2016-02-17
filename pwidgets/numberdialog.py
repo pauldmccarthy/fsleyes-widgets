@@ -174,7 +174,7 @@ class NumberDialog(wx.Dialog):
             value = self.__validate()
             
         except ValueError as e:
-            self.__errorLabel.SetLabel(e.message)
+            self.__errorLabel.SetLabel(str(e))
             self.__sizer.Show(self.__errorLabel, True)
             self.__panel.Layout()
             self.__panel.Fit()
