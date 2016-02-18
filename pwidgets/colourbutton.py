@@ -9,6 +9,8 @@ allows the user to select a RGBA colour.
 """
 
 
+import six
+
 import wx
 import wx.lib.newevent as wxevent
 
@@ -44,6 +46,11 @@ class ColourButton(wx.Button):
         else:                          style = wx.BU_EXACTFIT | wx.BU_NOTEXT
         
         wx.Button.__init__(self, parent, style=style)
+
+        # Under wxPython-phoenix, setting
+        # label='' results in "Button".
+        if not six.PY2:
+            self.SetLabel(' ')
 
         self.__size = size
         self.__bmp  = None
@@ -86,9 +93,8 @@ class ColourButton(wx.Button):
 
         data[:, :] = colour
 
-        img = wx.ImageFromData(w, h, data.tostring())
-
-        self.__bmp = wx.BitmapFromImage(img)
+        if six.PY2: self.__bmp = wx.BitmapFromBuffer( w, h, data)
+        else:       self.__bmp = wx.Bitmap.FromBuffer(w, h, data) 
 
         self.SetBitmap(self.__bmp)
 

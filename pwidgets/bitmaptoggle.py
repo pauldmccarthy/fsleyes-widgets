@@ -53,7 +53,7 @@ class BitmapToggleButton(wx.ToggleButton):
         # label to the empty string results
         # in the button being labelled with
         # "Button". Ridiculous.
-        if six.PY3 and 'label' not in kwargs:
+        if (not six.PY2) and 'label' not in kwargs:
             self.SetLabel(" ")
 
         self.__trueBmp  = None

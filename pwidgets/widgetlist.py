@@ -183,7 +183,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         """Returns a list containing the name of every group in this
         ``WidgetList``.
         """
-        return self.__groups.keys()
+        return list(self.__groups.keys())
 
 
     def HasGroup(self, groupName):
@@ -507,13 +507,13 @@ class _Widget(object):
 
     def SetTooltip(self, tooltip):
         
-        self.label.SetToolTipString(tooltip)
+        self.label.SetToolTip(wx.ToolTip(tooltip))
         
         if isinstance(self.widget, wx.Sizer):
             for child in self.widget.GetChildren():
-                child.GetWindow().SetToolTipString(tooltip)
+                child.GetWindow().SetToolTip(wx.ToolTip(tooltip))
         else:
-            self.widget.SetToolTipString(tooltip)
+            self.widget.SetToolTip(wx.ToolTip(tooltip))
 
 
     def Bind(self, evType, callback):

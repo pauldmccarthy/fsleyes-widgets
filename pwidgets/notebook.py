@@ -74,15 +74,15 @@ class Notebook(wx.Panel):
         """
 
         buttonSize = self.__buttonPanel.GetBestSize()
-        pageSizes  = map(lambda p: p.GetBestSize(), self.__pages)
+        pageSizes  = [p.GetBestSize() for p in self.__pages]
 
         buttonWidth  = buttonSize[0]
         buttonHeight = buttonSize[1]
 
         divLineHeight = self.__dividerLine.GetMinSize()[0]
 
-        pageWidths  = map(lambda ps: ps[0], pageSizes)
-        pageHeights = map(lambda ps: ps[1], pageSizes)
+        pageWidths  = [ps[0] for ps in pageSizes]
+        pageHeights = [ps[1] for ps in pageSizes]
         
         myWidth  = max([buttonWidth] + pageWidths)                 + 20
         myHeight = max(pageHeights) + buttonHeight + divLineHeight + 20

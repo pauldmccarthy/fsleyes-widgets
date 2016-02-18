@@ -822,10 +822,10 @@ class WidgetGrid(wx.ScrolledWindow):
 
         # We're assuming that the
         # scroll rate is in pixels
-        startx,    starty    = self                    .GetViewStart() .Get()
-        sizex,     sizey     = self                    .GetClientSize().Get()
-        posx,      posy      = self.__widgets[row][col].GetPosition()  .Get()
-        widgSizex, widgSizey = self.__widgets[row][col].GetSize()      .Get()
+        startx,    starty    = self                    .GetViewStart()
+        sizex,     sizey     = self                    .GetClientSize()
+        posx,      posy      = self.__widgets[row][col].GetPosition()
+        widgSizex, widgSizey = self.__widgets[row][col].GetSize()
 
         # Take into account the size
         # of the widget in the cell
