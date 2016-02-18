@@ -422,7 +422,7 @@ class WidgetGrid(wx.ScrolledWindow):
 
         self.__nrows     = nrows
         self.__ncols     = ncols
-        self.__gridSizer = wx.FlexGridSizer(nrows + 1, ncols + 1)
+        self.__gridSizer = wx.FlexGridSizer(nrows + 1, ncols + 1, 0, 0)
 
         self.__gridSizer.SetFlexibleDirection(wx.BOTH)
 
