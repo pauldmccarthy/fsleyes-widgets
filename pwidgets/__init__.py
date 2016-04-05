@@ -13,26 +13,5 @@ standalone controls which can be used in any application.
 Some of the controls in ``pwidgets`` are duplicates of controls which are
 already available in ``wx`` or ``wx.lib.agw``. In these instances, I wrote my
 own implementations to work around annoying, quirky, and/or downright buggy
-behaviour in the existing controls. The following controls are available:
-
-
- .. autosummary::
-    :nosignatures:
-
-    ~pwidgets.autotextctrl.AutoTextCtrl
-    ~pwidgets.bitmapradio.BitmapRadioBox
-    ~pwidgets.bitmaptoggle.BitmapToggleButton
-    ~pwidgets.colourbutton.ColourButton
-    ~pwidgets.elistbox.EditableListBox
-    ~pwidgets.floatslider.FloatSlider
-    ~pwidgets.floatspin.FloatSpinCtrl
-    ~pwidgets.notebook.Notebook
-    ~pwidgets.numberdialog.NumberDialog
-    ~pwidgets.rangeslider.RangePanel
-    ~pwidgets.rangeslider.RangeSliderSpinPanel
-    ~pwidgets.floatslider.SliderSpinPanel
-    ~pwidgets.texttag.StaticTextTag
-    ~pwidgets.texttag.TextTagPanel
-    ~pwidgets.widgetgrid.WidgetGrid
-    ~pwidgets.widgetlist.WidgetList
+behaviour in the existing controls. 
 """
