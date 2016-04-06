@@ -116,7 +116,7 @@ class ColourButton(wx.Button):
 
         newColour = dlg.GetColourData().GetColour()
 
-        self.SetValue(newColour)
+        self.SetValue(newColour[:3])
         
         wx.PostEvent(self, ColourButtonEvent(colour=newColour))
 
