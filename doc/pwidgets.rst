@@ -13,6 +13,7 @@ pwidgets package
    pwidgets.floatspin
    pwidgets.notebook
    pwidgets.numberdialog
+   pwidgets.placeholder_textctrl
    pwidgets.rangeslider
    pwidgets.texttag
    pwidgets.widgetgrid
