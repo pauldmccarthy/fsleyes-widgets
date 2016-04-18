@@ -15,6 +15,7 @@ pwidgets package
    pwidgets.numberdialog
    pwidgets.placeholder_textctrl
    pwidgets.rangeslider
+   pwidgets.textpanel
    pwidgets.texttag
    pwidgets.widgetgrid
    pwidgets.widgetlist
