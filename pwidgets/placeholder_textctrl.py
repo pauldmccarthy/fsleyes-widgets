@@ -88,6 +88,16 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         self.__placeholderColour = colour
 
 
+    def GetValue(self):
+        """Returns the value currently contained in this
+        ``PlaceholderTextCtrl``.
+        """
+        value = wx.TextCtrl.GetValue(self)
+
+        if value == self.__placeholder: return ''
+        else:                           return value
+
+
     def __onSetFocus(self, ev):
         """Called when this ``PlaceholderTextCtrl`` gains focus.
 
@@ -96,7 +106,7 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         ev.Skip()
         if self.GetValue() == self.__placeholder:
             self.SetForegroundColour(self.__fgColour)
-            self.SetValue(           '')
+            self.SetValue('')
 
         
     def __onKillFocus(self, ev):
