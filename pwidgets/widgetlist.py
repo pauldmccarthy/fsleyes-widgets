@@ -12,6 +12,7 @@ of widgets.
 from collections import OrderedDict
 
 import wx
+import wx.lib.newevent      as wxevent
 import wx.lib.scrolledpanel as scrolledpanel
 
 
@@ -40,6 +41,10 @@ class WidgetList(scrolledpanel.ScrolledPanel):
      .. image:: images/widgetlist.png
         :scale: 50%
         :align: center
+
+
+    A ``WidgetList`` emits a :data:`WidgetListChangeEvent` whenever its
+    contents change.
     """
 
 
@@ -154,13 +159,19 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             group.colPanel   .SetBackgroundColour(self.__groupColour)
 
 
-    def __refresh(self, *a):
+    def __refresh(self, *args, **kwargs):
         """Updates widget colours (see :meth:`__setColours`), and lays out
         the widget list.
+
+        :arg postEvent: If ``True`` (the default), a
+                        :data:`WidgetListChangeEvent` is posted.
         """
         self.__setColours()
         self.FitInside()
         self.Layout()
+
+        if kwargs.get('postEvent', True):
+            wx.PostEvent(self, WidgetListChangeEvent())
 
 
     def SetColours(self, odd=None, even=None, group=None):
@@ -555,3 +566,15 @@ class _Group(object):
         self.widgPanel   = widgPanel
         self.sizer       = sizer
         self.widgets     = OrderedDict()
+
+
+
+_WidgetListChangeEvent, _EVT_WL_CHANGE_EVENT = wxevent.NewEvent()
+
+
+WidgetListChangeEvent = _WidgetListChangeEvent
+"""Event emitted by a :class:`WidgetList` when its contents change. """
+
+
+EVT_WL_CHANGE_EVENT = _EVT_WL_CHANGE_EVENT
+"""Identifier for the :data:`WidgetListChangeEvent`. """
