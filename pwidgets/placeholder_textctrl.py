@@ -59,7 +59,6 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         """Returns the placeholder text colour."""
         return self.__placeholderColour
 
-
     
     def SetPlaceholder(self, placeholder):
         """Sets the placeholder text. """
@@ -104,7 +103,11 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         Clears the placeholder text if necessary.
         """
         ev.Skip()
-        if self.GetValue() == self.__placeholder:
+
+        value = wx.TextCtrl.GetValue(self)
+        
+        if value == self.__placeholder:
+            
             self.SetForegroundColour(self.__fgColour)
             self.SetValue('')
 
@@ -117,7 +120,9 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         if ev is not None:
             ev.Skip()
 
-        if self.GetValue().strip() == '':
+        value = wx.TextCtrl.GetValue(self)
+
+        if value.strip() == '':
             self.__fgColour = self.GetForegroundColour()
             self.SetValue(           self.__placeholder)
             self.SetForegroundColour(self.__placeholderColour)
