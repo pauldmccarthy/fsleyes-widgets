@@ -11,6 +11,7 @@ similar to the :class:`wx.Notebook`.
 
 
 import wx
+import wx.lib.stattext as statictext
 
 
 class Notebook(wx.Panel):
@@ -110,7 +111,7 @@ class Notebook(wx.Panel):
         # index * 2 because we add a vertical
         # line after every button (and + 1 for
         # the line at the start of the button row)
-        button    = wx.StaticText(self.__buttonPanel, label=text)
+        button    = statictext.GenStaticText(self.__buttonPanel, label=text)
         buttonIdx = index * 2 + 1
 
         self.__pages.  insert(index, page)
