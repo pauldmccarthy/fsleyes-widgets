@@ -13,6 +13,7 @@ modifying a floating point value.
 import re
 import logging
 
+import                    six
 import                    wx
 import wx.lib.newevent as wxevent
 
@@ -20,7 +21,11 @@ import wx.lib.newevent as wxevent
 log = logging.getLogger(__name__)
 
 
-class FloatSpinCtrl(wx.Panel):
+if six.PY2: FloatSpinBase = wx.PyPanel
+else:       FloatSpinBase = wx.Panel
+
+
+class FloatSpinCtrl(FloatSpinBase):
     """A ``FloatSpinCtrl`` is a :class:`wx.Panel` which contains a
     :class:`wx.TextCtrl` and a :class:`wx.SpinButton`, allowing the user to
     modify a floating point (or integer) value.
@@ -65,7 +70,7 @@ class FloatSpinCtrl(wx.Panel):
         :arg style:     Style flags - a combination of :data:`FSC_MOUSEWHEEL`,
                         :data:`FSC_INTEGER`, and :data:`FSC_NO_LIMIT`.
         """
-        wx.Panel.__init__(self, parent)
+        FloatSpinBase.__init__(self, parent)
 
         self.__integer = style & FSC_INTEGER
         self.__nolimit = style & FSC_NO_LIMIT
@@ -150,8 +155,10 @@ class FloatSpinCtrl(wx.Panel):
         
         self.__sizer.Add(self.__text, flag=wx.EXPAND, proportion=1)
         self.__sizer.Add(self.__spin)
+
+        self.Layout()
         
-        self.SetSizer(self.__sizer)
+        self.SetSizer(  self.__sizer)
         self.SetMinSize(self.__sizer.GetMinSize())
 
         # Under linus/GTK, calling spin.SetValue()
@@ -167,6 +174,12 @@ class FloatSpinCtrl(wx.Panel):
         self.SetRange(minValue, maxValue)
         self.SetValue(value)
         self.SetIncrement(increment)
+
+        
+    def DoGetBestClientSize(self):
+        """Returns the best size for this ``FloatSpinCtrl``.
+        """
+        return self.__sizer.GetMinSize()
 
     
     def GetValue(self):
