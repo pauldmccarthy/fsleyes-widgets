@@ -152,6 +152,7 @@ class FloatSpinCtrl(wx.Panel):
         self.__sizer.Add(self.__spin)
         
         self.SetSizer(self.__sizer)
+        self.SetMinSize(self.__sizer.GetMinSize())
 
         # Under linus/GTK, calling spin.SetValue()
         # from within an EVT_SPIN event handler
