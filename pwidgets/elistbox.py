@@ -57,6 +57,7 @@ class EditableListBox(wx.Panel):
         ELB_TOOLTIP
         ELB_EDITABLE
         ELB_NO_LABELS
+        ELB_WIDGET_RIGHT
 
     
     An ``EditableListBox`` generates the following events:
@@ -114,8 +115,8 @@ class EditableListBox(wx.Panel):
         :arg style:      Style bitmask - accepts :data:`ELB_NO_SCROLL`,
                          :data:`ELB_NO_ADD`, :data:`ELB_NO_REMOVE`,
                          :data:`ELB_NO_MOVE`, :data:`ELB_REVERSE`,
-                         :data:`ELB_TOOLTIP`, :data:`ELB_EDITABLE`, and
-                         :data:`ELB_NO_LABEL`.
+                         :data:`ELB_TOOLTIP`, :data:`ELB_EDITABLE`, 
+                         :data:`ELB_NO_LABEL`, and :data:`ELB_WIDGET_RIGHT`.
         """
 
         wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
@@ -128,6 +129,7 @@ class EditableListBox(wx.Panel):
         editSupport   =      style & ELB_EDITABLE
         showTooltips  =      style & ELB_TOOLTIP
         noLabels      =      style & ELB_NO_LABELS
+        widgetOnRight =      style & ELB_WIDGET_RIGHT
         noButtons     = not any((addSupport, removeSupport, moveSupport))
 
         if noLabels:
@@ -138,6 +140,7 @@ class EditableListBox(wx.Panel):
         self.__moveSupport   = moveSupport
         self.__editSupport   = editSupport
         self.__noLabels      = noLabels
+        self.__widgetOnRight = widgetOnRight
 
         if labels     is None: labels     = []
         if clientData is None: clientData = [None] * len(labels)
@@ -544,14 +547,22 @@ class EditableListBox(wx.Panel):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         container.SetSizer(sizer)
 
+        sizerItems = [labelWidget]
+        if self.__noLabels: sizerFlags = [{}]
+        else:               sizerFlags = [{'flag'       : wx.ALIGN_CENTRE,
+                                           'proportion' : 1}]
+
         if extraWidget is not None:
             extraWidget.Reparent(container)
-            sizer.Add(extraWidget)
 
-        if self.__noLabels:
-            sizer.Add(labelWidget)
-        else:
-            sizer.Add(labelWidget, flag=wx.ALIGN_CENTRE, proportion=1)
+            if self.__widgetOnRight: index = 1
+            else:                    index = 0
+
+            sizerItems.insert(index, extraWidget)
+            sizerFlags.insert(index, {})
+
+        for item, flags in zip(sizerItems, sizerFlags):
+            sizer.Add(item, **flags)
         
         labelWidget.Bind(wx.EVT_LEFT_DOWN, self.__itemClicked)
         container  .Bind(wx.EVT_LEFT_DOWN, self.__itemClicked)
@@ -1317,4 +1328,10 @@ ELB_NO_LABELS = 128
 are to consist solely of widgets (see the ``extraWidget`` parameter to the
 :meth:`Insert` method). This style flag will negate the :data:`ELB_EDITABLE`
 flag.
+"""
+
+
+ELB_WIDGET_RIGHT = 256
+"""If enabled, item widgets are shown to the right of the item label.
+Otherwise (by default) item widgets are shown to the left.
 """
