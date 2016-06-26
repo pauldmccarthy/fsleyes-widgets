@@ -1097,9 +1097,13 @@ class EditableListBox(wx.Panel):
         editCtrl.Bind(wx.EVT_KEY_DOWN,   onKey)
         editCtrl.Bind(wx.EVT_TEXT_ENTER, onFinish)
         editCtrl.Bind(wx.EVT_KILL_FOCUS, onFinish)
-        
-        sizer.Add(editCtrl, flag=wx.EXPAND, proportion=1)
-        sizer.Show(listItem.labelWidget, False)
+
+        if self.__widgetOnRight:
+            sizer.Insert(0, editCtrl, flag=wx.EXPAND, proportion=1)
+        else:
+            sizer.Insert(2, editCtrl, flag=wx.EXPAND, proportion=1)
+
+        sizer.Show(listItem.labelWidget, False) 
         sizer.Layout()
 
         editCtrl.SetFocus()
