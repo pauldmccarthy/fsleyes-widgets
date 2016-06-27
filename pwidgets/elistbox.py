@@ -58,6 +58,7 @@ class EditableListBox(wx.Panel):
         ELB_EDITABLE
         ELB_NO_LABELS
         ELB_WIDGET_RIGHT
+        ELB_TOOLTIP_DOWN
 
     
     An ``EditableListBox`` generates the following events:
@@ -116,7 +117,8 @@ class EditableListBox(wx.Panel):
                          :data:`ELB_NO_ADD`, :data:`ELB_NO_REMOVE`,
                          :data:`ELB_NO_MOVE`, :data:`ELB_REVERSE`,
                          :data:`ELB_TOOLTIP`, :data:`ELB_EDITABLE`, 
-                         :data:`ELB_NO_LABEL`, and :data:`ELB_WIDGET_RIGHT`.
+                         :data:`ELB_NO_LABEL`, :data:`ELB_WIDGET_RIGHT`,
+                         and :data:`ELB_TOOLTIP_DOWN`.
         """
 
         wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
@@ -130,6 +132,7 @@ class EditableListBox(wx.Panel):
         showTooltips  =      style & ELB_TOOLTIP
         noLabels      =      style & ELB_NO_LABELS
         widgetOnRight =      style & ELB_WIDGET_RIGHT
+        tooltipDown   =      style & ELB_TOOLTIP_DOWN and not showTooltips
         noButtons     = not any((addSupport, removeSupport, moveSupport))
 
         if noLabels:
@@ -141,6 +144,7 @@ class EditableListBox(wx.Panel):
         self.__editSupport   = editSupport
         self.__noLabels      = noLabels
         self.__widgetOnRight = widgetOnRight
+        self.__tooltipDown   = tooltipDown
 
         if labels     is None: labels     = []
         if clientData is None: clientData = [None] * len(labels)
@@ -616,7 +620,8 @@ class EditableListBox(wx.Panel):
         self.SetSelection(self.__fixIndex(self.__selection))
 
         self.__updateMoveButtons()
-        self.__configTooltip(item)
+        if self.__tooltipDown: self.__configTooltipDown(item)
+        else:                  self.__configTooltip(    item)
         self.__updateScrollbar()
         self.Refresh()
 
@@ -645,7 +650,42 @@ class EditableListBox(wx.Panel):
             # Register motion listeners on the widget
             # container so it works under GTK
             listItem.container.Bind(wx.EVT_ENTER_WINDOW, mouseOver)
-            listItem.container.Bind(wx.EVT_LEAVE_WINDOW, mouseOut) 
+            listItem.container.Bind(wx.EVT_LEAVE_WINDOW, mouseOut)
+
+
+    def __configTooltipDown(self, listItem):
+        """If the :data:`ELB_TOOLTIP_DOWN` style was enabled, this method 
+        configures mouse-down listeners on the given
+        list item widget, so the item displays the tool tip on mouse down.
+
+        This method is not called if :data:`ELB_TOOLTIP_DOWN` is not enabled.
+        """
+
+        # The tooltip is shown only after the mouse
+        # has been held down for a short period of
+        # time. This is required so the tooltip is
+        # not shown on regular clicks/double clicks.
+        listItem._cancelTooltipDown = False
+
+        def changeLabel(lbl):
+            if not listItem._cancelTooltipDown:
+                listItem.labelWidget.SetLabel(lbl)
+
+        def mouseDown(ev):
+            ev.Skip()
+            listItem._cancelTooltipDown = False
+            if listItem.tooltip is not None:
+                wx.CallLater(300, changeLabel, listItem.tooltip)
+
+        def mouseUp(ev):
+            
+            ev.Skip() 
+            listItem._cancelTooltipDown = True
+
+            listItem.labelWidget.SetLabel(listItem.label)
+
+        listItem.labelWidget.Bind(wx.EVT_LEFT_DOWN, mouseDown)
+        listItem.labelWidget.Bind(wx.EVT_LEFT_UP,   mouseUp) 
                 
             
     def Append(self, label, clientData=None, tooltip=None, extraWidget=None):
@@ -921,6 +961,7 @@ class EditableListBox(wx.Panel):
         self.SetFocusIgnoringChildren()
 
         if ev is not None:
+            ev.Skip()
             widget = ev.GetEventObject()
 
         itemIdx = -1
@@ -1338,4 +1379,11 @@ flag.
 ELB_WIDGET_RIGHT = 256
 """If enabled, item widgets are shown to the right of the item label.
 Otherwise (by default) item widgets are shown to the left.
+"""
+
+
+ELB_TOOLTIP_DOWN = 512
+"""If enabled, when the left mouse button is clicked and held down on a list
+item, the item label is replaced with its tooltip while the mouse is held down.
+This style is ignored if the :data:`ELB_TOOLTIP` style is active.
 """
