@@ -273,8 +273,15 @@ class FloatSpinCtrl(FloatSpinBase):
 
         # We have to re-enable event processing
         # asynchronously, otherwise the SpinButton
-        # will keep generating. events.
-        wx.CallAfter(self.__spin.SetEvtHandlerEnabled, True)
+        # will keep generating events.  We check
+        # the state of this control before doing
+        # so, as the control may get deleted before
+        # this function gets called.
+        def reset():
+            if self and self.__spin:
+                self.__spin.SetEvtHandlerEnabled(True)
+
+        wx.CallAfter(reset)
 
         return value != oldValue
 
