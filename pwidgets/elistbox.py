@@ -219,9 +219,13 @@ class EditableListBox(wx.Panel):
             self.__drawList()
             ev.Skip()
 
+        # We use CHAR_HOOK for key events,
+        # because we want to capture key
+        # presses whenever this panel or
+        # any of its children has focus.
+        self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
         self.Bind(wx.EVT_PAINT,     refresh)
         self.Bind(wx.EVT_SIZE,      refresh)
-        self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
 
         for label, data, tooltip in zip(labels, clientData, tooltips):
             self.Append(label, data, tooltip)
@@ -252,14 +256,18 @@ class EditableListBox(wx.Panel):
         """Called when a key is pressed. On up/down arrow key presses,
         changes the selected item, and scrolls if necessary.
         """
-        ev.Skip()
 
         key = ev.GetKeyCode()
 
+        # GTK seemingly randomly steals focus from
+        # this control, and gives it to something
+        # else, unless we force-retain focus.
+        wx.CallAfter(self.SetFocus) 
+
         # We're only interested in
         # up/down key presses
-        if key not in (wx.WXK_UP, wx.WXK_DOWN):
-            self.HandleAsNavigationKey(ev)
+        if ev.HasModifiers() or (key not in (wx.WXK_UP, wx.WXK_DOWN)):
+            ev.Skip()
             return
 
         # On up/down keys, we want to
@@ -285,9 +293,6 @@ class EditableListBox(wx.Panel):
             if any((selected <  scrollPos,
                     selected >= scrollPos + self.__scrollbar.GetPageSize())):
                 self.__onMouseWheel(None, -offset)
-
-        # Retain focus
-        self.SetFocus()
 
         
     def __onMouseWheel(self, ev=None, move=None):
