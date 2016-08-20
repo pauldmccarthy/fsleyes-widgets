@@ -43,29 +43,37 @@ class NumberDialog(wx.Dialog):
                  message=None,
                  initial=None,
                  minValue=None,
-                 maxValue=None):
+                 maxValue=None,
+                 okText=None,
+                 cancelText=None):
         """Create a :class:`NumberDialog`.
 
-        :arg parent:   The :mod:`wx` parent object.
+        :arg parent:     The :mod:`wx` parent object.
 
-        :arg real:     If ``True``, a floating point number will 
-                       be accepted. Otherwise, only integers are
-                       accepted.
+        :arg real:       If ``True``, a floating point number will 
+                         be accepted. Otherwise, only integers are
+                         accepted.
 
-        :arg title:    Dialog title.
+        :arg title:      Dialog title.
         
-        :arg message:  If not None, a :class:`wx.StaticText` label 
-                       is added, containing the message.
+        :arg message:    If not None, a :class:`wx.StaticText` label 
+                         is added, containing the message.
 
-        :arg initial:  Initial value.
+        :arg initial:    Initial value.
         
-        :arg minValue: Minimum value.
+        :arg minValue:   Minimum value.
         
-        :arg maxValue: Maximum value.
+        :arg maxValue:   Maximum value.
+
+        :arg okText:     Text for OK button. Defaults to "Ok".
+
+        :arg cancelText: Text for Cancel button. Defaults to "Cancel"
         """
 
-        if title   is None: title   = ''
-        if initial is None: initial = 0
+        if title      is None: title      = ''
+        if initial    is None: initial    = 0
+        if okText     is None: okText     = 'Ok'
+        if cancelText is None: cancelText = 'Cancel'
 
         wx.Dialog.__init__(self, parent, title=title)
 
@@ -96,26 +104,28 @@ class NumberDialog(wx.Dialog):
         self.__errorLabel = wx.StaticText(self.__panel)
         self.__errorLabel.SetForegroundColour('#992222')
         
-        self.__okButton     = wx.Button(self.__buttonPanel, label='Ok')
-        self.__cancelButton = wx.Button(self.__buttonPanel, label='Cancel')
+        self.__okButton     = wx.Button(self.__buttonPanel, label=okText)
+        self.__cancelButton = wx.Button(self.__buttonPanel, label=cancelText)
 
         self.__buttonSizer.Add(self.__okButton,
-                               flag=wx.EXPAND,
-                               proportion=1)
+                               flag=wx.EXPAND | wx.ALL,
+                               proportion=1,
+                               border=2)
         self.__buttonSizer.Add(self.__cancelButton,
-                               flag=wx.EXPAND,
-                               proportion=1)
+                               flag=wx.EXPAND | wx.ALL,
+                               proportion=1,
+                               border=2)
 
-        self.__sizer.Add(self.__label, flag=wx.EXPAND | wx.ALL, border=5)
+        self.__sizer.Add(self.__label, flag=wx.EXPAND | wx.ALL, border=10)
         self.__sizer.Add(self.__textctrl,
                          flag=(wx.EXPAND | wx.LEFT | wx.RIGHT),
-                         border=10)
+                         border=15)
         
         self.__sizer.Add(self.__errorLabel, flag=wx.ALL, border=5)
         self.__sizer.Show(self.__errorLabel, False)
         self.__sizer.Add(self.__buttonPanel,
                          flag=wx.EXPAND | wx.ALL,
-                         border=5)
+                         border=10)
 
         self.__textctrl    .Bind(wx.EVT_TEXT_ENTER, self.__onOk)
         self.__okButton    .Bind(wx.EVT_BUTTON,     self.__onOk)
