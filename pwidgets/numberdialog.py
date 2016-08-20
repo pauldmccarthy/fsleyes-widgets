@@ -75,7 +75,7 @@ class NumberDialog(wx.Dialog):
         self.__maxValue = maxValue
 
         if self.__real: initial = float(initial)
-        else:          initial = int(  initial)
+        else:           initial = int(  initial)
 
         self.__panel = wx.Panel(self)
         self.__sizer = wx.BoxSizer(wx.VERTICAL)
@@ -87,19 +87,15 @@ class NumberDialog(wx.Dialog):
 
         if message is not None:
             self.__label = wx.StaticText(self.__panel, label=message)
-            self.__sizer.Add(self.__label, flag=wx.EXPAND)
+        else:
+            self.__label = (0, 0)
 
         self.__textctrl = wx.TextCtrl(self.__panel, style=wx.TE_PROCESS_ENTER)
         self.__textctrl.SetValue('{}'.format(initial))
 
-        self.__sizer.Add(self.__textctrl, flag=wx.EXPAND)
-
         self.__errorLabel = wx.StaticText(self.__panel)
         self.__errorLabel.SetForegroundColour('#992222')
         
-        self.__sizer.Add(self.__errorLabel)
-        self.__sizer.Show(self.__errorLabel, False)
-
         self.__okButton     = wx.Button(self.__buttonPanel, label='Ok')
         self.__cancelButton = wx.Button(self.__buttonPanel, label='Cancel')
 
@@ -110,7 +106,16 @@ class NumberDialog(wx.Dialog):
                                flag=wx.EXPAND,
                                proportion=1)
 
-        self.__sizer.Add(self.__buttonPanel, flag=wx.EXPAND)
+        self.__sizer.Add(self.__label, flag=wx.EXPAND | wx.ALL, border=5)
+        self.__sizer.Add(self.__textctrl,
+                         flag=(wx.EXPAND | wx.LEFT | wx.RIGHT),
+                         border=10)
+        
+        self.__sizer.Add(self.__errorLabel, flag=wx.ALL, border=5)
+        self.__sizer.Show(self.__errorLabel, False)
+        self.__sizer.Add(self.__buttonPanel,
+                         flag=wx.EXPAND | wx.ALL,
+                         border=5)
 
         self.__textctrl    .Bind(wx.EVT_TEXT_ENTER, self.__onOk)
         self.__okButton    .Bind(wx.EVT_BUTTON,     self.__onOk)
@@ -120,6 +125,7 @@ class NumberDialog(wx.Dialog):
         self.__panel.Fit()
 
         self.Fit()
+        self.CentreOnParent()
 
         
     def GetValue(self):
