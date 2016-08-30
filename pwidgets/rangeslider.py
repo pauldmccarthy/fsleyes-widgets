@@ -91,7 +91,7 @@ class RangePanel(wx.Panel):
         if style & RP_SLIDER: widgetType = 'slider'
         else:                 widgetType = 'spin'
 
-        wx.Panel.__init__(self, parent)
+        wx.Panel.__init__(self, parent, style=0)
 
         if minValue    is None: minValue    = 0
         if maxValue    is None: maxValue    = 100
@@ -173,6 +173,28 @@ class RangePanel(wx.Panel):
 
         self.Layout()
 
+
+    @property
+    def lowWidget(self):
+        """Returns the low widget, either a ``FloatSlider`` or
+        ``FloatSpinCtrl``.
+        """
+        if isinstance(self.__lowWidget, floatspin.FloatSpinCtrl):
+            return self.__lowWidget.textCtrl
+        else:
+            return self.__lowWidget
+
+    
+    @property
+    def highWidget(self):
+        """Returns the high widget, either a ``FloatSlider`` or
+        ``FloatSpinCtrl``.
+        """
+        if isinstance(self.__lowWidget, floatspin.FloatSpinCtrl):
+            return self.__highWidget.textCtrl
+        else:
+            return self.__highWidget 
+    
 
     def __onLowChange(self, ev=None):
         """Called when the user changes the low widget.
@@ -553,6 +575,30 @@ class RangeSliderSpinPanel(wx.Panel):
             
         self.Layout()
 
+
+    @property
+    def lowSlider(self):
+        """Returns the ``FloatSlider`` for the low range. """
+        return self.__sliderPanel.lowWidget
+
+    
+    @property
+    def highSlider(self):
+        """Returns the ``FloatSlider`` for the high range. """
+        return self.__sliderPanel.highWidget
+
+    
+    @property
+    def lowSpin(self):
+        """Returns the ``FloatSpinCtrl`` for the low range. """
+        return self.__spinPanel.lowWidget
+
+    
+    @property
+    def highSpin(self):
+        """Returns the ``FloatSpinCtrl`` for the high range. """
+        return self.__spinPanel.highWidget 
+        
         
     def __onRangeChange(self, ev):
         """Called by :meth:`__onLowRangeChange` and :meth:`onHighRangeChange`.

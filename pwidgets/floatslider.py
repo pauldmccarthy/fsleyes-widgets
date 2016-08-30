@@ -313,7 +313,7 @@ class SliderSpinPanel(wx.Panel):
                        :data:`SSP_SHOW_LIMITS`.
         """
 
-        wx.Panel.__init__(self, parent)
+        wx.Panel.__init__(self, parent, style=0)
 
         if style is None: style = SSP_SHOW_LIMITS
 
@@ -392,6 +392,22 @@ class SliderSpinPanel(wx.Panel):
             self.__maxButton.Bind(wx.EVT_BUTTON, self.__onLimitButton)
 
         self.Layout()
+
+
+    @property
+    def slider(self):
+        """Returts a reference to the ``FloatSlider`` contained in this
+        ``SliderSpinPanel``.
+        """
+        return self.__slider
+
+
+    @property
+    def spinCtrl(self):
+        """Returts a reference to the ``FloatSpinCtrl`` contained in this
+        ``SliderSpinPanel``.
+        """ 
+        return self.__spinbox
 
         
     def __onLimitButton(self, ev):
