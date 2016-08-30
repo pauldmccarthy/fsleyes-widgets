@@ -165,6 +165,22 @@ class FloatSpinCtrl(FloatSpinBase):
         self.SetValue(value)
         self.SetIncrement(increment)
 
+
+    @property
+    def textCtrl(self):
+        """Returns a reference to the ``TextCtrl`` contained in this
+        ``FloatSpinCtrl``.
+        """
+        return self.__text
+
+
+    @property
+    def spinButton(self):
+        """Returns a reference to the ``SpinButton`` contained in this
+        ``FloatSpinCtrl``.
+        """
+        return self.__spin
+
         
     def DoGetBestClientSize(self):
         """Returns the best size for this ``FloatSpinCtrl``.
