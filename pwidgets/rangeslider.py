@@ -179,10 +179,7 @@ class RangePanel(wx.Panel):
         """Returns the low widget, either a ``FloatSlider`` or
         ``FloatSpinCtrl``.
         """
-        if isinstance(self.__lowWidget, floatspin.FloatSpinCtrl):
-            return self.__lowWidget.textCtrl
-        else:
-            return self.__lowWidget
+        return self.__lowWidget
 
     
     @property
@@ -190,10 +187,7 @@ class RangePanel(wx.Panel):
         """Returns the high widget, either a ``FloatSlider`` or
         ``FloatSpinCtrl``.
         """
-        if isinstance(self.__lowWidget, floatspin.FloatSpinCtrl):
-            return self.__highWidget.textCtrl
-        else:
-            return self.__highWidget 
+        return self.__highWidget 
     
 
     def __onLowChange(self, ev=None):
