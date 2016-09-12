@@ -16,6 +16,7 @@ import six
 
 import wx
 import wx.lib.newevent as wxevent
+import wx.lib.stattext as stattext
 
 
 log = logging.getLogger(__name__)
@@ -59,6 +60,7 @@ class EditableListBox(wx.Panel):
         ELB_NO_LABELS
         ELB_WIDGET_RIGHT
         ELB_TOOLTIP_DOWN
+        ELB_SCROLL_BUTTONS
 
     
     An ``EditableListBox`` generates the following events:
@@ -118,7 +120,8 @@ class EditableListBox(wx.Panel):
                          :data:`ELB_NO_MOVE`, :data:`ELB_REVERSE`,
                          :data:`ELB_TOOLTIP`, :data:`ELB_EDITABLE`, 
                          :data:`ELB_NO_LABEL`, :data:`ELB_WIDGET_RIGHT`,
-                         and :data:`ELB_TOOLTIP_DOWN`.
+                         :data:`ELB_TOOLTIP_DOWN`, and
+                         :data:`ELB_SCROLL_BUTTONS`.
         """
 
         wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
@@ -132,7 +135,8 @@ class EditableListBox(wx.Panel):
         showTooltips  =      style & ELB_TOOLTIP
         noLabels      =      style & ELB_NO_LABELS
         widgetOnRight =      style & ELB_WIDGET_RIGHT
-        tooltipDown   =      style & ELB_TOOLTIP_DOWN and not showTooltips
+        tooltipDown   =      style & ELB_TOOLTIP_DOWN   and not showTooltips
+        scrollButtons =      style & ELB_SCROLL_BUTTONS and     addScrollbar
         noButtons     = not any((addSupport, removeSupport, moveSupport))
 
         if noLabels:
@@ -145,6 +149,7 @@ class EditableListBox(wx.Panel):
         self.__noLabels      = noLabels
         self.__widgetOnRight = widgetOnRight
         self.__tooltipDown   = tooltipDown
+        self.__scrollButtons = scrollButtons
 
         if labels     is None: labels     = []
         if clientData is None: clientData = [None] * len(labels)
@@ -155,9 +160,14 @@ class EditableListBox(wx.Panel):
         self.__listItems  = []
 
         # the panel containing the list items
-        self.__listPanel = wx.Panel(self, style=wx.WANTS_CHARS)
-        self.__listSizer = wx.BoxSizer(wx.VERTICAL)
-        self.__listPanel.SetSizer(self.__listSizer)
+        # This is laid out with two sizers -
+        # the sizer contains the list items, and 
+        # the SizerSizer contains scroll buttons
+        # (if enabled) and the item sizer.
+        self.__listPanel      = wx.Panel(self, style=wx.WANTS_CHARS)
+        self.__listSizerSizer = wx.BoxSizer(wx.VERTICAL)
+        self.__listSizer      = wx.BoxSizer(wx.VERTICAL)
+        self.__listPanel.SetSizer(self.__listSizerSizer)
         self.__listPanel.SetBackgroundColour(EditableListBox._defaultBG)
 
         if addScrollbar:
@@ -199,6 +209,40 @@ class EditableListBox(wx.Panel):
 
             self.__removeButton.Bind(wx.EVT_BUTTON, self.__removeItem)
             self.__buttonPanelSizer.Add(self.__removeButton, flag=wx.EXPAND)
+
+        # Up/down scroll buttons above/below the list
+        if self.__scrollButtons:
+
+            # Using wx.lib.stattext instead
+            # of wx.StaticText because GTK
+            # can't horizontally align text.
+            self.__scrollUp   = stattext.GenStaticText(self.__listPanel,
+                                                       label=six.u('\u25B2'),
+                                                       style=wx.ALIGN_CENTRE) 
+            self.__scrollDown = stattext.GenStaticText(self.__listPanel,
+                                                       label=six.u('\u25BC'),
+                                                       style=wx.ALIGN_CENTRE)
+
+            self.__scrollUp  .SetFont(self.__scrollUp  .GetFont().Smaller())
+            self.__scrollDown.SetFont(self.__scrollDown.GetFont().Smaller())
+
+            self.__listSizerSizer.Add( self.__scrollUp,   flag=wx.EXPAND)
+            self.__listSizerSizer.Add( self.__listSizer,
+                                       flag=wx.EXPAND,
+                                       proportion=1)
+            self.__listSizerSizer.Add( self.__scrollDown, flag=wx.EXPAND)
+            self.__scrollUp  .Enable(False)
+            self.__scrollDown.Enable(False)
+
+            self.__scrollUp  .SetBackgroundColour('#e0e0e0')
+            self.__scrollDown.SetBackgroundColour('#e0e0e0')
+
+            self.__scrollUp  .Bind(wx.EVT_LEFT_UP, self.__onScrollButton)
+            self.__scrollDown.Bind(wx.EVT_LEFT_UP, self.__onScrollButton)
+
+        else:
+            self.__scrollUp   = None
+            self.__scrollDown = None
 
         self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.__sizer)
@@ -319,7 +363,24 @@ class EditableListBox(wx.Panel):
         self.__drawList()
         self.SetFocus()
 
+
+    def __onScrollButton(self, ev):
+        """Called when either of the scroll up/down buttons are clicked (if
+        the :data:`.ELB_SCROLL_BUTTONS` style is active). Scrolls the list
+        up/down, if possible.
+        """
+
+        button = ev.GetEventObject()
+
+        if not button.IsEnabled():
+            return
+
+        if button is self.__scrollUp: move =  1
+        else:                         move = -1
         
+        self.__onMouseWheel(move=move)
+
+
     def VisibleItemCount(self):
         """Returns the number of items in the list which are visible
         (i.e. which have not been hidden via a call to :meth:`ApplyFilter`).
@@ -338,7 +399,7 @@ class EditableListBox(wx.Panel):
         current scrollbar thumb position.
         """
 
-        nitems       = self.VisibleItemCount()
+        nitems = self.VisibleItemCount()
 
         if self.__scrollbar is not None:
             thumbPos     = self.__scrollbar.GetThumbPosition()
@@ -363,15 +424,19 @@ class EditableListBox(wx.Panel):
         for i, item in enumerate(self.__listItems):
 
             if item.hidden:
-                self.__listSizer.Show(i, False)
+                self.__listSizer.Show(item.container, False)
                 continue
                 
             if (visI < start) or (visI >= end):
-                self.__listSizer.Show(i, False)
+                self.__listSizer.Show(item.container, False)
             else:
-                self.__listSizer.Show(i, True)
+                self.__listSizer.Show(item.container, True)
 
             visI += 1
+
+        if self.__scrollButtons:
+            self.__scrollUp  .Enable(thumbPos > 0)
+            self.__scrollDown.Enable(end      < nitems)
 
         self.__listSizer.Layout()
 
@@ -390,7 +455,8 @@ class EditableListBox(wx.Panel):
             return
 
         nitems     = self.VisibleItemCount()
-        pageHeight = self.__listPanel.GetClientSize().GetHeight()
+        pageHeight = self.__listSizerSizer.GetItem(self.__listSizer) \
+                                          .GetSize().GetHeight()
         
         # Yep, I'm assuming that all
         # items are the same size
@@ -1391,4 +1457,10 @@ ELB_TOOLTIP_DOWN = 512
 """If enabled, when the left mouse button is clicked and held down on a list
 item, the item label is replaced with its tooltip while the mouse is held down.
 This style is ignored if the :data:`ELB_TOOLTIP` style is active.
+"""
+
+
+ELB_SCROLL_BUTTONS = 1024
+"""If enabled, and :data:`ELB_NO_SCROLL` is not enabled, up/down buttons are
+added above/below the list, which allow the user to scroll up/down.
 """
