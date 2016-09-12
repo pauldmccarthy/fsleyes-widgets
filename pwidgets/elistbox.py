@@ -167,6 +167,11 @@ class EditableListBox(wx.Panel):
         self.__listPanel      = wx.Panel(self, style=wx.WANTS_CHARS)
         self.__listSizerSizer = wx.BoxSizer(wx.VERTICAL)
         self.__listSizer      = wx.BoxSizer(wx.VERTICAL)
+        
+        self.__listSizerSizer.Add(self.__listSizer,
+                                  flag=wx.EXPAND,
+                                  proportion=1)
+        
         self.__listPanel.SetSizer(self.__listSizerSizer)
         self.__listPanel.SetBackgroundColour(EditableListBox._defaultBG)
 
@@ -226,11 +231,9 @@ class EditableListBox(wx.Panel):
             self.__scrollUp  .SetFont(self.__scrollUp  .GetFont().Smaller())
             self.__scrollDown.SetFont(self.__scrollDown.GetFont().Smaller())
 
-            self.__listSizerSizer.Add( self.__scrollUp,   flag=wx.EXPAND)
-            self.__listSizerSizer.Add( self.__listSizer,
-                                       flag=wx.EXPAND,
-                                       proportion=1)
-            self.__listSizerSizer.Add( self.__scrollDown, flag=wx.EXPAND)
+            self.__listSizerSizer.Insert(0, self.__scrollUp,   flag=wx.EXPAND)
+            self.__listSizerSizer.Insert(2, self.__scrollDown, flag=wx.EXPAND)
+            
             self.__scrollUp  .Enable(False)
             self.__scrollDown.Enable(False)
 
