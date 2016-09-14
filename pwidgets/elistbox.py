@@ -155,7 +155,9 @@ class EditableListBox(wx.Panel):
         if clientData is None: clientData = [None] * len(labels)
         if tooltips   is None: tooltips   = [None] * len(labels)
 
-        # index of the currently selected item
+        # index of the currently selected
+        # item, and the list of items
+        # (_ListItem instances).
         self.__selection  = wx.NOT_FOUND
         self.__listItems  = []
 
@@ -697,6 +699,12 @@ class EditableListBox(wx.Panel):
         if self.__tooltipDown: self.__configTooltipDown(item)
         else:                  self.__configTooltip(    item)
         self.__updateScrollbar()
+
+        # Make sure the enabled state of the
+        # new label/widget is consistent with
+        # the state of this elistbox.
+        container.Enable(self.IsEnabled())
+
         self.Refresh()
 
 
@@ -973,7 +981,20 @@ class EditableListBox(wx.Panel):
     def GetItemFont(self, n):
         """Returns the font for the item label at index ``n``."""
         li = self.__listItems[self.__fixIndex(n)]
-        return li.labelWidget.GetFont()        
+        return li.labelWidget.GetFont()
+
+
+    def Enable(self, enable=True):
+        """Enables/disables this ``EditableListBox`` and all of its children.
+        """
+        wx.Panel.Enable(self, enable)
+        for item in self.__listItems:
+            item.container.Enable(enable)
+
+
+    def Disable(self):
+        """Equivalent to ``Enable(False)``. """
+        self.Enable(False)
 
 
     def ApplyFilter(self, filterStr=None, ignoreCase=False):
