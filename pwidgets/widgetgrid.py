@@ -470,6 +470,60 @@ class WidgetGrid(wx.ScrolledWindow):
             
         self.__gridPanel.SetSizer(self.__gridSizer)
 
+
+    def DeleteRow(self, row):
+        """Removes the specified ``row`` from the grid, destroying all
+        widgets on that row.
+
+        .. note:: Make sure you reparent any widgets that you do not want
+                  destroyed before calling this method.
+        """
+        
+        if self.__gridSizer is None:
+            raise ValueError('No grid')
+        
+        if row < 0 or row >= self.__nrows:
+            raise ValueError('Invalid row index {}'.format(row))
+
+        log.debug('Deleting row {} (sizer indices {} - {})'.format(
+            row, 
+            (row + 1) * (self.__ncols + 1),
+            (row + 1) * (self.__ncols + 1) + self.__ncols))
+
+        # Remove from the grid
+        for col in reversed(range(self.__ncols + 1)):
+            self.__gridSizer.Detach((row + 1) * (self.__ncols + 1) + col)
+
+        # Update row/col references
+        # on all widgets/labels
+        for ri in range(row, self.__nrows):
+            for ci in range(self.__ncols):
+                self.__widgetRefs[ri][ci]._wg_row -= 1
+                self.__widgets[   ri][ci]._wg_row -= 1
+
+            self.__rowLabels[ri][0]._wg_row -= 1
+            self.__rowLabels[ri][1]._wg_row -= 1
+
+        # Destroy the widgets and the row label
+        for widget in self.__widgets[row]:
+            widget.Destroy()
+            
+        self.__rowLabels .pop(row)[0].Destroy()
+
+        # Remove references to them
+        self.__widgetRefs.pop(row)
+        self.__widgets   .pop(row)
+
+        # Update the grid
+        self.__nrows -= 1
+        self.__gridSizer.SetRows(self.__nrows + 1)
+
+        # Update selected widget if necessary
+        if self.__selected is not None:
+            srow, scol = self.__selected
+            if srow >= row:
+                self.SetSelection(srow - 1, scol)
+
     
     def ClearGrid(self):
         """Removes and destroys all widgets from the grid, and sets the grid
