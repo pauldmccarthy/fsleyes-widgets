@@ -34,7 +34,9 @@ class WidgetGrid(wx.ScrolledWindow):
 
         GetGridSize
         SetGridSize
-        Refresh 
+        Refresh
+        DeleteRow
+        InsertRow
         SetColours
         SetWidget
         SetText
@@ -541,10 +543,58 @@ class WidgetGrid(wx.ScrolledWindow):
         # Update selected widget if necessary
         if self.__selected is not None:
             srow, scol = self.__selected
-            if srow >= row:
+            if srow >= row and srow > 0:
                 self.SetSelection(srow - 1, scol)
 
-    
+
+    def InsertRow(self, row):
+        """Inserts a new row into the ``WidgetGrid`` at the specified ``row``
+        index. This method must be followed by a call to :meth:`Refresh`.
+        """
+
+        if self.__gridSizer is None:
+            raise ValueError('No grid')
+
+        if row < 0:
+            raise ValueError('Invalid row index {}'.format(row))
+
+        if row >= self.__nrows:
+            row = self.__nrows
+
+        log.debug('Inserting row at {}'.format(row))
+
+        # Add empty label/cell 
+        # values for the new row
+        self.__rowLabels .insert(row,  None)
+        self.__widgets   .insert(row, [None] * self.__ncols)
+        self.__widgetRefs.insert(row, [None] * self.__ncols)
+
+        # Update the grid
+        self.__nrows += 1
+        self.__gridSizer.SetRows(self.__nrows + 1)
+
+        # Initialise the contents
+        # of the new row
+        self.__initRowLabel(row)
+        for col in range(self.__ncols):
+            self.__initCell(row, col)
+
+        # update row/col indices
+        for ri in range(row + 1, self.__nrows):
+            for ci in range(self.__ncols):
+                self.__widgetRefs[ri][ci]._wg_row += 1
+                self.__widgets[   ri][ci]._wg_row += 1
+
+            self.__rowLabels[ri][0]._wg_row += 1
+            self.__rowLabels[ri][1]._wg_row += 1 
+
+        # Update selected widget if necessary
+        if self.__selected is not None:
+            srow, scol = self.__selected
+            if srow >= row and srow < self.__nrows - 1:
+                self.SetSelection(srow + 1, scol) 
+
+
     def ClearGrid(self):
         """Removes and destroys all widgets from the grid, and sets the grid
         size to ``(0, 0)``. The :meth:`Refresh` method must be called
