@@ -562,6 +562,8 @@ class WidgetGrid(wx.ScrolledWindow):
             if   srow == row:             self.__selected = None
             elif srow > row and srow > 0: self.__selected = (srow - 1, scol)
 
+        self.FitInside()
+
 
     def InsertRow(self, row):
         """Inserts a new row into the ``WidgetGrid`` at the specified ``row``
