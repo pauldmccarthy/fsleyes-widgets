@@ -429,51 +429,71 @@ class WidgetGrid(wx.ScrolledWindow):
         for col in growCols:
             self.__gridSizer.AddGrowableCol(col + 1)
 
-        # We use empty wx.Panels as placeholders
-        # for empty grid cells
         self.__widgets    = [[None] * ncols for i in range(nrows)]
         self.__widgetRefs = [[None] * ncols for i in range(nrows)]
+        self.__rowLabels  =  [None] * nrows
+        self.__colLabels  =  [None] * ncols
+
         for rowi in range(nrows):
             for coli in range(ncols):
-                placeholder = wx.Panel(self.__gridPanel)
-                self.__widgets[   rowi][coli] = placeholder
-                self.__widgetRefs[rowi][coli] = placeholder
+                self.__initCell(rowi, coli)
 
-        for rowi in range(nrows):
-            panel = wx.Panel(self.__gridPanel)
-            sizer = wx.BoxSizer(wx.HORIZONTAL)
-            lbl   = wx.StaticText(
-                panel,
-                style=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-            
-            panel.SetSizer(sizer)
-            sizer.Add(lbl, flag=wx.CENTRE)
-
-            self.__initWidget(panel, rowi, -1)
-            self.__initWidget(lbl,   rowi, -1)
-            self.__rowLabels.append((panel, lbl))
-
-        for coli in range(ncols):
-
-            panel = wx.Panel(self.__gridPanel)
-            sizer = wx.BoxSizer(wx.HORIZONTAL)
-            lbl   = wx.StaticText(
-                panel,
-                style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ALIGN_CENTRE_VERTICAL)
-            
-            panel.SetSizer(sizer)
-            sizer.Add(lbl, flag=wx.CENTRE)
-
-            self.__initWidget(panel, -1, coli)
-            self.__initWidget(lbl,   -1, coli)
-            self.__colLabels.append((panel, lbl))
+        for rowi in range(nrows): self.__initRowLabel(rowi)
+        for coli in range(ncols): self.__initColLabel(coli)
             
         self.__gridPanel.SetSizer(self.__gridSizer)
 
 
+    def __initCell(self, row, col):
+        """Called by :meth:`SetGridSize` and :meth:`InsertRow`. Creates a
+        placeholder ``wx.Panel`` at the specified cell.
+        """
+        placeholder = wx.Panel(self.__gridPanel)
+        self.__widgets[   row][col] = placeholder
+        self.__widgetRefs[row][col] = placeholder 
+
+
+    def __initRowLabel(self, row):
+        """Called by :meth:`SetGridSize` and :meth:`InsertRow`. Creates a
+        label widget at the specified row.
+        """ 
+        panel = wx.Panel(self.__gridPanel)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        lbl   = wx.StaticText(
+            panel,
+            style=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+
+        panel.SetSizer(sizer)
+        sizer.Add(lbl, flag=wx.CENTRE)
+
+        self.__initWidget(panel, row, -1)
+        self.__initWidget(lbl,   row, -1)
+        self.__rowLabels[row] = (panel, lbl)
+
+
+    def __initColLabel(self, col):
+        """Called by :meth:`SetGridSize`. Creates a label widget at the
+        specified column
+        """ 
+        panel = wx.Panel(self.__gridPanel)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        lbl   = wx.StaticText(
+            panel,
+            style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ALIGN_CENTRE_VERTICAL)
+
+        panel.SetSizer(sizer)
+        sizer.Add(lbl, flag=wx.CENTRE)
+
+        self.__initWidget(panel, -1, col)
+        self.__initWidget(lbl,   -1, col)
+        self.__colLabels[col] = (panel, lbl)
+ 
+
     def DeleteRow(self, row):
         """Removes the specified ``row`` from the grid, destroying all
-        widgets on that row.
+        widgets on that row. This method does not need to be followed
+        by a call to :meth:`Refresh`, but a call to ``Layout`` may be
+        required.
 
         .. note:: Make sure you reparent any widgets that you do not want
                   destroyed before calling this method.
