@@ -489,6 +489,22 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__initWidget(panel, -1, col)
         self.__initWidget(lbl,   -1, col)
         self.__colLabels[col] = (panel, lbl)
+
+
+    def GetRow(self, widget):
+        """Returns the index of the row in which the given ``widget`` is
+        located, or ``-1`` if it is not in the ``WidgetGrid``.
+        """
+        try:    return widget._wg_row
+        except: return -1
+
+
+    def GetColumn(self, widget):
+        """Returns the index of the column in which the given ``widget`` is
+        located, or ``-1`` if it is not in the ``WidgetGrid``.
+        """ 
+        try:    return widget._wg_row
+        except: return -1 
  
 
     def DeleteRow(self, row):
@@ -543,8 +559,8 @@ class WidgetGrid(wx.ScrolledWindow):
         # Update selected widget if necessary
         if self.__selected is not None:
             srow, scol = self.__selected
-            if srow >= row and srow > 0:
-                self.SetSelection(srow - 1, scol)
+            if   srow == row:             self.__selected = None
+            elif srow > row and srow > 0: self.__selected = (srow - 1, scol)
 
 
     def InsertRow(self, row):
@@ -591,8 +607,9 @@ class WidgetGrid(wx.ScrolledWindow):
         # Update selected widget if necessary
         if self.__selected is not None:
             srow, scol = self.__selected
+
             if srow >= row and srow < self.__nrows - 1:
-                self.SetSelection(srow + 1, scol) 
+                self.__selected = (srow + 1, scol)
 
 
     def ClearGrid(self):
@@ -973,7 +990,7 @@ class WidgetGrid(wx.ScrolledWindow):
 
 
     def __select(self, row, col, selectType, select=True):
-        """Called by the :meth:`__onLeftDown` method. Sets the background
+        """Called by the :meth:`SetSelection` method. Sets the background
         colour of the specified row/column to the selection colour, or the
         default colour.
 
