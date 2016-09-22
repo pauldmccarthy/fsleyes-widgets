@@ -624,6 +624,12 @@ class TextTagPanel(wx.Panel):
         if not self.__allowNewTags and tag not in self.__allTags:
             log.debug('New tag {} ignored (allowNewTags is False)'.format(tag))
             return
+
+        # If we don't care about case, and
+        # this is a known option, use the
+        # 'display' version of the tag. 
+        if not self.__caseSensitive:
+            tag = self.__tagDisplays.get(tag.lower(), tag)
         
         log.debug('New tag from text control: {}'.format(tag))
 
