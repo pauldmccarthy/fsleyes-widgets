@@ -39,7 +39,7 @@ class ColourButton(wx.Button):
         """
 
         if size   is None: size   = (32, 32)
-        if colour is None: colour = (0, 0, 0)
+        if colour is None: colour = (0, 0, 0, 255)
 
         # BU_NOTEXT causes crash under OSX
         if wx.Platform == '__WXMAC__': style = wx.BU_EXACTFIT
@@ -55,27 +55,26 @@ class ColourButton(wx.Button):
         self.__size = size
         self.__bmp  = None
 
-        if colour is None:
-            colour = (0, 0, 0)
-
         self.Bind(wx.EVT_BUTTON, self.__onClick)
 
         self.SetValue(colour)
 
 
     def GetValue(self):
-        """Return the current colour, as a tuple of ``(r, g, b)`` values, each
-        in the range ``[0 - 255]``.
+        """Return the current colour, as a tuple of ``(r, g, b, a)`` values,
+        each in the range ``[0 - 255]``.
         """
         return self.__colour
 
     
     def SetValue(self, colour):
         """Sets the current colour to the specified ``colour``."""
-        
-        if len(colour) != 3 or \
-           any([v < 0 or v > 255 for v in colour]):
-            raise ValueError('Invalid RGB colour: {}'.format(colour))
+
+        if len(colour) == 3:
+            colour = list(colour) + [255]
+
+        if any([v < 0 or v > 255 for v in colour]):
+            raise ValueError('Invalid RGBA colour: {}'.format(colour))
 
         self.__updateBitmap(colour)
         self.__colour = colour
@@ -89,12 +88,12 @@ class ColourButton(wx.Button):
         import numpy as np
         
         w, h = self.__size
-        data = np.zeros((w, h, 3), dtype=np.uint8)
+        data = np.zeros((w, h, 4), dtype=np.uint8)
 
         data[:, :] = colour
 
-        if six.PY2: self.__bmp = wx.BitmapFromBuffer( w, h, data)
-        else:       self.__bmp = wx.Bitmap.FromBuffer(w, h, data) 
+        if six.PY2: self.__bmp = wx.BitmapFromBufferRGBA( w, h, data)
+        else:       self.__bmp = wx.Bitmap.FromBufferRGBA(w, h, data) 
 
         self.SetBitmap(self.__bmp)
 
@@ -115,8 +114,12 @@ class ColourButton(wx.Button):
             return
 
         newColour = dlg.GetColourData().GetColour()
+        newColour = [newColour.Red(),
+                     newColour.Green(),
+                     newColour.Blue(),
+                     newColour.Alpha()]
 
-        self.SetValue(newColour[:3])
+        self.SetValue(newColour)
         
         wx.PostEvent(self, ColourButtonEvent(colour=newColour))
 
