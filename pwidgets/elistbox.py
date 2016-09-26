@@ -1048,7 +1048,8 @@ class EditableListBox(wx.Panel):
         :meth:`__onKeyboard` event.
 
         :arg ev:     A :class:`wx.MouseEvent`.
-        :arg widget: The widget on which to simulate a mouse click.
+        :arg widget: The widget on which to simulate a mouse click. Must
+                     be provided when called programmatically.
         """
 
         # Give focus to the top level  panel,
@@ -1056,7 +1057,6 @@ class EditableListBox(wx.Panel):
         self.SetFocusIgnoringChildren()
 
         if ev is not None:
-            ev.Skip()
             widget = ev.GetEventObject()
 
         itemIdx = -1
