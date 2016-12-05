@@ -99,6 +99,11 @@ class RangePanel(wx.Panel):
         if highValue   is None: highValue   = 100
         if minDistance is None: minDistance = 0
 
+        minValue  = float(minValue)
+        maxValue  = float(maxValue)
+        lowValue  = float(lowValue)
+        highValue = float(highValue)
+        
         self.__nolimit     = style & RP_NO_LIMIT
         self.__minDistance = minDistance
         self.__centreVal   = None
@@ -495,7 +500,12 @@ class RangeSliderSpinPanel(wx.Panel):
         if maxValue    is None: maxValue    = 1
         if lowValue    is None: lowValue    = 0
         if highValue   is None: highValue   = 1
-        if minDistance is None: minDistance = 0.01 
+        if minDistance is None: minDistance = 0.01
+
+        lowValue  = float(lowValue)
+        highValue = float(highValue)
+        minValue  = float(minValue)
+        maxValue  = float(maxValue)
         
         if not showLimits:
             editLimits = False
