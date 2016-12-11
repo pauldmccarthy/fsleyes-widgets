@@ -308,7 +308,8 @@ class SliderSpinPanel(wx.Panel):
                        containing the given label.
         
         :arg style:    A combination of :data:`SSP_SHOW_LIMITS`,
-                       :data:`SSP_EDIT_LIMITS`, :data:`SSP_MOUSEWHEEL` and
+                       :data:`SSP_EDIT_LIMITS`, :data:`SSP_NO_LIMITS`,
+                       :data:`SSP_MOUSEWHEEL` and
                        :data:`SSP_INTEGER`. Defaults to
                        :data:`SSP_SHOW_LIMITS`.
         """
@@ -319,6 +320,7 @@ class SliderSpinPanel(wx.Panel):
 
         showLimits = style & SSP_SHOW_LIMITS
         editLimits = style & SSP_EDIT_LIMITS
+        noLimits   = style & SSP_NO_LIMITS
         integer    = style & SSP_INTEGER
         mousewheel = style & SSP_MOUSEWHEEL
 
@@ -336,6 +338,9 @@ class SliderSpinPanel(wx.Panel):
 
         spinStyle   = 0
         sliderStyle = 0
+
+        if noLimits:
+            spinStyle |= floatspin.FSC_NO_LIMIT
         
         if mousewheel:
             spinStyle   |= floatspin.FSC_MOUSEWHEEL
@@ -472,7 +477,6 @@ class SliderSpinPanel(wx.Panel):
         Updates the slider value and emits an :data:`EVT_SSP_VALUE` event.
         """
         val = self.__spinbox.GetValue()
-        
         self.__slider.SetValue(val)
         wx.PostEvent(self, SliderSpinValueEvent(value=val))
 
@@ -496,7 +500,11 @@ class SliderSpinPanel(wx.Panel):
         
     def GetValue(self):
         """Returns the current slider/spinbox value. """
-        return self.__slider.GetValue()
+
+        # If SSP_NO_LIMITS is set, the slider might 
+        # return a value limited to the min/max, but
+        # the spinbox will return an unlimited value.
+        return self.__spinbox.GetValue()
 
         
     def SetRange(self, minValue, maxValue):
@@ -588,4 +596,10 @@ value.
 SSP_INTEGER = 8
 """If set, the ``SliderSpinPanel`` will store an integer value instead of
 floating point value.
+"""
+
+
+SSP_NO_LIMITS = 16
+"""If set, the user is able to enter values outside of the range into the
+spin controls.
 """
