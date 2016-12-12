@@ -726,6 +726,7 @@ class EditableListBox(wx.Panel):
             def mouseOver(ev):
                 if listItem.tooltip is not None:
                     listItem.labelWidget.SetLabel(listItem.tooltip)
+
             def mouseOut(ev):
                 listItem.labelWidget.SetLabel(listItem.label)
 
@@ -1153,13 +1154,32 @@ class EditableListBox(wx.Panel):
     def __removeItem(self, ev):
         """Called when the *remove item* button is pushed.
         
-        Removes the selected item from the list, and posts an
-        :data:`EVT_ELB_REMOVE_EVENT`.
+        Posts an :data:`EVT_ELB_REMOVE_EVENT` and removes the
+        selected item from the list.
+
+        Event listeners may call ``Veto()`` on the event object to cancel
+        the removal.
         """
 
         idx, label, data = self.__getSelection(True)
 
         if idx is None: return
+
+        ev = ListRemoveEvent(idx=idx, label=label, data=data)
+
+        log.debug('ListRemoveEvent (idx: {}; label: {})'.format(
+            idx, label))
+
+        # We use ProcessEvent instead of wx.PostEvent,
+        # because the latter processes the event
+        # asynchronously, and we need to check whether
+        # the event handler vetoed the event.
+        self.GetEventHandler().ProcessEvent(ev)
+        
+        if ev.GetVeto():
+            log.debug('ListRemoveEvent vetoed (idx: {}; label: {})'.format(
+                idx, label)) 
+            return
 
         self.Delete(idx)
 
@@ -1168,12 +1188,6 @@ class EditableListBox(wx.Panel):
                 self.SetSelection(idx - 1)
             else:
                 self.SetSelection(idx)
-
-        log.debug('ListRemoveEvent (idx: {}; label: {})'.format(idx, label)) 
-
-        ev = ListRemoveEvent(idx=idx, label=label, data=data)
-        
-        wx.PostEvent(self, ev)
 
 
     def __onEdit(self, ev, listItem):
@@ -1391,7 +1405,20 @@ ListRemoveEvent = _ListRemoveEvent
 - ``idx``:   Index of removed item
 - ``label``: Label of removed item
 - ``data``:  Client data associated with removed item
+
+An event handler can call ``ListRemoveEvent.Veto()`` to cancel
+the item removal.
 """
+
+def Veto(self):
+    self._vetoed = True
+
+def GetVeto(self):
+    return getattr(self, '_vetoed', False)
+
+
+ListRemoveEvent.Veto    = Veto
+ListRemoveEvent.GetVeto = GetVeto
 
 
 ListMoveEvent = _ListMoveEvent
