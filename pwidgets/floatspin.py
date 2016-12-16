@@ -11,6 +11,7 @@ modifying a floating point value.
 
 
 import re
+import time
 import logging
 
 import                    six
@@ -82,6 +83,25 @@ class FloatSpinCtrl(FloatSpinBase):
         self.__realMin   = float(minValue)
         self.__realMax   = float(maxValue)
         self.__realRange = abs(self.__realMax - self.__realMin)
+
+        # On Linux/GTK, the wx.SpinButton is badly
+        # behaved - if, while clicking on the mouse
+        # button, the user moves the mouse even a
+        # tiny bit, more than one spin event will
+        # be generated. To work around this (without
+        # having to write my own wx.SpinButton
+        # implementation), I am throttling the
+        # maximum rate at which events received
+        # from the spin button can be processed. This
+        # is implemented in the __onSpinDown and
+        # __onSpinUp methods.
+        #
+        # This has the side effect that if the user
+        # clicks and holds on the spin button, they
+        # have to wait <delta> seconds between
+        # increments/decrements.
+        self.__lastEvent  = time.time()
+        self.__eventDelta = 0.5
 
         # We use the full signed 32 bit integer
         # range offered by the wx.SpinButton class.
@@ -364,6 +384,17 @@ class FloatSpinCtrl(FloatSpinBase):
         :data:`FloatSpinEvent`.
         """
 
+        # See comments in __init__
+        if ev is not None:
+
+            lastEv = self.__lastEvent
+            thisEv = time.time()
+
+            if thisEv - lastEv < self.__eventDelta:
+                return
+
+            self.__lastEvent = thisEv
+
         log.debug('Spin down button - attempting to change value '
                   'from {} to {}'.format(self.__value,
                                          self.__value - self.__increment))
@@ -378,6 +409,15 @@ class FloatSpinCtrl(FloatSpinBase):
         Increments the value by the current increment and generates a
         :data:`FloatSpinEvent`.
         """
+
+        # See comments in __init__
+        if ev is not None:
+            lastEv = self.__lastEvent
+            thisEv = time.time()
+
+            if thisEv - lastEv < self.__eventDelta:
+                return
+            self.__lastEvent = thisEv 
 
         log.debug('Spin up button - attempting to change value '
                   'from {} to {}'.format(self.__value,
