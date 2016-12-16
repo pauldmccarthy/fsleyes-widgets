@@ -258,9 +258,6 @@ class FloatSpinCtrl(FloatSpinBase):
         if self.__integer:
             minval = int(round(minval))
             maxval = int(round(maxval))
-            inc    = 1
-        else:
-            inc = (maxval - minval) / 100.0
 
         if minval >= maxval:
             maxval = minval + 1
@@ -268,7 +265,6 @@ class FloatSpinCtrl(FloatSpinBase):
         self.__realMin   = float(minval)
         self.__realMax   = float(maxval)
         self.__realRange = abs(self.__realMax - self.__realMin)
-        self.__increment = inc
 
         self.SetValue(self.__value)
 
