@@ -315,7 +315,7 @@ class SliderSpinPanel(wx.Panel):
                        :data:`SSP_SHOW_LIMITS`.
 
         :arg spinWidth: Desired spin control width in characters. See the
-                        :class:`.FloatSpin` class.
+                        :class:`.FloatSpinCtrl` class.
         """
 
         wx.Panel.__init__(self, parent, style=0)

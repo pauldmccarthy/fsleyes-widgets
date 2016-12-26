@@ -59,6 +59,7 @@ class RangePanel(wx.Panel):
                  lowLabel=None,
                  highLabel=None,
                  minDistance=None,
+                 spinWidth=None,
                  style=0):
         """Create a :class:`RangePanel`.
         
@@ -82,6 +83,9 @@ class RangePanel(wx.Panel):
         
         :arg minDistance: Minimum distance to be maintained between
                           low/high values.
+
+        :arg spinWidth:   Desired spin control width. See the
+                          :class:`.FloatSpinCtrl` class.
 
         :arg style:       A combination of :data:`RP_MOUSEWHEEL`,
                           :data:`RP_INTEGER`, :data:`RP_SLIDER`, and
@@ -131,8 +135,12 @@ class RangePanel(wx.Panel):
             if style & RP_INTEGER:    widgStyle |= floatspin.FSC_INTEGER
             if style & RP_NO_LIMIT:   widgStyle |= floatspin.FSC_NO_LIMIT
             
-            self.__lowWidget  = floatspin.FloatSpinCtrl(self, style=widgStyle)
-            self.__highWidget = floatspin.FloatSpinCtrl(self, style=widgStyle)
+            self.__lowWidget  = floatspin.FloatSpinCtrl(self,
+                                                        style=widgStyle,
+                                                        width=spinWidth)
+            self.__highWidget = floatspin.FloatSpinCtrl(self,
+                                                        style=widgStyle,
+                                                        width=spinWidth)
 
             self.__lowWidget .Bind(floatspin.EVT_FLOATSPIN,
                                    self.__onLowChange)
@@ -455,6 +463,7 @@ class RangeSliderSpinPanel(wx.Panel):
                  minDistance=None,
                  lowLabel=None,
                  highLabel=None,
+                 spinWidth=None,
                  style=None):
         """Create a :class:`RangeSliderSpinPanel`.
         
@@ -478,6 +487,9 @@ class RangeSliderSpinPanel(wx.Panel):
         :arg highLabel:   If not ``None``, a :class:`wx.StaticText` widget is
                           placed to the left of the high slider, containing
                           the label.
+        
+        :arg spinWidth:   Desired spin control width. See the
+                          :class:`.FloatSpinCtrl` class. 
 
         :arg style:       A combination of :data:`RSSP_INTEGER`,
                           :data:`RSSP_MOUSEWHEEL`, :data:`RSSP_SHOW_LIMITS`,
@@ -533,11 +545,13 @@ class RangeSliderSpinPanel(wx.Panel):
             self,
             lowLabel=lowLabel,
             highLabel=highLabel,
+            spinWidth=spinWidth,
             style=style | RP_SLIDER,
             **params)
         self.__spinPanel = RangePanel(
             self,
             style=style,
+            spinWidth=spinWidth,
             **params)
         
         self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
