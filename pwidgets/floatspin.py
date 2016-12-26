@@ -48,7 +48,8 @@ class FloatSpinCtrl(FloatSpinBase):
                  maxValue=100,
                  increment=1,
                  value=0,
-                 style=0):
+                 style=0,
+                 width=None):
         """Create a ``FloatSpinCtrl``.
 
         The following style flags are available:
@@ -70,6 +71,9 @@ class FloatSpinCtrl(FloatSpinBase):
 
         :arg style:     Style flags - a combination of :data:`FSC_MOUSEWHEEL`,
                         :data:`FSC_INTEGER`, and :data:`FSC_NO_LIMIT`.
+
+        :arg width:     If provided, desired text control width (in
+                        characters).
         """
         FloatSpinBase.__init__(self, parent)
 
@@ -130,6 +134,11 @@ class FloatSpinCtrl(FloatSpinBase):
                                     style=wx.SP_VERTICAL | wx.SP_ARROW_KEYS)
 
         self.__spin.SetRange(self.__realSpinMin, self.__realSpinMax)
+
+        if width is not None:
+            width = self.__text.GetTextExtent('0' * width)[0]
+            self.__text.SetMinSize((width + 10, -1))
+            self.__text.SetMaxSize((width + 10, -1))
 
         if self.__integer:
             self.__format      = '{:d}'

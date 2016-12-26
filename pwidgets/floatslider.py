@@ -284,7 +284,8 @@ class SliderSpinPanel(wx.Panel):
                  minValue=None,
                  maxValue=None,
                  label=None,
-                 style=None):
+                 style=None,
+                 spinWidth=None):
         """Create a ``SliderSpinPanel``.
 
         The following style flags are available:
@@ -312,6 +313,9 @@ class SliderSpinPanel(wx.Panel):
                        :data:`SSP_MOUSEWHEEL` and
                        :data:`SSP_INTEGER`. Defaults to
                        :data:`SSP_SHOW_LIMITS`.
+
+        :arg spinWidth: Desired spin control width in characters. See the
+                        :class:`.FloatSpin` class.
         """
 
         wx.Panel.__init__(self, parent, style=0)
@@ -366,7 +370,8 @@ class SliderSpinPanel(wx.Panel):
             minValue=minValue,
             maxValue=maxValue,
             increment=increment,
-            style=spinStyle)
+            style=spinStyle,
+            width=spinWidth)
                                                 
         self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.__sizer)
