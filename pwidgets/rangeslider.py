@@ -19,6 +19,8 @@ import logging
 import wx
 import wx.lib.newevent as wxevent
 
+import numpy as np
+
 from . import floatspin
 from . import floatslider
 from . import numberdialog
@@ -38,7 +40,13 @@ class RangePanel(wx.Panel):
     minimum value above the low value. The inverse relationship is also
     enforced. Whenever the user chenges the *low* or *high* range values,
     :data:`EVT_LOW_RANGE` or :data:`EVT_HIGH_RANGE`  events are generated
-    respectively. 
+    respectively.
+
+
+    A situation may arise whereby a change to one limit will affect the other
+    (see e.g. the :meth:`CentreAt` method). When this occurs, an
+    :data:`EVT_RANGE` event is generated. So you may need to listen for
+    all three types of event.
     
 
     The following style flags are available:
@@ -235,8 +243,9 @@ class RangePanel(wx.Panel):
         # Or if the low value has moved
         # too close to the high value
         elif highValue <= (lowValue + minDist):
-            highChanged = True 
-            highValue   = lowValue + minDist
+            newHigh     = lowValue + minDist
+            highChanged = not np.isclose(highValue, newHigh)
+            highValue   = newHigh
             
         self.SetRange(lowValue, highValue)
 
@@ -286,8 +295,9 @@ class RangePanel(wx.Panel):
         # Or if the high value has moved
         # too close to the high value
         elif lowValue >= (highValue - minDist):
-            lowChanged = True 
-            lowValue   = highValue - minDist
+            newLow     = highValue - minDist
+            lowChanged = not np.isclose(lowValue, newLow)
+            lowValue   = newLow
 
         self.SetRange(lowValue, highValue) 
 
@@ -431,9 +441,9 @@ class RangeSliderSpinPanel(wx.Panel):
     user to modify said limits.
 
     
-    The ``RangeSliderSpinPanel`` generates a :data:`RangeEvent` when the
-    user edits the *low*/*high* range values,  and a :data:`RangeLimitEvent`
-    when the user edits the range limits.
+    The ``RangeSliderSpinPanel`` forwards events from the :class:`RangePanel`
+    instances when the user edits the *low*/*high* range values, and
+    generates a :data:`RangeLimitEvent` when the user edits the range limits.
 
     
     The following style flags are available:
@@ -619,9 +629,9 @@ class RangeSliderSpinPanel(wx.Panel):
         
         
     def __onRangeChange(self, ev):
-        """Called by :meth:`__onLowRangeChange` and :meth:`onHighRangeChange`.
-        Syncs the change between the sliders and spinboxes, and emits
-        a :data:`RangeEvent`.
+        """Called when the user edits the limits on either the slider or
+        spinboxes. Syncs the change between the sliders and spinboxes, and
+        re-posts the event.
         """
 
         source = ev.GetEventObject()
