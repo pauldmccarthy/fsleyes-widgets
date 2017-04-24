@@ -1,4 +1,9 @@
 *.pyc
 .projectile
 .dir-locals.el
+.cache
+.coverage
+.eggs
+fsleyes_widgets.egg-info
+htmlcov
 doc/html
