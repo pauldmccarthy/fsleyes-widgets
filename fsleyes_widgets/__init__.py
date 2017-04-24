@@ -4,11 +4,11 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""The ``fsleyes-widgets`` package contains various custom :mod:`wx` widgets
+"""The ``fsleyes_widgets`` package contains various custom :mod:`wx` widgets
 and utilities used by FSLeyes. 
 
 
-Some of the controls in ``fsleyes-widgets`` are duplicates of controls which
+Some of the controls in ``fsleyes_widgets`` are duplicates of controls which
 are already available in ``wx`` or ``wx.lib.agw``. In these instances, I wrote
 my own implementations to work around annoying, quirky, and/or downright buggy
 behaviour in the existing controls.

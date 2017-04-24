@@ -17,7 +17,6 @@ classes, and a couple of associated convenience functions.
    RunPanel
    ProcessManager
    run
-   checkAndRun
 """
 
 import os
@@ -264,51 +263,3 @@ def run(name, cmd, parent, onFinish=None, modal=True):
     frame.Layout()
     if modal: frame.ShowModal()
     else:     frame.Show()
- 
-
-def checkAndRun(name,
-                opts,
-                parent,
-                cmdFunc,
-                optLabels={},
-                modal=True,
-                onFinish=None):
-    """Validates the given options. If invalid, a dialog is shown,
-    informing the user about the errors. Otherwise, the tool is
-    executed, and its output shown in a dialog window. Parameters:
-    
-    
-    :arg opts:      A :class:`props.HasProperties` object to be
-                    validated.
-    
-    :arg cmdFunc:   Function which takes a :class:`props.HasProperties`
-                    object, and returns a command to be executed (as a 
-                    list of strings), which will be passed to the :func:`run`
-                    function.
-    
-    :arg optLabels: Dictionary containing property ``{name : label}`` mappings.
-                    Used in the error dialog, if any options are invalid.
-
-    See :func:`run` for details on the other arguments.
-    """
-
-    errors = opts.validateAll()
-
-    if len(errors) > 0:
-
-        msg = 'There are numerous errors which need '\
-              'to be fixed before {} can be run:\n'.format(name)
-
-        for opt, error in errors:
-            
-            if opt in optLabels: name = optLabels[opt]
-            msg = msg + '\n - {}: {}'.format(opt, error)
-
-        wx.MessageDialog(
-            parent,
-            message=msg,
-            style=wx.OK | wx.ICON_ERROR).ShowModal()
-        
-    else:
-        cmd = cmdFunc(opts)
-        run(name, cmd, parent, onFinish, modal)
