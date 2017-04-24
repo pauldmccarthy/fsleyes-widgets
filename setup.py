@@ -26,7 +26,7 @@ basedir = op.dirname(__file__)
 install_requires = open(op.join(basedir, 'requirements.txt'), 'rt').readlines()
 
 packages = find_packages(
-    exclude=('doc', 'tests', 'dist', 'build', 'fsleyes-widgets.egg-info'))
+    exclude=('doc', 'tests', 'dist', 'build', 'fsleyes_widgets.egg-info'))
 
 # Extract the vesrion number from fsleyes_widgets/__init__.py
 version = {}
@@ -101,5 +101,8 @@ setup(
         'doc' : doc
     },
 
-    install_requires=install_requires
+    install_requires=install_requires,
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest', 'mock', 'pytest-cov', 'pytest-runner'],
+    test_suite='tests',
 )
