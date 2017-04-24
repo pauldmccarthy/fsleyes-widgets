@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.bitmapradio module
-===========================
+fsleyes_widgets.bitmapradio module
+==================================
 
-.. automodule:: pwidgets.bitmapradio
+.. automodule:: fsleyes_widgets.bitmapradio
     :members:
     :undoc-members:
     :show-inheritance:

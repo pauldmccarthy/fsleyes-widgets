@@ -1,9 +1,9 @@
 :orphan:
 
-pwidgets.widgetlist module
-==========================
+fsleyes_widgets.widgetlist module
+=================================
 
-.. automodule:: pwidgets.widgetlist
+.. automodule:: fsleyes_widgets.widgetlist
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.floatspin module
-=========================
+fsleyes_widgets.floatspin module
+================================
 
-.. automodule:: pwidgets.floatspin
+.. automodule:: fsleyes_widgets.floatspin
     :members:
     :undoc-members:
     :show-inheritance:

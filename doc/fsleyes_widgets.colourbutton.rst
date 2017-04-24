@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.colourbutton module
-============================
+fsleyes_widgets.colourbutton module
+===================================
 
-.. automodule:: pwidgets.colourbutton
+.. automodule:: fsleyes_widgets.colourbutton
     :members:
     :undoc-members:
     :show-inheritance:

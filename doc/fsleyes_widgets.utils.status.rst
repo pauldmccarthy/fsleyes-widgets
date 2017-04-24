@@ -1,9 +1,9 @@
 :orphan:
 
-fsl.utils.status module
-=======================
+fsleyes_widgets.utils.status module
+===================================
 
-.. automodule:: fsl.utils.status
+.. automodule:: fsleyes_widgets.utils.status
     :members:
     :undoc-members:
     :show-inheritance:

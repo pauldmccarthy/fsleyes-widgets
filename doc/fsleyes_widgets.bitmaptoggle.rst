@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.bitmaptoggle module
-============================
+fsleyes_widgets.bitmaptoggle module
+===================================
 
-.. automodule:: pwidgets.bitmaptoggle
+.. automodule:: fsleyes_widgets.bitmaptoggle
     :members:
     :undoc-members:
     :show-inheritance:

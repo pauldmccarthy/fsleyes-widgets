@@ -1,9 +1,9 @@
 :orphan:
-   
-pwidgets.rangeslider module
-===========================
+  
+fsleyes_widgets.rangeslider module
+==================================
 
-.. automodule:: pwidgets.rangeslider
+.. automodule:: fsleyes_widgets.rangeslider
     :members:
     :undoc-members:
     :show-inheritance:

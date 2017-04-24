@@ -1,9 +1,9 @@
 :orphan:
 
-fsl.utils.typedict module
-=========================
+fsleyes_widgets.utils.typedict module
+=====================================
 
-.. automodule:: fsl.utils.typedict
+.. automodule:: fsleyes_widgets.utils.typedict
     :members:
     :undoc-members:
     :show-inheritance:

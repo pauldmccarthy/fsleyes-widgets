@@ -1,9 +1,9 @@
 :orphan:
 
-fsl.utils.webpage module
-========================
+fsleyes_widgets.utils.webpage module
+====================================
 
-.. automodule:: fsl.utils.webpage
+.. automodule:: fsleyes_widgets.utils.webpage
     :members:
     :undoc-members:
     :show-inheritance:

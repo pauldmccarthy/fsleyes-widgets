@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.widgetgrid module
-==========================
+fsleyes_widgets.widgetgrid module
+=================================
 
-.. automodule:: pwidgets.widgetgrid
+.. automodule:: fsleyes_widgets.widgetgrid
     :members:
     :undoc-members:
     :show-inheritance:

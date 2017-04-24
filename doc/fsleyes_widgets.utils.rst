@@ -1,30 +1,18 @@
-fsl.utils package
-=================
+fsleyes_widgets.utils package
+=============================
 
 .. toctree::
    :hidden:
 
-   fsl.utils.async
-   fsl.utils.cache
-   fsl.utils.callfsl
-   fsl.utils.colourbarbitmap
-   fsl.utils.dialog
-   fsl.utils.imagepanel
-   fsl.utils.layout
-   fsl.utils.memoize
-   fsl.utils.notifier
-   fsl.utils.path
-   fsl.utils.platform
-   fsl.utils.runwindow
-   fsl.utils.settings
-   fsl.utils.status
-   fsl.utils.textbitmap
-   fsl.utils.transform
-   fsl.utils.typedict
-   fsl.utils.webpage
-   fsl.utils.weakfuncref
+   fsleyes_widgets.utils.colourbarbitmap
+   fsleyes_widgets.utils.layout
+   fsleyes_widgets.utils.runwindow
+   fsleyes_widgets.utils.status
+   fsleyes_widgets.utils.textbitmap
+   fsleyes_widgets.utils.typedict
+   fsleyes_widgets.utils.webpage
 
-.. automodule:: fsl.utils
+.. automodule:: fsleyes_widgets.utils
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.placeholder_textctrl module
-====================================
+fsleyes_widgets.placeholder_textctrl module
+===========================================
 
-.. automodule:: pwidgets.placeholder_textctrl
+.. automodule:: fsleyes_widgets.placeholder_textctrl
     :members:
     :undoc-members:
     :show-inheritance:

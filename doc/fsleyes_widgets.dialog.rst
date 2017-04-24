@@ -1,9 +1,9 @@
 :orphan:
 
-fsl.utils.dialog module
-=======================
+fsleyes_widgets.dialog module
+=============================
 
-.. automodule:: fsl.utils.dialog
+.. automodule:: fsleyes_widgets.dialog
     :members:
     :undoc-members:
     :show-inheritance:

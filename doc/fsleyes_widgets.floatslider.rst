@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.floatslider module
-===========================
+fsleyes_widgets.floatslider module
+==================================
 
-.. automodule:: pwidgets.floatslider
+.. automodule:: fsleyes_widgets.floatslider
     :members:
     :undoc-members:
     :show-inheritance:

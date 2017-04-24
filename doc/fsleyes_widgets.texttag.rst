@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.texttag module
-=======================
+fsleyes_widgets.texttag module
+==============================
 
-.. automodule:: pwidgets.texttag
+.. automodule:: fsleyes_widgets.texttag
     :members:
     :undoc-members:
     :show-inheritance:

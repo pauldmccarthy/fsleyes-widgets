@@ -1,9 +1,9 @@
 :orphan:
 
-fsl.utils.imagepanel module
-===========================
+fsleyes_widgets.imagepanel module
+=================================
 
-.. automodule:: fsl.utils.imagepanel
+.. automodule:: fsleyes_widgets.imagepanel
     :members:
     :undoc-members:
     :show-inheritance:

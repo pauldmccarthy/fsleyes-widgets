@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.elistbox module
-========================
+fsleyes_widgets.elistbox module
+===============================
 
-.. automodule:: pwidgets.elistbox
+.. automodule:: fsleyes_widgets.elistbox
     :members:
     :undoc-members:
     :show-inheritance:

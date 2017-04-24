@@ -1,26 +1,28 @@
-pwidgets package
-================
+fsleyes_widgets package
+=======================
 
 .. toctree::
    :hidden:
 
-   pwidgets.autotextctrl
-   pwidgets.bitmapradio
-   pwidgets.bitmaptoggle
-   pwidgets.colourbutton
-   pwidgets.elistbox
-   pwidgets.floatslider
-   pwidgets.floatspin
-   pwidgets.notebook
-   pwidgets.numberdialog
-   pwidgets.placeholder_textctrl
-   pwidgets.rangeslider
-   pwidgets.textpanel
-   pwidgets.texttag
-   pwidgets.widgetgrid
-   pwidgets.widgetlist
+   fsleyes_widgets.autotextctrl
+   fsleyes_widgets.bitmapradio
+   fsleyes_widgets.bitmaptoggle
+   fsleyes_widgets.colourbutton
+   fsleyes_widgets.dialog
+   fsleyes_widgets.elistbox
+   fsleyes_widgets.floatslider
+   fsleyes_widgets.floatspin
+   fsleyes_widgets.imagepanel
+   fsleyes_widgets.notebook
+   fsleyes_widgets.numberdialog
+   fsleyes_widgets.placeholder_textctrl
+   fsleyes_widgets.rangeslider
+   fsleyes_widgets.textpanel
+   fsleyes_widgets.texttag
+   fsleyes_widgets.widgetgrid
+   fsleyes_widgets.widgetlist
 
-.. automodule:: pwidgets
+.. automodule:: fsleyes_widgets
     :members:
     :undoc-members:
     :show-inheritance:

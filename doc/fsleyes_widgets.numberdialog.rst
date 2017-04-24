@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.numberdialog module
-============================
+fsleyes_widgets.numberdialog module
+===================================
 
-.. automodule:: pwidgets.numberdialog
+.. automodule:: fsleyes_widgets.numberdialog
     :members:
     :undoc-members:
     :show-inheritance:

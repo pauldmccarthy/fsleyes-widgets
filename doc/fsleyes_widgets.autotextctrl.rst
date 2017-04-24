@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.autotextctrl module
-============================
+fsleyes_widgets.autotextctrl module
+===================================
 
-.. automodule:: pwidgets.autotextctrl
+.. automodule:: fsleyes_widgets.autotextctrl
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,9 +1,9 @@
 :orphan:
 
-fsl.utils.layout module
-=======================
+fsleyes_widgets.utils.layout module
+===================================
 
-.. automodule:: fsl.utils.layout
+.. automodule:: fsleyes_widgets.utils.layout
     :members:
     :undoc-members:
     :show-inheritance:

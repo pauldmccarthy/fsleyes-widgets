@@ -1,9 +1,9 @@
 :orphan:
    
-pwidgets.textpanel module
-=========================
+fsleyes_widgets.textpanel module
+================================
 
-.. automodule:: pwidgets.textpanel
+.. automodule:: fsleyes_widgets.textpanel
     :members:
     :undoc-members:
     :show-inheritance:

@@ -6,6 +6,7 @@
    :hidden:   
               
    fsleyes_widgets
+   fsleyes_widgets.utils
 
 
 The `fsleyes-widgets` package contains a collection of GUI widgets and

@@ -1,9 +1,9 @@
 :orphan:
 
-fsl.utils.colourbarbitmap module
-================================
+fsleyes_widgets.utils.colourbarbitmap module
+============================================
 
-.. automodule:: fsl.utils.colourbarbitmap
+.. automodule:: fsleyes_widgets.utils.colourbarbitmap
     :members:
     :undoc-members:
     :show-inheritance:

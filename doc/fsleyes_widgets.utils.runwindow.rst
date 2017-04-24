@@ -1,9 +1,9 @@
 :orphan:
 
-fsl.utils.runwindow module
-==========================
+fsleyes_widgets.utils.runwindow module
+======================================
 
-.. automodule:: fsl.utils.runwindow
+.. automodule:: fsleyes_widgets.utils.runwindow
     :members:
     :undoc-members:
     :show-inheritance:
