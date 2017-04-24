@@ -1,0 +1,4 @@
+*.pyc
+.projectile
+.dir-locals.el
+doc/html
