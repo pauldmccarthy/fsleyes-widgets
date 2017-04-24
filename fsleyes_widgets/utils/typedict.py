@@ -28,7 +28,7 @@ class TypeDict(object):
     
     Let's say we have a class with some properties::
 
-        import fsl.utils.typedict as td
+        import fsleyes_widgets.utils.typedict as td
 
         class Animal(object):
             isMammal = True

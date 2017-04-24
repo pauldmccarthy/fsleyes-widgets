@@ -36,7 +36,7 @@ class SimpleMessageDialog(wx.Dialog):
     message can be updated via the :meth:`SetMessage` method. As a simple
     usage example::
 
-        import fsl.utils.dialog as fsldlg
+        import fsleyes_widgets.dialog as fsldlg
         dlg = fsldlg.SimpleMessageDialog(message='Loading data ...')
 
         dlg.Show()
