@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 #
-# __init__.py - Custom wx widgets used by the props package.
+# __init__.py - fsleyes-widgets
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""The ``pwidgets`` (short for *props widgets*) package contains various
-custom :mod:`wx` widgets used by the :mod:`props` package.  None of the
-widgets defined in this package have any dependency on ``props`` - they are
-standalone controls which can be used in any application.
+"""The ``fsleyes-widgets`` package contains various custom :mod:`wx` widgets
+and utilities used by FSLeyes. 
 
 
-Some of the controls in ``pwidgets`` are duplicates of controls which are
-already available in ``wx`` or ``wx.lib.agw``. In these instances, I wrote my
-own implementations to work around annoying, quirky, and/or downright buggy
-behaviour in the existing controls. 
+Some of the controls in ``fsleyes-widgets`` are duplicates of controls which
+are already available in ``wx`` or ``wx.lib.agw``. In these instances, I wrote
+my own implementations to work around annoying, quirky, and/or downright buggy
+behaviour in the existing controls.
 """
+
+
+__version__ = '0.0.1'
