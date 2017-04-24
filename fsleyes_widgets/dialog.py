@@ -25,7 +25,10 @@ import            threading
 import            six
 import            wx
 
-from .platform import platform as fslplatform
+
+def isPhoenix():
+    wxv = wx.version()
+    return wxv[0] == '4'
 
 
 class SimpleMessageDialog(wx.Dialog):
@@ -461,7 +464,7 @@ class TextEditDialog(wx.Dialog):
             
             icon = wx.ArtProvider.GetMessageBoxIcon(icon)
 
-            if fslplatform.wxFlavour == fslplatform.WX_PHOENIX:
+            if isPhoenix():
                 bmp = wx.Bitmap()
             else:
                 bmp = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
@@ -654,12 +657,15 @@ class FSLDirDialog(wx.Dialog):
        :align: center
     """
 
-    def __init__(self, parent, toolName):
+    def __init__(self, parent, toolName, osxHint):
         """Create a ``FSLDirDialog``.
 
         :arg parent:   The :mod:`wx` parent object.
 
         :arg toolName: The name of the tool which is running.
+
+        :arg osxHint:  If ``True``, an OSX-specific hint is added to the
+                       dialog.
         """
 
         wx.Dialog.__init__(self, parent, title='$FSLDIR is not set')
@@ -672,10 +678,10 @@ class FSLDirDialog(wx.Dialog):
 
         icon = wx.ArtProvider.GetMessageBoxIcon(wx.ICON_EXCLAMATION)
 
-        if fslplatform.wxFlavour == fslplatform.WX_PYTHON:
-            bmp  = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
-        else:
+        if isPhoenix():
             bmp = wx.Bitmap()
+        else:
+            bmp  = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
             
         bmp.CopyFromIcon(icon)
 
@@ -705,7 +711,7 @@ class FSLDirDialog(wx.Dialog):
         # If running on OSX, add a message
         # telling the user about the
         # cmd+shift+g shortcut
-        if fslplatform.os == 'Darwin':
+        if osxHint:
 
             self.__hint = wx.StaticText(
                 self,
@@ -842,10 +848,10 @@ class CheckBoxMessageDialog(wx.Dialog):
             icon = wx.ArtProvider.GetMessageBoxIcon(icon) 
             self.__icon = wx.StaticBitmap(self)
 
-            if fslplatform.wxFlavour == fslplatform.WX_PYTHON:
-                bmp = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
-            else:
+            if isPhoenix():
                 bmp = wx.Bitmap()
+            else:
+                bmp = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
                 
             bmp.CopyFromIcon(icon)
             self.__icon.SetBitmap(bmp)

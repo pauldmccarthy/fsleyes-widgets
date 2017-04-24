@@ -8,21 +8,11 @@
 :class:`wx.Image`.
 """
 
-import logging
 
 import wx
 
-from fsl.utils.platform import platform as fslplatform
 
-
-log = logging.getLogger(__name__)
-
-
-if fslplatform.wxFlavour == fslplatform.WX_PHOENIX: ImagePanelBase = wx.Panel
-else:                                               ImagePanelBase = wx.PyPanel
-
-
-class ImagePanel(ImagePanelBase):
+class ImagePanel(wx.Panel):
     """A :class:`wx.Panel` which may be used to display a resizeable
     :class:`wx.Image`. The image is scaled to the size of the panel.
     """
@@ -38,7 +28,7 @@ class ImagePanel(ImagePanelBase):
         :arg image:  The :class:`wx.Image` object to display.
         """
 
-        ImagePanelBase.__init__(self, parent)
+        wx.Panel.__init__(self, parent)
 
         self.Bind(wx.EVT_PAINT, self.Draw)
         self.Bind(wx.EVT_SIZE,  self.__onSize)
