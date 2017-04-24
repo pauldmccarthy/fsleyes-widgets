@@ -8,7 +8,7 @@
 import itertools as it
 import pytest
 
-import fsl.utils.typedict as typedict
+import fsleyes_widgets.utils.typedict as typedict
 
 
 def test_create():
