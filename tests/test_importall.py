@@ -15,7 +15,8 @@ def test_importall():
 
     for _, module, _ in pkgutil.iter_modules(fwidgets.__path__,
                                              'fsleyes_widgets.'):
-        __import__(module) 
+        __import__(module)
+
     for _, module, _ in pkgutil.iter_modules(futils.__path__,
                                              'fsleyes_widgets.utils.'):
         __import__(module)

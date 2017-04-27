@@ -12,7 +12,7 @@ import fsleyes_widgets.utils.typedict as typedict
 
 
 def test_create():
-    
+
     td = typedict.TypeDict()
 
 
@@ -32,7 +32,7 @@ def test_create():
               ('a', 'c'),
               ('a',  0)]
     values = list(range(len(keys)))
-    
+
     td = typedict.TypeDict(        dict(zip(keys, values)))
     td = typedict.TypeDict(initial=dict(zip(keys, values)))
 
@@ -136,27 +136,27 @@ def test_class_hierarchy():
 
     a = A()
     b = B()
-    
+
     assert td[A, 'a'] == 'A.a'
     assert td[A, 'b'] == 'A.b'
     assert td[A, 'c'] == 'A.c'
     assert td[A, 'd'] == 'A.d'
-    
+
     assert td['A.a']  == 'A.a'
     assert td['A.b']  == 'A.b'
     assert td['A.c']  == 'A.c'
     assert td['A.d']  == 'A.d'
-    
+
     assert td.get((A, 'a')) == 'A.a'
     assert td.get((A, 'b')) == 'A.b'
     assert td.get((A, 'c')) == 'A.c'
-    assert td.get((A, 'd')) == 'A.d' 
-    
+    assert td.get((A, 'd')) == 'A.d'
+
     assert td.get((A, 'a'), allhits=True) == ['A.a']
     assert td.get((A, 'b'), allhits=True) == ['A.b']
     assert td.get((A, 'c'), allhits=True) == ['A.c']
     assert td.get((A, 'd'), allhits=True) == ['A.d']
-    
+
     assert td.get((a, 'a'), allhits=True) == ['A.a']
     assert td.get((a, 'b'), allhits=True) == ['A.b']
     assert td.get((a, 'c'), allhits=True) == ['A.c']
@@ -166,12 +166,12 @@ def test_class_hierarchy():
     assert td[B, 'b'] == 'B.b'
     assert td[B, '1'] == 'B.1'
     assert td[B, '2'] == 'B.2'
-    
+
     assert td['B.a']  == 'B.a'
     assert td['B.b']  == 'B.b'
     assert td['B.1']  == 'B.1'
     assert td['B.2']  == 'B.2'
-    
+
     assert td.get('B.a') == 'B.a'
     assert td.get('B.b') == 'B.b'
     assert td.get('B.1') == 'B.1'
@@ -194,19 +194,19 @@ def test_class_hierarchy():
     assert td[B, 'c'] == 'A.c'
     assert td[B, 'd'] == 'A.d'
     assert td[b, 'c'] == 'A.c'
-    assert td[b, 'd'] == 'A.d' 
-    
+    assert td[b, 'd'] == 'A.d'
+
     assert td.get('B.a',    allhits=True) == ['B.a']
     assert td.get('B.b',    allhits=True) == ['B.b']
     assert td.get('B.1',    allhits=True) == ['B.1']
-    assert td.get('B.2',    allhits=True) == ['B.2'] 
+    assert td.get('B.2',    allhits=True) == ['B.2']
     assert td.get((B, 'a'), allhits=True) == ['B.a', 'A.a']
     assert td.get((B, 'b'), allhits=True) == ['B.b', 'A.b']
     assert td.get((B, '1'), allhits=True) == ['B.1']
     assert td.get((B, '2'), allhits=True) == ['B.2']
     assert td.get((B, 'c'), allhits=True) == ['A.c']
-    assert td.get((B, 'd'), allhits=True) == ['A.d'] 
-    
+    assert td.get((B, 'd'), allhits=True) == ['A.d']
+
     assert td.get((b, 'a'), allhits=True) == ['B.a', 'A.a']
     assert td.get((b, 'b'), allhits=True) == ['B.b', 'A.b']
     assert td.get((b, '1'), allhits=True) == ['B.1']
@@ -217,7 +217,7 @@ def test_class_hierarchy():
     assert td.get((B, 'b'), allhits=False, bykey=True) == 'B.b'
     assert td.get((B, '1'), allhits=False, bykey=True) == 'B.1'
     assert td.get((B, '2'), allhits=False, bykey=True) == 'B.2'
-    
+
     assert td.get((B, 'a'), allhits=True,  bykey=True) == {('A', 'a') : 'A.a',
                                                            ('B', 'a') : 'B.a'}
     assert td.get((B, 'b'), allhits=True,  bykey=True) == {('A', 'b') : 'A.b',
@@ -225,8 +225,8 @@ def test_class_hierarchy():
     assert td.get((B, '1'), allhits=True,  bykey=True) == {('B', '1') : 'B.1'}
     assert td.get((B, '2'), allhits=True,  bykey=True) == {('B', '2') : 'B.2'}
     assert td.get((B, 'c'), allhits=True,  bykey=True) == {('A', 'c') : 'A.c'}
-    assert td.get((B, 'd'), allhits=True,  bykey=True) == {('A', 'd') : 'A.d'} 
-    
+    assert td.get((B, 'd'), allhits=True,  bykey=True) == {('A', 'd') : 'A.d'}
+
     assert td.get((b, 'a'), allhits=True,  bykey=True) == {('A', 'a') : 'A.a',
                                                            ('B', 'a') : 'B.a'}
     assert td.get((b, 'b'), allhits=True,  bykey=True) == {('A', 'b') : 'A.b',
@@ -234,9 +234,9 @@ def test_class_hierarchy():
     assert td.get((b, '1'), allhits=True,  bykey=True) == {('B', '1') : 'B.1'}
     assert td.get((b, '2'), allhits=True,  bykey=True) == {('B', '2') : 'B.2'}
     assert td.get((b, 'c'), allhits=True,  bykey=True) == {('A', 'c') : 'A.c'}
-    assert td.get((b, 'd'), allhits=True,  bykey=True) == {('A', 'd') : 'A.d'} 
-    
+    assert td.get((b, 'd'), allhits=True,  bykey=True) == {('A', 'd') : 'A.d'}
+
     assert td.get((A, 'a'), allhits=True,  bykey=True) == {('A', 'a') : 'A.a'}
     assert td.get((A, 'b'), allhits=True,  bykey=True) == {('A', 'b') : 'A.b'}
     assert td.get((A, 'c'), allhits=True,  bykey=True) == {('A', 'c') : 'A.c'}
-    assert td.get((A, 'd'), allhits=True,  bykey=True) == {('A', 'd') : 'A.d'} 
+    assert td.get((A, 'd'), allhits=True,  bykey=True) == {('A', 'd') : 'A.d'}
