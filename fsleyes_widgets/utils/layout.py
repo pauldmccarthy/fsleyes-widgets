@@ -415,8 +415,8 @@ def calcGridSizes(canvasaxes, bounds, width, height):
         return calcHorizontalSizes(canvasaxes, bounds, width, height)
 
     # Warn if axes are not aligned
-    if any((canvasaxes[0][0] != canvasaxes[1][0],
-            canvasaxes[0][1] != canvasaxes[2][1])):
+    if any((canvasaxes[0][1] != canvasaxes[1][1],
+            canvasaxes[0][0] != canvasaxes[2][0])):
         log.warning('Canvas axes are not aligned: {}'.format(canvasaxes))
 
     canvasWidths  = [bounds[c[0]] for c in canvasaxes]
