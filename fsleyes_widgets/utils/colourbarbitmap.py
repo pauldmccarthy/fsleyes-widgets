@@ -29,7 +29,7 @@ def colourBarBitmap(cmap,
                     textColour='#ffffff'):
     """Plots a colour bar using :mod:`matplotlib`.
 
-    
+
     The rendered colour bar is returned as a RGBA bitmap within a
     ``numpy.uint8`` array of size :math:`w \\times h \\times 4`, with the
     top-left pixel located at index ``[0, 0, :]``.
@@ -40,41 +40,43 @@ def colourBarBitmap(cmap,
     .. image:: images/colourbarbitmap.png
        :scale: 50%
        :align: center
-    
-    
+
+
     :arg cmap:         Name of a registered :mod:`matplotlib` colour map.
 
     :arg width:        Colour bar width in pixels.
-    
+
     :arg height:       Colour bar height in pixels.
 
     :arg negCmap:      If provided, two colour maps are drawn, centered at 0.
 
     :arg invert:       If ``True``, the colour map is inverted.
 
-    :arg ticks:        Locations of tick labels. 
+    :arg ticks:        Locations of tick labels. Ignored if
+                       ``ticklabels is None``.
 
     :arg ticklabels:   Tick labels.
 
-    :arg tickalign:    Tick alignment (one for each tick, either ``'left'`` or
-                       ``'right'``).
+    :arg tickalign:    Tick alignment (one for each tick, either ``'left'``,
+                       ``'right'``, or ``'center'``).
 
     :arg label:        Text label to show next to the colour bar.
-    
+
     :arg orientation:  Either ``vertical`` or ``horizontal``.
-    
-    :arg labelside:    If ``orientation`` is ``vertical`` ``labelSide`` may
-                       be either ``left`` or ``right``. Otherwise, if
-                       ``orientation`` is ``horizontal``, ``labelSide`` may
-                       be ``top`` or ``bottom``.
-    
+
+    :arg labelside:    Side of the colour bar to put the label - ``top``,
+                       ``bottom``, ``left`` or ``right``. If
+                       ``orientation='vertical'``, then ``top``/``bottom``
+                       are interpreted as ``left``/``right`` (and vice-versa
+                       when ``orientation='horizontal'``).
+
     :arg alpha:        Colour bar transparency, in the range ``[0.0 - 1.0]``.
-    
+
     :arg fontsize:     Label font size in points.
-    
+
     :arg bgColour:     Background colour - can be any colour specification
                        that is accepted by :mod:`matplotlib`.
-    
+
     :arg textColour:   Label colour - can be any colour specification that
                        is accepted by :mod:`matplotlib`.
     """
@@ -86,14 +88,19 @@ def colourBarBitmap(cmap,
     import matplotlib.figure               as mplfig
 
     if orientation not in ['vertical', 'horizontal']:
-        raise ValueError('orientation must be vertical or horizontal')
+        raise ValueError('orientation must be vertical or '
+                         'horizontal ({})'.format(orientation))
 
     if orientation == 'horizontal':
-        if labelside not in ['top', 'bottom']:
-            raise ValueError('labelside must be top or bottom')
+        if   labelside == 'left':  labelside = 'top'
+        elif labelside == 'right': labelside = 'bottom'
     else:
-        if labelside not in ['left', 'right']:
-            raise ValueError('labelside must be left or right')
+        if   labelside == 'top':    labelside = 'left'
+        elif labelside == 'bottom': labelside = 'right'
+
+    if labelside not in ['top', 'bottom', 'left', 'right']:
+        raise ValueError('labelside must be top, bottom, left '
+                         'or right ({})'.formt(labelside))
 
     # vertical plots are rendered horizontally,
     # and then simply rotated at the end
@@ -114,7 +121,7 @@ def colourBarBitmap(cmap,
     fig    = mplfig.Figure(figsize=(width / dpi, height / dpi), dpi=dpi)
     canvas = mplagg.FigureCanvasAgg(fig)
     ax     = fig.add_subplot(111)
-    
+
     if bgColour is not None:
         fig.patch.set_facecolor(bgColour)
     else:
@@ -130,7 +137,7 @@ def colourBarBitmap(cmap,
 
     ax.set_yticks([])
     ax.tick_params(colors=textColour, labelsize=fontsize, length=0)
-    
+
     if labelside == 'top':
         ax.xaxis.tick_top()
         ax.xaxis.set_label_position('top')
@@ -150,36 +157,51 @@ def colourBarBitmap(cmap,
     if ticks is None or ticklabels is None:
         ax.set_xticks([])
     else:
-        
+
         ax.set_xticks(np.array(ticks) * ncols)
         ax.set_xticklabels(ticklabels)
         ticklabels = ax.xaxis.get_ticklabels()
 
-    try:
-        fig.tight_layout()
-    except:
-        pass
+    # Resize the colour bar to make
+    # space for the ticks and labels
+    wpad        = 5 / float(width)
+    hpad        = 5 / float(height)
+    totalHeight = 1.0
+    textHeight  = (fontsize + 6) / float(height)
 
-    # Adjust the x label after tight_layout,
-    # otherwise it will overlap with the tick
-    # labels. I don't understand why, but I
-    # have to set va to the opposite of what
-    # I would have thought.
-    if label is not None and ticklabels is not None:
+    if label      is not None: totalHeight -= textHeight
+    if ticklabels is not None: totalHeight -= textHeight
+
+    if labelside == 'top': bottom, top = 0, totalHeight
+    else:                  bottom, top = 1 - totalHeight, 1
+
+    fig.subplots_adjust(
+        left=wpad,
+        right=1.0 - wpad,
+        bottom=bottom + hpad,
+        top=top - hpad)
+
+    # Divide the vertical height between the
+    # colour bar, the label, and the tick labels.
+    if label is not None:
+
+        # I don't understand why, but I have
+        # to set va to the opposite of what
+        # I would have thought.
         if labelside == 'top':
             label.set_va('bottom')
-            label.set_position((0.5, 0.97))
+            label.set_position((0.5, 1.0))
         else:
             label.set_va('top')
-            label.set_position((0.5, 0.03))
+            label.set_position((0.5, 0))
 
-    # This must be done *after* calling
-    # tick_top/tick_bottom, as I think
-    # the label bjects get recreated.
+    # Adjust tick label horizontal alignment. This
+    # must be done *after* calling tick_top/tick_bottom,
+    # as I think the label objects get recreated.
     if ticklabels is not None and tickalign is not None:
         for l, a in zip(ticklabels, tickalign):
             l.set_horizontalalignment(a)
-    
+
     canvas.draw()
 
     buf = canvas.tostring_argb()
@@ -208,14 +230,14 @@ def genColours(cmap, cmapResolution, invert, alpha):
 
     import numpy         as np
     import matplotlib.cm as cm
-    
+
     ncols         = cmapResolution
     cmap          = cm.get_cmap(cmap)
     data          = np.linspace(0.0, 1.0, ncols)
-    
+
     if invert:
         data = data[::-1]
-    
+
     data          = np.repeat(data.reshape(ncols, 1), 2, axis=1)
     data          = data.transpose()
     data          = cmap(data)
