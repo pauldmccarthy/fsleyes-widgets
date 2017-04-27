@@ -217,7 +217,7 @@ def padBitmap(bitmap, width, height, vert, bgColour):
     return bitmap
 
 
-def layoutToBitmap(layout, bgColour):
+def layoutToBitmap(layout, bgColour=None):
     """Recursively turns the given ``layout`` object into a bitmap.
 
     :arg layout:   A :class:`Bitmap`, :class:`Space`, :class:`HBox` or
@@ -328,12 +328,8 @@ def buildOrthoLayout(canvasBmps,
         labelBmps  = [None] * len(canvasBmps)
         showLabels = False
 
-    canvasBoxes = map(lambda cbmp, lbmps: buildCanvasBox(cbmp,
-                                                         lbmps,
-                                                         showLabels,
-                                                         labelSize),
-                      canvasBmps,
-                      labelBmps)
+    canvasBoxes = [buildCanvasBox(cbmp, lbmps, showLabels, labelSize)
+                   for cbmp, lbmps in zip(canvasBmps, labelBmps)]
 
     if   layout == 'horizontal': canvasBox = HBox(canvasBoxes)
     elif layout == 'vertical':   canvasBox = VBox(canvasBoxes)
@@ -401,14 +397,27 @@ def calcGridSizes(canvasaxes, bounds, width, height):
        2
 
 
+    It is assumed that the ``canvasaxes`` parameters are ordered such that
+    adjacent canvases share common axes in the world coordinate system. In
+    other words, in the above diagram, the horizontal axes of canvases ``0``
+    and ``2`` are equal, and the vertical axes of canvases ``0`` and ``1``
+    must be equal.
+
+
     .. note:: If less than three canvases are specified, they are passed to
               the :func:`calcHorizontalLayout` function.
+
 
     See :func:`calcSizes` for details on the arguments.
     """
 
     if len(canvasaxes) < 3:
         return calcHorizontalSizes(canvasaxes, bounds, width, height)
+
+    # Warn if axes are not aligned
+    if any((canvasaxes[0][0] != canvasaxes[1][0],
+            canvasaxes[0][1] != canvasaxes[2][1])):
+        log.warning('Canvas axes are not aligned: {}'.format(canvasaxes))
 
     canvasWidths  = [bounds[c[0]] for c in canvasaxes]
     canvasHeights = [bounds[c[1]] for c in canvasaxes]
