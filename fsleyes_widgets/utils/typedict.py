@@ -22,10 +22,10 @@ class TypeDict(object):
     that you would use a regular ``dict``, but the ``get`` and ``__getitem__``
     methods have some extra functionality.
 
-    
+
     **Easy to understand example**
 
-    
+
     Let's say we have a class with some properties::
 
         import fsleyes_widgets.utils.typedict as td
@@ -34,14 +34,14 @@ class TypeDict(object):
             isMammal = True
             numLegs  = 4
 
-    
+
     And we want to associate some tooltips with those properties::
 
         tooltips = td.TypeDict({
 
             'Animal.isMammal' : 'Set this to True for mammals, '
                                 'False for reptiles.',
-            'Animal.numLegs'  : 'The nuber of legs on this animal.' 
+            'Animal.numLegs'  : 'The nuber of legs on this animal.'
         })
 
     Because we used a ``TypeDict``, we can now look up those tooltips
@@ -86,7 +86,7 @@ class TypeDict(object):
         t = tooltips['Cat.numLegs']
 
 
-    The :meth:`get` method has some extra functionality for working with 
+    The :meth:`get` method has some extra functionality for working with
     class hierarchies::
 
 
@@ -94,13 +94,13 @@ class TypeDict(object):
 
             'Animal.isMammal'    : 'Set this to True for mammals, '
                                    'False for reptiles.',
-    
+
             'Animal.numLegs'     : 'The nuber of legs on this animal.',
 
             'Cat.numLegs'        : 'This will be equal to four for all cats, '
                                     'but could be less for disabled cats, '
                                     'or more for lucky cats.',
-    
+
             'Cat.numYoutubeHits' : 'Number of youtube videos this cat '
                                    'has starred in.'
         })
@@ -120,10 +120,10 @@ class TypeDict(object):
         #                         'but could be less for disabled cats, or '
         #                         'more for lucky cats.'}
 
-    
+
     **Boring technical description**
 
-    
+
     The ``TypeDict`` is a custom dictionary which allows classes or class
     instances to be used as keys for value lookups, but internally transforms
     any class/instance keys into strings. Tuple keys are supported. Value
@@ -136,16 +136,16 @@ class TypeDict(object):
     classes of that class to see if any values are present for them.
     """
 
-    
+
     def __init__(self, initial=None):
         """Create a ``TypeDict``.
 
         :arg initial: Dictionary containing initial values.
         """
-        
+
         if initial is None:
             initial = {}
-        
+
         self.__dict = {}
 
         for k, v in initial.items():
@@ -198,12 +198,12 @@ class TypeDict(object):
                 if   isinstance(tk, six.string_types):     key.append(tk)
                 elif isinstance(tk, collections.Sequence): key += list(tk)
                 else:                                      key.append(tk)
-            
+
             return tuple(key)
 
         return key
 
-        
+
     def get(self, key, default=None, allhits=False, bykey=False):
         """Retrieve the value associated with the given key. If
         no value is present, return the specified ``default`` value,
@@ -224,7 +224,7 @@ class TypeDict(object):
         try:             return self.__getitem__(key, allhits, bykey)
         except KeyError: return default
 
-        
+
     def __getitem__(self, key, allhits=False, bykey=False):
 
         origKey = key
@@ -241,15 +241,15 @@ class TypeDict(object):
         # Transform any class/instance elements into
         # their string representation (the class name)
         for elem in key:
-            
+
             if isinstance(elem, type):
                 newKey.append(elem.__name__)
                 bases .append(elem.__bases__)
-                
+
             elif not isinstance(elem, (str, int)):
                 newKey.append(elem.__class__.__name__)
                 bases .append(elem.__class__.__bases__)
-                
+
             else:
                 newKey.append(elem)
                 bases .append(None)
@@ -258,7 +258,7 @@ class TypeDict(object):
 
         keys = []
         hits = []
-            
+
         while True:
 
             # If the key was not a tuple turn
@@ -293,7 +293,7 @@ class TypeDict(object):
                 if elemBases is None:
                     continue
 
-                # test each of the base classes 
+                # test each of the base classes
                 # of the current tuple element
                 for elemBase in elemBases:
 

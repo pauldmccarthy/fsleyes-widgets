@@ -40,7 +40,7 @@ class SimpleMessageDialog(wx.Dialog):
         dlg = fsldlg.SimpleMessageDialog(message='Loading data ...')
 
         dlg.Show()
-    
+
         # load the data, like
         # you said you would
 
@@ -49,12 +49,12 @@ class SimpleMessageDialog(wx.Dialog):
         dlg.Close()
         dlg.Destroy()
 
-    
+
     The ``SimpleMessageDialog`` class supports the following styles:
 
     .. autosummary::
        SMD_KEEP_CENTERED
-    
+
 
     a ``SimpleMessageDialog`` looks something like this:
 
@@ -63,11 +63,11 @@ class SimpleMessageDialog(wx.Dialog):
        :align: center
     """
 
-    
+
     def __init__(self, parent=None, message='', style=None):
         """Create a ``SimpleMessageDialog``.
 
-        :arg parent:  The :mod:`wx` parent object. 
+        :arg parent:  The :mod:`wx` parent object.
 
         :arg message: The initial message to show.
 
@@ -76,7 +76,7 @@ class SimpleMessageDialog(wx.Dialog):
                       default.
         """
 
-        
+
         if style is None:
             style = SMD_KEEP_CENTERED
 
@@ -87,15 +87,15 @@ class SimpleMessageDialog(wx.Dialog):
                            parent,
                            style=wx.STAY_ON_TOP | wx.FULL_REPAINT_ON_RESIZE)
 
-        
+
         self.__style = style
-        
+
         self.__message = wx.StaticText(
             self,
             style=(wx.ST_ELLIPSIZE_MIDDLE     |
                    wx.ALIGN_CENTRE_HORIZONTAL |
                    wx.ALIGN_CENTRE_VERTICAL))
-        
+
         self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.__sizer.Add(self.__message,
                          border=25,
@@ -104,7 +104,7 @@ class SimpleMessageDialog(wx.Dialog):
 
         self.SetTransparent(240)
         self.SetBackgroundColour((225, 225, 255))
-        
+
         self.SetSizer(self.__sizer)
 
         self.SetMessage(message)
@@ -117,7 +117,7 @@ class SimpleMessageDialog(wx.Dialog):
         wx.Dialog.Show(self)
         wx.Yield()
 
-        
+
     def SetMessage(self, msg):
         """Updates the message shown on this ``SimpleMessageDialog``.
 
@@ -132,7 +132,7 @@ class SimpleMessageDialog(wx.Dialog):
         # Figure out the dialog size
         # required to fit the message
         dc = wx.ClientDC(self.__message)
-        
+
         width, height = dc.GetTextExtent(msg)
 
         # +50 to account for sizer borders (see __init__),
@@ -158,7 +158,7 @@ class SimpleMessageDialog(wx.Dialog):
         self.Refresh()
         self.Update()
         self.__message.Refresh()
-        self.__message.Update() 
+        self.__message.Update()
         wx.Yield()
 
 
@@ -167,7 +167,7 @@ SMD_KEEP_CENTERED = 1
 """If set, the dialog will be re-centred on its parent whenever its message
 changes.
 """
-            
+
 
 class TimeoutDialog(SimpleMessageDialog):
     """A :class:`SimpleMessageDialog` which automatically destroys itself
@@ -187,7 +187,7 @@ class TimeoutDialog(SimpleMessageDialog):
 
         :arg message: The initial message to display.
 
-        :arg timeout: Timeout period in milliseconds. 
+        :arg timeout: Timeout period in milliseconds.
 
         :arg kwargs:  Passed through to :meth:`SimpleMessageDialog.__init__`.
         """
@@ -201,7 +201,7 @@ class TimeoutDialog(SimpleMessageDialog):
         self.Close()
         self.Destroy()
 
-        
+
     def Show(self):
         """Shows this ``TimeoutDialog``, and sets up a callback to
         close it after the specified ``timeout``.
@@ -213,25 +213,25 @@ class TimeoutDialog(SimpleMessageDialog):
     def ShowModal(self):
         """Shows this ``TimeoutDialog``, and sets up a callback to
         close it after the specified ``timeout``.
-        """ 
+        """
         wx.CallLater(self.__timeout, self.__close)
         SimpleMessageDialog.ShowModal(self)
 
-        
+
 class ProcessingDialog(SimpleMessageDialog):
     """A :class:`SimpleMessageDialog` which displays a message and runs a
     task in the background. User interaction is blocked while the task runs,
     and the dialog closes and destroys itself automatically on task
     completion.
 
-    
+
     The task is simply passed in as a function. If the task supports it,
     the ``ProcessingDialog`` will pass it two message-updating functions,
     which can be used by the task to update the message being displayed.
     This functionality is controlled by the ``passFuncs``, ``messageFunc``
     and ``errorFunc`` parameters to :meth:`__init__`.
 
-    
+
     A ``ProcessingDialog`` must be displayed via the :meth:`Run` method,
     *not* with the :meth:`wx.Dialog.Show` or :meth:`wx.Dialog.ShowModal`
     methods.
@@ -241,9 +241,9 @@ class ProcessingDialog(SimpleMessageDialog):
         """Create a ``ProcessingDialog``.
 
         :arg parent:       The :mod:`wx` parent object.
-        
+
         :arg message:      Initial message to display.
-        
+
         :arg task:         The function to run.
 
         :arg args:         Positional arguments passed to the ``task``
@@ -251,7 +251,7 @@ class ProcessingDialog(SimpleMessageDialog):
 
         :arg kwargs:       Keyword arguments passed to the ``task`` function.
 
-        
+
         Some special keyword arguments are also accepted:
 
         ===============  =================================================
@@ -280,7 +280,7 @@ class ProcessingDialog(SimpleMessageDialog):
         """
 
         passFuncs = kwargs.get('passFuncs', False)
-        
+
         if not passFuncs:
             kwargs.pop('messageFunc', None)
             kwargs.pop('errorFunc',   None)
@@ -349,27 +349,27 @@ class ProcessingDialog(SimpleMessageDialog):
 
         self.Close()
         self.Destroy()
-        
+
         return result
 
-    
+
     def Show(self):
         """Raises a :exc:`NotImplementedError`."""
         raise NotImplementedError('Use the Run method')
 
-    
+
     def ShowModal(self):
         """Raises a :exc:`NotImplementedError`."""
-        raise NotImplementedError('Use the Run method') 
+        raise NotImplementedError('Use the Run method')
 
-        
+
     def __defaultMessageFunc(self, msg):
         """Default ``messageFunc``. Updates the message which is displayed
         on this ``ProcessingDialog``. See :meth:`SetMessage`.
         """
         self.SetMessage(msg)
 
-    
+
     def __defaultErrorFunc(self, msg, err):
         """Default ``errorFunc``. Opens a new dialog (a :class:`wx.MessageBox`)
         which contains a description of the error.
@@ -377,7 +377,7 @@ class ProcessingDialog(SimpleMessageDialog):
         err   = str(err)
         msg   = 'An error hass occurred: {}\n\nDetails: {}'.format(msg, err)
         title = 'Error'
-        wx.MessageBox(msg, title, wx.ICON_ERROR | wx.OK) 
+        wx.MessageBox(msg, title, wx.ICON_ERROR | wx.OK)
 
 
 class TextEditDialog(wx.Dialog):
@@ -414,17 +414,17 @@ class TextEditDialog(wx.Dialog):
         :arg parent:  The :mod:`wx` parent object.
 
         :arg title:   Dialog title.
-        
+
         :arg message: Dialog message.
-        
+
         :arg text:    String  to display in the text field.
-        
-        :arg icon:    A :mod:`wx` icon identifier, such as 
+
+        :arg icon:    A :mod:`wx` icon identifier, such as
                       :data:`wx.ICON_INFORMATION` or :data:`wx.ICON_WARNING`.
-        
+
         :arg style:   A combination of :data:`TED_READONLY`,
-                      :data:`TED_MULTILINE`, :data:`TED_OK`, 
-                      :data:`TED_CANCEL`, :data:`TED_OK_CANCEL`, 
+                      :data:`TED_MULTILINE`, :data:`TED_OK`,
+                      :data:`TED_CANCEL`, :data:`TED_OK_CANCEL`,
                       :data:`TED_COPY` and :data:`TED_COPY_MESSAGE` . Defaults
                       to :data:`TED_OK`.
         """
@@ -449,7 +449,7 @@ class TextEditDialog(wx.Dialog):
 
         self.__showCopyMessage = style & TED_COPY_MESSAGE
 
-        # set the min size of the text 
+        # set the min size of the text
         # ctrl so it can fit a few lines
         self.__textEdit.SetMinSize((-1, 120))
         self.__textEdit.SetMaxSize((600, -1))
@@ -461,14 +461,14 @@ class TextEditDialog(wx.Dialog):
         self.__buttons = []
 
         if icon is not None:
-            
+
             icon = wx.ArtProvider.GetMessageBoxIcon(icon)
 
             if isPhoenix():
                 bmp = wx.Bitmap()
             else:
                 bmp = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
-                
+
             bmp.CopyFromIcon(icon)
             self.__icon = wx.StaticBitmap(self)
             self.__icon.SetBitmap(bmp)
@@ -477,7 +477,7 @@ class TextEditDialog(wx.Dialog):
             self.__ok = wx.Button(self, id=wx.ID_OK)
             self.__ok.Bind(wx.EVT_BUTTON, self.__onOk)
             self.__buttons.append(self.__ok)
-            
+
         if style & TED_CANCEL:
             self.__cancel = wx.Button(self, id=wx.ID_CANCEL)
             self.__cancel.Bind(wx.EVT_BUTTON, self.__onCancel)
@@ -512,7 +512,7 @@ class TextEditDialog(wx.Dialog):
                      border=10)
         btnSizer.Add(self.__copy,
                      flag=wx.ALL | wx.CENTRE,
-                     border=10) 
+                     border=10)
         btnSizer.Add(self.__cancel,
                      flag=wx.ALL | wx.CENTRE,
                      border=10)
@@ -546,17 +546,17 @@ class TextEditDialog(wx.Dialog):
         elif key == wx.WXK_RETURN:
             self.__onOk(None)
 
-        
+
     def __onOk(self, ev):
         """Called when the *Ok* button is pressed. Ends the dialog. """
         self.EndModal(wx.ID_OK)
 
-        
+
     def __onCancel(self, ev):
         """Called when the *Cancel* button is pressed. Ends the dialog. """
         self.EndModal(wx.ID_CANCEL)
 
-        
+
     def __onCopy(self, ev):
         """Called when the *Copy* button is pressed. Copies the text
         to the system clipboard, and pops up a :class:`TimeoutDialog`
@@ -574,22 +574,22 @@ class TextEditDialog(wx.Dialog):
                 td = TimeoutDialog(self, 'Copied!', 1000)
                 td.Show()
 
-            
+
     def SetMessage(self, message):
         """Set the message displayed on the dialog."""
         self.__message.SetLabel(message)
 
-        
+
     def SetOkLabel(self, label):
         """Set the label to show on the *Ok* button."""
         self.__ok.SetLabel(label)
 
-        
+
     def SetCopyLabel(self, label):
         """Sets the label to show on the *Copy* button."""
         self.__copy.SetLabel(label)
 
-        
+
     def SetCancelLabel(self, label):
         """Sets the label to show on the *Cancel* button."""
         self.__cancel.SetLabel(label)
@@ -682,7 +682,7 @@ class FSLDirDialog(wx.Dialog):
             bmp = wx.Bitmap()
         else:
             bmp  = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
-            
+
         bmp.CopyFromIcon(icon)
 
         self.__icon.SetBitmap(bmp)
@@ -722,10 +722,10 @@ class FSLDirDialog(wx.Dialog):
 
             self.__contentSizer.Insert(2, self.__hint, flag=wx.EXPAND)
             self.__contentSizer.Insert(3, (1, 20))
-            
+
         else:
             self.__hint = None
-            
+
         self.__mainSizer.Add(self.__icon,
                              flag=wx.ALL | wx.CENTRE,
                              border=20)
@@ -742,13 +742,13 @@ class FSLDirDialog(wx.Dialog):
 
         self.CentreOnParent()
 
-        
+
     def GetFSLDir(self):
         """If the user selected a directory, this method returns their
         selection. Otherwise, it returns ``None``.
         """
         return self.__fsldir
- 
+
 
     def __onSkip(self, ev):
         """called when the *Skip* button is pushed. """
@@ -775,7 +775,7 @@ class FSLDirDialog(wx.Dialog):
             return
 
         self.__fsldir = dlg.GetPath()
- 
+
         self.EndModal(wx.ID_OK)
 
 
@@ -785,7 +785,7 @@ class CheckBoxMessageDialog(wx.Dialog):
     *Cancel* button.
     """
 
-    
+
     def __init__(self,
                  parent,
                  title=None,
@@ -802,35 +802,35 @@ class CheckBoxMessageDialog(wx.Dialog):
         """Create a ``CheckBoxMessageDialog``.
 
         :arg parent:        A ``wx`` parent object.
-        
+
         :arg title:         The dialog frame title.
-        
+
         :arg message:       Message to show on the dialog.
-        
+
         :arg cbMessages:    A list of labels, one for each ``wx.CheckBox``.
-        
+
         :arg cbStates:      A list of initial states (boolean values) for
                             each ``wx.CheckBox``.
-        
-        :arg yesText:       Text to show on the *yes*/confirm button. Defaults 
+
+        :arg yesText:       Text to show on the *yes*/confirm button. Defaults
                             to *OK*.
 
         :arg noText:        Text to show on the *no* button. If not provided,
                             there will be no *no* button.
 
-        :arg cancelText:    Text to show on the *cancel* button. If not 
+        :arg cancelText:    Text to show on the *cancel* button. If not
                             provided, there will be no cancel button.
 
-        :arg hintText:      If provided, shown as a "hint", in a slightly 
+        :arg hintText:      If provided, shown as a "hint", in a slightly
                             faded font, between the checkboxes and the buttons.
 
         :arg focus:         One of ``'yes'``, ``'no'```, or ``'cancel'``,
                             specifying which button should be given initial
                             focus.
-        
-        :arg icon:          A ``wx`` icon identifier (e.g. 
+
+        :arg icon:          A ``wx`` icon identifier (e.g.
                             ``wx.ICON_EXCLAMATION``).
-        
+
         :arg style:         Passed through to the ``wx.Dialog.__init__``
                             method. Defaults to ``wx.DEFAULT_DIALOG_STYLE``.
         """
@@ -845,14 +845,14 @@ class CheckBoxMessageDialog(wx.Dialog):
         wx.Dialog.__init__(self, parent, title=title, style=style)
 
         if icon is not None:
-            icon = wx.ArtProvider.GetMessageBoxIcon(icon) 
+            icon = wx.ArtProvider.GetMessageBoxIcon(icon)
             self.__icon = wx.StaticBitmap(self)
 
             if isPhoenix():
                 bmp = wx.Bitmap()
             else:
                 bmp = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
-                
+
             bmp.CopyFromIcon(icon)
             self.__icon.SetBitmap(bmp)
         else:
@@ -863,7 +863,7 @@ class CheckBoxMessageDialog(wx.Dialog):
             cb = wx.CheckBox(self, label=msg)
             cb.SetValue(state)
             self.__checkboxes.append(cb)
-            
+
         self.__message   = wx.StaticText(self, label=message)
         self.__yesButton = wx.Button(    self, label=yesText, id=wx.ID_YES)
 
@@ -875,7 +875,7 @@ class CheckBoxMessageDialog(wx.Dialog):
 
         else:
             self.__noButton = None
- 
+
         if cancelText is not None:
             self.__cancelButton = wx.Button(self,
                                             label=cancelText,
@@ -913,7 +913,7 @@ class CheckBoxMessageDialog(wx.Dialog):
             self.__btnSizer.Add(b)
             if i != len(buttons) - 1:
                 self.__btnSizer.Add((5, 1), flag=wx.EXPAND)
-        
+
         self.__contentSizer.Add(self.__btnSizer, flag=wx.EXPAND)
 
         self.__mainSizer.Add(self.__icon,
@@ -953,14 +953,14 @@ class CheckBoxMessageDialog(wx.Dialog):
         """
         self.EndModal(wx.ID_YES)
 
-        
+
     def __onNoButton(self, ev):
         """Called when the button on this ``CheckBoxMessageDialog`` is
         clicked. Closes the dialog.
         """
         self.EndModal(wx.ID_NO)
 
-        
+
     def __onCancelButton(self, ev):
         """If the ``CHECKBOX_MSGDLG_CANCEL_BUTTON`` style was set, this method
         is called when the cancel button is clicked. Closes the dialog.

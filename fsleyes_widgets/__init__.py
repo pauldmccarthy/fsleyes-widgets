@@ -5,7 +5,7 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 """The ``fsleyes_widgets`` package contains various custom :mod:`wx` widgets
-and utilities used by FSLeyes. 
+and utilities used by FSLeyes.
 
 
 Some of the controls in ``fsleyes_widgets`` are duplicates of controls which

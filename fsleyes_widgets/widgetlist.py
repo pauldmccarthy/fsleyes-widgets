@@ -5,7 +5,7 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 """This module provides the :class:`WidgetList` class, which displays a list
-of widgets. 
+of widgets.
 """
 
 
@@ -34,7 +34,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
         AddWidget
         AddGroup
-    
+
 
     A ``WidgetList`` looks something like this:
 
@@ -51,15 +51,15 @@ class WidgetList(scrolledpanel.ScrolledPanel):
     _defaultOddColour   = '#eaeaea'
     """Background colour for widgets on odd rows. """
 
-    
+
     _defaultEvenColour  = '#ffffff'
     """Background colour for widgets on even rows. """
 
-    
+
     _defaultGroupColour = '#cdcdff'
     """Border and title background colour for widget groups. """
 
-    
+
     def __init__(self, parent):
         """Create a ``WidgetList``.
 
@@ -92,7 +92,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         self.SetupScrolling()
         self.SetAutoLayout(1)
 
-        
+
     def DoGetBestSize(self):
         """Returns the best size for the widget list, with all group
         widgets expanded.
@@ -103,11 +103,11 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             w, h    = group.parentPanel.GetBestSize().Get()
             w      += 20
             h      += 10
-            
+
             if w > width:
                 width = w
             height += h
-        
+
         return wx.Size(width, height)
 
 
@@ -135,7 +135,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         for w in widgets:
             w.label.SetMinSize((maxWidth + 10, -1))
             w.label.SetMaxSize((maxWidth + 10, -1))
- 
+
 
     def __setColours(self):
         """Called whenever the widget list needs to be refreshed.
@@ -145,13 +145,13 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         """
         def setWidgetColours(widgDict):
             for i, widg in enumerate(widgDict.values()):
-                
+
                 if i % 2: colour = self.__oddColour
                 else:     colour = self.__evenColour
                 widg.SetBackgroundColour(colour)
 
         setWidgetColours(self.__widgets)
-                    
+
         for group in self.__groups.values():
 
             setWidgetColours(group.widgets)
@@ -176,7 +176,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
     def SetColours(self, odd=None, even=None, group=None):
         """Sets the colours used on this ``WidgetList``.
-        
+
         Each argument is assumed to be a tuple of ``(r, g, b)`` values,
         each in the range ``[0 - 255]``.
 
@@ -219,7 +219,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         group.displayName = newDisplayName
         group.colPanel.SetLabel(newDisplayName)
 
-        
+
     def AddGroup(self, groupName, displayName=None):
         """Add a new group to this ``WidgetList``.
 
@@ -247,14 +247,14 @@ class WidgetList(scrolledpanel.ScrolledPanel):
                                          style=wx.CP_NO_TLW_RESIZE)
         widgPanel   = colPanel.GetPane()
         widgSizer   = wx.BoxSizer(wx.VERTICAL)
-        
+
         widgPanel.SetSizer(widgSizer)
         parentPanel.SetWindowStyleFlag(wx.SUNKEN_BORDER)
 
         gapSizer = wx.BoxSizer(wx.VERTICAL)
 
         # A spacer exists at the top,
-        # and between, every group. 
+        # and between, every group.
         gapSizer.Add((-1, 5))
         gapSizer.Add(parentPanel, border=10, flag=(wx.EXPAND |
                                                    wx.LEFT   |
@@ -284,7 +284,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         if wx.Platform == '__WXGTK__':
             parentPanel.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
             colPanel   .Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
-            
+
         colPanel.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.__refresh)
 
 
@@ -323,7 +323,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             group       = self.__groups[groupName]
             widgDict    = group.widgets
             parent      = group.widgPanel
-            parentSizer = group.sizer 
+            parentSizer = group.sizer
 
         key = self.__makeWidgetKey(widget)
 
@@ -332,7 +332,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
         widgPanel = wx.Panel(parent)
         widgSizer = wx.BoxSizer(wx.HORIZONTAL)
-        widgPanel.SetSizer(widgSizer) 
+        widgPanel.SetSizer(widgSizer)
 
         if isinstance(widget, wx.Sizer):
             for child in widget.GetChildren():
@@ -375,7 +375,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         self.__setLabelWidths(list(widgDict.values()))
         self.__refresh()
 
-        
+
     def __onMouseWheel(self, ev):
         """Only called if running on GTK. Scrolls the widget list according
         to the mouse wheel rotation.
@@ -404,7 +404,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         else:                 parentSizer = self.__groups[groupName].sizer
 
         parentSizer.Add((-1, 10))
-        
+
 
     def RemoveWidget(self, widget, groupName=None):
         """Removes and destroys the specified widget from this ``WidgetList``.
@@ -420,7 +420,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             widgDict    = self.__widgets
         else:
             group       = self.__groups[groupName]
-            parentSizer = group.sizer 
+            parentSizer = group.sizer
             widgDict    = group.widgets
 
         widg = widgDict.pop(key)
@@ -429,13 +429,13 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         widg.Destroy()
         self.__refresh()
 
-        
+
     def RemoveGroup(self, groupName):
         """Removes the specified group, and destroys all of the widgets
         contained within it.
         """
         group = self.__groups.pop(groupName)
-        
+
         self.__groupSizer.Detach(group.gapSizer)
         group.parentPanel.Destroy()
         self.__refresh()
@@ -452,8 +452,8 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         for group in self.GetGroups():
             self.RemoveGroup(group)
         self.__refresh()
-        
-        
+
+
     def ClearGroup(self, groupName):
         """Removes and destroys all widgets in the specified group, but
         does not remove the group.
@@ -477,7 +477,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         """
         return self.__groups[groupName].colPanel.IsExpanded()
 
-    
+
     def Expand(self, groupName, expand=True):
         """Expands or collapses the panel for the specified group. """
         panel = self.__groups[groupName].colPanel
@@ -517,9 +517,9 @@ class _Widget(object):
 
 
     def SetTooltip(self, tooltip):
-        
+
         self.label.SetToolTip(wx.ToolTip(tooltip))
-        
+
         if isinstance(self.widget, wx.Sizer):
             for child in self.widget.GetChildren():
                 child.GetWindow().SetToolTip(wx.ToolTip(tooltip))
@@ -537,19 +537,19 @@ class _Widget(object):
         else:
             self.widget.Bind(evType, callback)
 
-            
+
     def Destroy(self):
         self.label.Destroy()
         if isinstance(self.widget, wx.Sizer):
             self.widget.Clear(True)
         else:
-            self.widget.Destroy() 
-                             
+            self.widget.Destroy()
+
 
 class _Group(object):
     """The ``_Group`` class is used internally by :class:`WidgetList`
     instances to represent groups of widgets that are in the list.
-    """ 
+    """
     def __init__(self,
                  groupName,
                  displayName,

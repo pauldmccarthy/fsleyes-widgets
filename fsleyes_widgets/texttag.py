@@ -40,7 +40,7 @@ class StaticTextTag(wx.Panel):
     generated.
     """
 
-    
+
     def __init__(self,
                  parent,
                  text=None,
@@ -70,7 +70,7 @@ class StaticTextTag(wx.Panel):
                                                wx.ALIGN_CENTRE_HORIZONTAL))
 
         self.__closeBtn.SetFont(self.__closeBtn.GetFont().Smaller())
- 
+
         self.__sizer.Add(self.__closeBtn,
                          border=2,
                          flag=(wx.EXPAND |
@@ -84,7 +84,7 @@ class StaticTextTag(wx.Panel):
                                wx.TOP    |
                                wx.BOTTOM))
         self.SetSizer(self.__sizer)
-        
+
         self           .SetBackgroundColour(bgColour)
         self           .SetBorderColour(    borderColour)
         self.__closeBtn.SetForegroundColour('#404040')
@@ -96,9 +96,9 @@ class StaticTextTag(wx.Panel):
         self           .Bind(wx.EVT_SET_FOCUS,   self.__onSetFocus)
         self.__closeBtn.Bind(wx.EVT_KILL_FOCUS,  self.__onKillFocus)
         self.__text    .Bind(wx.EVT_KILL_FOCUS,  self.__onKillFocus)
-        self           .Bind(wx.EVT_KILL_FOCUS,  self.__onKillFocus) 
+        self           .Bind(wx.EVT_KILL_FOCUS,  self.__onKillFocus)
 
-        
+
     def __str__(self):
         """Returns a string representation of this ``StaticTextTag``. """
         return 'StaticTextTag(\'{}\')'.format(self.GetText())
@@ -106,13 +106,13 @@ class StaticTextTag(wx.Panel):
 
     def SetBackgroundColour(self, colour):
         """Sets the background colour of this ``StaticTextTag``. """
-        
-        wx.Panel.SetBackgroundColour(self,  colour) 
+
+        wx.Panel.SetBackgroundColour(self,  colour)
         self.__text    .SetBackgroundColour(colour)
         self.__closeBtn.SetBackgroundColour(colour)
 
         self.__bgColour = colour
-        
+
         self.Refresh()
 
 
@@ -127,7 +127,7 @@ class StaticTextTag(wx.Panel):
         """Sets the text shown on this ``StaticTextTag``. """
         self.__text.SetLabel(text)
         self.Layout()
-        self.Fit() 
+        self.Fit()
 
 
     def GetText(self):
@@ -137,13 +137,13 @@ class StaticTextTag(wx.Panel):
 
     def __onSetFocus(self, ev):
         """Called when this ``StaticTextTag`` gains focus. Changes the border
-        colour. 
-        """ 
+        colour.
+        """
         ev.Skip()
         wx.Panel.SetBackgroundColour(self, self.__borderColour)
         self.Refresh()
 
-     
+
     def __onKillFocus(self, ev):
         """Called when this ``StaticTextTag`` loses focus. Clears the border
         colour.
@@ -157,14 +157,14 @@ class StaticTextTag(wx.Panel):
     def __onKeyDown(self, ev):
         """Called when a key is pushed.  If delete or backspace was pushed, an
         :data:`EVT_STT_CLOSE` is generated.
-        """ 
-        
+        """
+
         key       = ev.GetKeyCode()
         delete    = wx.WXK_DELETE
         backspace = wx.WXK_BACK
 
         log.debug('StaticTextTag key event ({})'.format(key))
-        
+
         if key not in (delete, backspace):
             ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
             ev.Skip()
@@ -172,14 +172,14 @@ class StaticTextTag(wx.Panel):
 
         self.__onCloseButton(None)
 
-        
+
     def __onCloseButton(self, ev):
         """Called when the close button is pushed. Generates an
         :data:`EVT_STT_CLOSE`.
         """
 
         log.debug('{} close button pressed'.format(str(self)))
-        
+
         ev = StaticTextTagCloseEvent()
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
@@ -201,19 +201,19 @@ StaticTextTagCloseEvent = _StaticTextTagCloseEvent
 class TextTagPanel(wx.Panel):
     """The ``TextTagPanel`` is a panel which contains a control allowing
     the user to add new tags, and a collection of :class:`StaticTextTag`
-    controls. 
-    
+    controls.
+
     The ``TextTagPanel`` supports the following styles:
 
     .. autosummary::
-    
+
        TTP_ALLOW_NEW_TAGS
        TTP_ADD_NEW_TAGS
        TTP_NO_DUPLICATES
        TTP_CASE_SENSITIVE
        TTP_KEYBOARD_NAV
 
-    
+
     The ``TextTagPanel`` generates the following events:
 
     .. autosummary::
@@ -223,7 +223,7 @@ class TextTagPanel(wx.Panel):
        EVT_TTP_TAG_SELECT
     """
 
-    
+
     def __init__(self, parent, style=None):
         """Create a ``TextTagPanel``.
 
@@ -231,7 +231,7 @@ class TextTagPanel(wx.Panel):
         :arg style:  Style flags. Defaults to
                      ``TTP_ALLOW_NEW_TAGS | TTP_ADD_NEW_TAGS``.
         """
-        
+
         wx.Panel.__init__(self, parent)
 
         if style is None:
@@ -251,12 +251,12 @@ class TextTagPanel(wx.Panel):
 
         if self.__caseSensitive: atcStyle = atc.ATC_CASE_SENSITIVE
         else:                    atcStyle = 0
-        
+
         self.__newTagCtrl = atc.AutoTextCtrl(self, style=atcStyle)
         self.__mainSizer  = wx.BoxSizer( wx.HORIZONTAL)
         self.__tagSizer   = wx.WrapSizer(wx.HORIZONTAL, 2)
-        
-        # ^^ the WrapSizer style flags don't 
+
+        # ^^ the WrapSizer style flags don't
         # seem to have made it into wxPython:
         #
         #     EXTEND_LAST_ON_EACH_LINE = 1
@@ -273,7 +273,7 @@ class TextTagPanel(wx.Panel):
         self.SetSizer(self.__mainSizer)
         self.Layout()
 
-        
+
     def FocusNewTagCtrl(self):
         """Gives focus to the new tag control (either an :class:`.AutoTextCtrl`
         or a ``wx.Choice``, depending on whether the :data:`ATC_ALLOW_NEW_TAGS`
@@ -315,18 +315,18 @@ class TextTagPanel(wx.Panel):
 
         self.__allTags     = list(options)
         self.__tagDisplays = {o : oo for (o, oo) in zip(options, origOptions)}
-        
+
         self.__updateNewTagOptions()
 
         if colours is not None:
-            
+
             for option, colour in zip(options, colours):
                 self.SetTagColour(option, colour)
-        
+
         # TODO delete any active tags
         #      that are no longer valid?
 
-    
+
     def GetOptions(self):
         """Returns a list of all the tags that are currently available to the
         user.
@@ -355,7 +355,7 @@ class TextTagPanel(wx.Panel):
                       random.randint(100, 255)]
 
         stt = StaticTextTag(self, origTag, colour)
-        
+
         stt.Bind(EVT_STT_CLOSE, self.__onTagClose)
 
         if self.__keyboardNav:
@@ -385,7 +385,7 @@ class TextTagPanel(wx.Panel):
 
         tagIdx = self.GetTagIndex(tag)
         stt    = self.__tagWidgets[tagIdx]
-        
+
         self.__tagSizer  .Detach(stt)
         self.__tagWidgets.remove(stt)
 
@@ -393,7 +393,7 @@ class TextTagPanel(wx.Panel):
 
         if count == 1: self.__activeTags.pop(tag)
         else:          self.__activeTags[tag] = count - 1
-        
+
         stt.Destroy()
         self.Layout()
         self.GetParent().Layout()
@@ -406,7 +406,7 @@ class TextTagPanel(wx.Panel):
         """
         return [stt.GetText() for stt in self.__tagWidgets]
 
-        
+
     def ClearTags(self):
         """Removes all tags from this ``TextTagPanel``. """
         for tag in list(self.__tagWidgets):
@@ -417,11 +417,11 @@ class TextTagPanel(wx.Panel):
         """Returns the index of the specified tag. """
 
         tags = self.GetTags()
-        
+
         if not self.__caseSensitive:
             tag  = tag.lower()
             tags = [t.lower() for t in tags]
-        
+
         for i, t in enumerate(tags):
             if t == tag:
                 return i
@@ -433,14 +433,14 @@ class TextTagPanel(wx.Panel):
         """Returns the number of tags currently visible. """
         return len(self.__tagWidgets)
 
-    
+
     def HasTag(self, tag):
         """Returns ``True`` if the given tag is currently shown, ``False``
         otherwise.
         """
         if not self.__caseSensitive:
             tag = tag.lower()
-            
+
         return tag in self.__activeTags
 
 
@@ -450,7 +450,7 @@ class TextTagPanel(wx.Panel):
         """
         if not self.__caseSensitive:
             tag = tag.lower()
-            
+
         return self.__tagColours.get(tag, None)
 
 
@@ -461,7 +461,7 @@ class TextTagPanel(wx.Panel):
 
         if not self.__caseSensitive:
             tag = tag.lower()
-        
+
         if tag not in self.__allTags:
             return
 
@@ -486,7 +486,7 @@ class TextTagPanel(wx.Panel):
         stt.SetFocus()
 
         log.debug('Posting tag select event ("{}")'.format(tag))
-        
+
         ev = TextTagPanelTagSelectEvent(tag=tag)
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
@@ -503,7 +503,7 @@ class TextTagPanel(wx.Panel):
 
         log.debug('Mouse down on tag: "{}"'.format(tag))
         self.__selectTag(stt)
-        
+
 
     def __onTagClose(self, ev):
         """Called when the user pushes the close button on a
@@ -531,7 +531,7 @@ class TextTagPanel(wx.Panel):
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
 
-        
+
     def __onNewTagKeyDown(self, ev):
         """Called on key down events from the new tag control (if the
         :data:`TTP_KEYBOARD_NAV` style is set). If the right
@@ -558,7 +558,7 @@ class TextTagPanel(wx.Panel):
 
         self.__selectTag(self.__tagWidgets[0])
 
-        
+
     def __onTagKeyDown(self, ev):
         """Called on key down events from a :class:`StaticTextTag` object. If
         the left/right arrow keys are pushed, the focus is shifted accordingly.
@@ -583,7 +583,7 @@ class TextTagPanel(wx.Panel):
             return
 
         sttIdx = self.__tagWidgets.index(stt)
-        
+
         if   key == left:  sttIdx -= 1
         elif key == right: sttIdx += 1
 
@@ -603,7 +603,7 @@ class TextTagPanel(wx.Panel):
 
         self.__selectTag(self.__tagWidgets[sttIdx])
 
-        
+
     def __onTextCtrl(self, ev):
         """Called when the user enters a new value via the ``TextCtrl`` (if
         this ``TextTagPanel`` allows new tags). Adds the new tag, and generates
@@ -627,19 +627,19 @@ class TextTagPanel(wx.Panel):
 
         # If we don't care about case, and
         # this is a known option, use the
-        # 'display' version of the tag. 
+        # 'display' version of the tag.
         if not self.__caseSensitive:
             tag = self.__tagDisplays.get(tag.lower(), tag)
-        
+
         log.debug('New tag from text control: {}'.format(tag))
 
         self.__newTagCtrl.Refresh()
-        
+
         self.AddTag(tag)
 
         ev = TextTagPanelTagAddedEvent(tag=tag)
         ev.SetEventObject(self)
-        wx.PostEvent(self, ev)        
+        wx.PostEvent(self, ev)
 
 
     def __updateNewTagOptions(self):
@@ -654,7 +654,7 @@ class TextTagPanel(wx.Panel):
 
         self.__newTagCtrl.AutoComplete(tags)
 
-        
+
 TTP_ALLOW_NEW_TAGS  = 1
 """Style flag for use with a :class:`TextTagPanel` - if set, the user is able
 to type in tag names that are not in the ``ComboBox``.

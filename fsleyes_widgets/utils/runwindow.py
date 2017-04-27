@@ -45,7 +45,7 @@ class RunPanel(wx.Panel):
     is contained. The second button is intended to terminate the running
     process. Both buttons are unbound by default, so must be manually
     configured by the creator.
-    
+
 
     The text panel and buttons are available as the following attributes:
 
@@ -62,8 +62,8 @@ class RunPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer) 
-        
+        self.SetSizer(self.sizer)
+
         # Horizontal scrolling no work in OSX
         # mavericks. I think it's a wxwidgets bug.
         self.text  = wx.TextCtrl(self,
@@ -77,7 +77,7 @@ class RunPanel(wx.Panel):
         self.btnPanel = wx.Panel(self)
         self.btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.btnPanel.SetSizer(self.btnSizer)
-        
+
         self.sizer.Add(self.btnPanel, flag=wx.EXPAND)
 
         self.killButton  = wx.Button(self.btnPanel, label='Terminate process')
@@ -100,21 +100,21 @@ class ProcessManager(thread.Thread):
 
     def __init__(self, cmd, parent, runPanel, onFinish):
         """Create a ``ProcessManager``.
-        
+
         :arg cmd:      String or list of strings, the command to be
                        executed.
-        
+
         :arg parent:   :mod:`wx` parent object.
-        
+
         :arg runPanel: A :class:`RunPanel` instance , for displaying the
                        child process output.
-        
+
         :arg onFinish: Callback function to be called when the process
                        finishes. May be ``None``. Must accept two parameters,
                        the GUI ``parent`` object, and the process return code.
         """
         thread.Thread.__init__(self, name=cmd[0])
-        
+
         self.cmd      = cmd
         self.parent   = parent
         self.runPanel = runPanel
@@ -129,7 +129,7 @@ class ProcessManager(thread.Thread):
         # and the wx main thread which writes that output to
         # the runPanel
         self.outq = queue.Queue()
- 
+
         # Put the command string at the top of the text control
         self.outq.put(' '.join(self.cmd) + '\n\n')
         wx.CallAfter(self.__writeToPanel)
@@ -140,7 +140,7 @@ class ProcessManager(thread.Thread):
         to the :class:`RunPanel`. This method is intended to be
         executed via :func:`wx.CallAfter`.
         """
-        
+
         try:                output = self.outq.get_nowait()
         except queue.Empty: output = None
 
@@ -150,19 +150,19 @@ class ProcessManager(thread.Thread):
         # runPanel window before the process has completed
         try:    self.runPanel.text.WriteText(output)
         except: pass
- 
+
 
     def run(self):
         """Starts the process, then reads its output line by line, writing
         each line asynchronously to the :class:`RunPanel`.  When the
-        process ends, the ``onFinish`` method (if there is one) is called. 
+        process ends, the ``onFinish`` method (if there is one) is called.
         If the process finishes abnormally (with a non-0 exit code) a warning
         dialog is displayed.
         """
 
         # Run the command. The preexec_fn parameter creates
         # a process group, so we are able to kill the child
-        # process, and all of its children, if necessary. 
+        # process, and all of its children, if necessary.
         log.debug('Running process: "{}"'.format(' '.join(self.cmd)))
         self.proc = subp.Popen(self.cmd,
                                stdout=subp.PIPE,
@@ -174,7 +174,7 @@ class ProcessManager(thread.Thread):
         # each line onto the output queue and
         # asynchronously writing it to the runPanel
         for line in self.proc.stdout:
-            
+
             log.debug('Process output: {}'.format(line.strip()))
             self.outq.put(line)
             wx.CallAfter(self.__writeToPanel)
@@ -186,7 +186,7 @@ class ProcessManager(thread.Thread):
         self.proc.wait()
 
         retcode = self.proc.returncode
-        
+
         log.debug(    'Process finished with return code {}'.format(retcode))
         self.outq.put('Process finished with return code {}'.format(retcode))
 
@@ -205,10 +205,10 @@ class ProcessManager(thread.Thread):
         if self.onFinish is not None:
             wx.CallAfter(self.onFinish, self.parent, retcode)
 
-        
+
     def termProc(self):
         """Attempts to kill the running child process."""
-        
+
         log.debug('Attempting to send SIGTERM to '
                   'process group with pid {}'.format(self.proc.pid))
         os.killpg(self.proc.pid, signal.SIGTERM)
@@ -220,14 +220,14 @@ class ProcessManager(thread.Thread):
 
 def run(name, cmd, parent, onFinish=None, modal=True):
     """Runs the given command, displaying the output in a :class:`RunPanel`.
-    
+
     :arg name:     Name of the tool to be run, used in the window title.
-    
+
     :arg cmd:      String or list of strings, specifying the command to be
                    executed.
-    
+
     :arg parent:   :mod:`wx` parent object.
-    
+
     :arg modal:    If ``True``, the frame which contains the ``RunPanel``
                    will be modal.
 

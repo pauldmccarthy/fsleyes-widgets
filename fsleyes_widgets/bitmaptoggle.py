@@ -31,7 +31,7 @@ class BitmapToggleButton(wx.ToggleButton):
         :arg parent:   The :mod:`wx` parent window.
 
         :arg trueBmp:  Required. A :class:`wx.Bitmap` to display when
-                       the button state is ``True``. 
+                       the button state is ``True``.
 
         :arg falseBmp: Optional. A :class:`wx.Bitmap` to display when the
                        button state is ``False``.
@@ -43,7 +43,7 @@ class BitmapToggleButton(wx.ToggleButton):
         trueBmp  = kwargs.pop('trueBmp',  None)
         falseBmp = kwargs.pop('falseBmp', None)
         style    = kwargs.get('style',    0)
-        
+
         if wx.Platform == '__WXMAC__' and (style | wx.BU_NOTEXT):
             kwargs['style'] = style & ~wx.BU_NOTEXT
 
@@ -60,7 +60,7 @@ class BitmapToggleButton(wx.ToggleButton):
         self.__falseBmp = None
 
         self.Bind(wx.EVT_TOGGLEBUTTON, self.__onToggle)
-        
+
         self.SetBitmap(trueBmp, falseBmp)
 
 
@@ -73,7 +73,7 @@ class BitmapToggleButton(wx.ToggleButton):
 
         self.__updateBitmap()
 
-    
+
     def SetValue(self, state):
         """Sets the current boolean state of this ``BitmapToggleButton``."""
         wx.ToggleButton.SetValue(self, state)
@@ -88,7 +88,7 @@ class BitmapToggleButton(wx.ToggleButton):
 
         if trueBmp is None:
             return
-        
+
         if self.GetValue(): wx.ToggleButton.SetBitmap(self, trueBmp)
         else:               wx.ToggleButton.SetBitmap(self, falseBmp)
 
@@ -99,10 +99,10 @@ class BitmapToggleButton(wx.ToggleButton):
         Flips the button state, and emits a :data:`BitmapToggleEvent`.
         """
         self.__updateBitmap()
-        
+
         ev = BitmapToggleEvent(value=self.GetValue())
         ev.SetEventObject(self)
-        
+
         wx.PostEvent(self, ev)
 
 

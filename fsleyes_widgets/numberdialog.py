@@ -16,7 +16,7 @@ class NumberDialog(wx.Dialog):
 
     This class differs from the :class:`wx.NumberEntryDialog` in that
     it supports floating point numbers.
-    
+
     A ``NumberDialog`` contains a :class:`wx.TextCtrl` and *Ok*/*Cancel*
     buttons, allowing the user to specify a number. If the user pushes the
     *Ok* button, the number they entered will be accessible via the
@@ -50,19 +50,19 @@ class NumberDialog(wx.Dialog):
 
         :arg parent:     The :mod:`wx` parent object.
 
-        :arg real:       If ``True``, a floating point number will 
+        :arg real:       If ``True``, a floating point number will
                          be accepted. Otherwise, only integers are
                          accepted.
 
         :arg title:      Dialog title.
-        
-        :arg message:    If not None, a :class:`wx.StaticText` label 
+
+        :arg message:    If not None, a :class:`wx.StaticText` label
                          is added, containing the message.
 
         :arg initial:    Initial value.
-        
+
         :arg minValue:   Minimum value.
-        
+
         :arg maxValue:   Maximum value.
 
         :arg okText:     Text for OK button. Defaults to "Ok".
@@ -103,7 +103,7 @@ class NumberDialog(wx.Dialog):
 
         self.__errorLabel = wx.StaticText(self.__panel)
         self.__errorLabel.SetForegroundColour('#992222')
-        
+
         self.__okButton     = wx.Button(self.__buttonPanel, label=okText)
         self.__cancelButton = wx.Button(self.__buttonPanel, label=cancelText)
 
@@ -120,7 +120,7 @@ class NumberDialog(wx.Dialog):
         self.__sizer.Add(self.__textctrl,
                          flag=(wx.EXPAND | wx.LEFT | wx.RIGHT),
                          border=15)
-        
+
         self.__sizer.Add(self.__errorLabel, flag=wx.ALL, border=5)
         self.__sizer.Show(self.__errorLabel, False)
         self.__sizer.Add(self.__buttonPanel,
@@ -130,17 +130,17 @@ class NumberDialog(wx.Dialog):
         self.__textctrl    .Bind(wx.EVT_TEXT_ENTER, self.__onOk)
         self.__okButton    .Bind(wx.EVT_BUTTON,     self.__onOk)
         self.__cancelButton.Bind(wx.EVT_BUTTON,     self.__onCancel)
-        
+
         self.__panel.Layout()
         self.__panel.Fit()
 
         self.Fit()
         self.CentreOnParent()
 
-        
+
     def GetValue(self):
         """Return the value that the user entered.
-        
+
         After a valid value has been entered, and OK button pushed (or
         enter pressed), this method may be used to retrieve the value.
         Returns ``None`` in all other situations.
@@ -154,12 +154,12 @@ class NumberDialog(wx.Dialog):
         If the value is valid, returns it.  Otherwise a :exc:`ValueError`
         is raised with an appropriate message.
         """
-        
+
         value = self.__textctrl.GetValue()
 
         if self.__real: cast = float
         else:           cast = int
-        
+
         try:
             value = cast(value)
         except:
@@ -170,7 +170,7 @@ class NumberDialog(wx.Dialog):
         if self.__minValue is not None and value < self.__minValue:
             raise ValueError('The value must be at '
                              'least {}'.format(self.__minValue))
-            
+
         if self.__maxValue is not None and value > self.__maxValue:
             raise ValueError('The value must be at '
                              'most {}'.format(self.__maxValue))
@@ -185,10 +185,10 @@ class NumberDialog(wx.Dialog):
         The value may be retrieved via the :meth:`GetValue` method. If the
         value is not valid, the dialog remains open.
         """
-        
+
         try:
             value = self.__validate()
-            
+
         except ValueError as e:
             self.__errorLabel.SetLabel(str(e))
             self.__sizer.Show(self.__errorLabel, True)
@@ -196,14 +196,14 @@ class NumberDialog(wx.Dialog):
             self.__panel.Fit()
             self.Fit()
             return
-            
+
         self.__value = value
         self.EndModal(wx.ID_OK)
         self.Destroy()
 
-        
+
     def __onCancel(self, ev):
         """Called when the Cancel button is pushed. Closes the dialog."""
         self.__value = None
         self.EndModal(wx.ID_CANCEL)
-        self.Destroy() 
+        self.Destroy()

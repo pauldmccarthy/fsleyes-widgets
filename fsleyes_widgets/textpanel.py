@@ -4,7 +4,7 @@
 #
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
-"""This module provides the :class:`TextPanel` class, for displaying 
+"""This module provides the :class:`TextPanel` class, for displaying
 some text, oriented either horizontally or vertically.
 """
 
@@ -37,7 +37,7 @@ class TextPanel(wx.PyPanel):
         self.__text   = text
         self.__size   = None
         self.__orient = None
-        
+
         self.SetOrient(orient)
 
 
@@ -50,25 +50,25 @@ class TextPanel(wx.PyPanel):
         if orient not in (wx.HORIZONTAL, wx.VERTICAL):
             raise ValueError('TextPanel orient must be '
                              'wx.HORIZONTAL or wx.VERTICAL')
-        
+
         self.__orient = orient
 
         # trigger re-calculation of
         # text extents and a refresh
         self.SetLabel(self.__text)
 
-        
+
     def DoGetBestClientSize(self):
         """Returns the best (minimum) size for this ``TextPanel``. """
-        
+
         size = wx.Size(self.__size)
         self.CacheBestSize(size)
         return size
-    
-        
+
+
     def SetLabel(self, text):
         """Sets the text shown on this ``TextPanel``."""
-        
+
         dc = wx.ClientDC(self)
 
         self.__text = text
@@ -95,7 +95,7 @@ class TextPanel(wx.PyPanel):
         self.Refresh()
         ev.Skip()
 
-        
+
     def Draw(self, ev=None):
         """Draws this ``TextPanel``. """
 

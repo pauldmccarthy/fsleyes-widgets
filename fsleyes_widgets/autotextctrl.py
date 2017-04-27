@@ -28,7 +28,7 @@ class AutoTextCtrl(wx.Panel):
     :class:`AutoCompletePopup`.
     """
 
-    
+
     def __init__(self, parent, style=0):
         """Create an ``AutoTextCtrl``.
 
@@ -38,12 +38,12 @@ class AutoTextCtrl(wx.Panel):
         """
 
         self.__caseSensitive = style & ATC_CASE_SENSITIVE
-        
+
         wx.Panel.__init__(self, parent)
 
         self.__textCtrl = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.__sizer    = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         self.__sizer.Add(self.__textCtrl, flag=wx.EXPAND, proportion=1)
         self.SetSizer(self.__sizer)
 
@@ -60,7 +60,7 @@ class AutoTextCtrl(wx.Panel):
         self.__textCtrl.Bind(wx.EVT_SET_FOCUS,   self.__onSetFocus)
         self           .Bind(wx.EVT_SET_FOCUS,   self.__onSetFocus)
 
-        
+
     def __onSetFocus(self, ev):
         """Called when this ``AutoTextCtrl`` or any of its children gains
         focus. Makes sure that the text control insertion point is at the
@@ -68,7 +68,7 @@ class AutoTextCtrl(wx.Panel):
         """
 
         ev.Skip()
-        
+
         log.debug('Text control gained focus: {}'.format(
             wx.Window.FindFocus()))
 
@@ -81,9 +81,9 @@ class AutoTextCtrl(wx.Panel):
         # of the current contents.
         text = self.__textCtrl.GetValue()
         self.__textCtrl.SetSelection(len(text) - 1, len(text) - 1)
-        self.__textCtrl.SetInsertionPointEnd() 
+        self.__textCtrl.SetInsertionPointEnd()
 
-        
+
     def AutoComplete(self, options):
         """Set the list of options to be shown to the user. """
         self.__options = list(options)
@@ -93,7 +93,7 @@ class AutoTextCtrl(wx.Panel):
         """Returns the current value shown on this ``AutoTextCtrl``. """
         return self.__textCtrl.GetValue()
 
-        
+
     def SetValue(self, value):
         """Sets the current value shown on this ``AutoTextCtrl``.
 
@@ -103,17 +103,17 @@ class AutoTextCtrl(wx.Panel):
         """
         self.__textCtrl.SetValue(value)
 
-        
+
     def ChangeValue(self, value):
         """Sets the current value shown on this ``AutoTextCtrl``. """
         self.__textCtrl.ChangeValue(value)
 
-        
+
     def GetInsertionPoint(self):
         """Returns the cursor location in this ``AutoTextCtrl``. """
-        return self.__textCtrl.GetInsertionPoint() 
+        return self.__textCtrl.GetInsertionPoint()
 
-        
+
     def SetInsertionPoint(self, idx):
         """Sets the cursor location in this ``AutoTextCtrl``. """
         self.__textCtrl.SetInsertionPoint(idx)
@@ -141,7 +141,7 @@ class AutoTextCtrl(wx.Panel):
 
         # Make sure the event is propagated
         # up the window hierarchy, if we skip it
-        ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX) 
+        ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
 
         if key != enter:
             ev.Skip()
@@ -183,7 +183,7 @@ class AutoTextCtrl(wx.Panel):
 
         log.debug('Enter - generating ATC enter '
                   'event (text: "{}")'.format(value))
-        
+
         wx.PostEvent(self, ev)
 
 
@@ -197,7 +197,7 @@ class AutoTextCtrl(wx.Panel):
 
         text            = text.strip()
         style           = 0
-        
+
         if self.__caseSensitive:
             style |= ATC_CASE_SENSITIVE
 
@@ -216,7 +216,7 @@ class AutoTextCtrl(wx.Panel):
         # tells us to (it will call the SetTakeFocus method)
         self.__takeFocus = False
 
-        # Make sure we get the focus back 
+        # Make sure we get the focus back
         # when the popup is destroyed
         def refocus(ev):
 
@@ -247,7 +247,7 @@ ATC_CASE_SENSITIVE = 1
 auto-completion pattern matching will be case sensitive.
 """
 
-        
+
 _AutoTextCtrlEnterEvent, _EVT_ATC_TEXT_ENTER = wxevent.NewEvent()
 
 
@@ -290,7 +290,7 @@ class AutoCompletePopup(wx.Frame):
                                            style=wx.TE_PROCESS_ENTER)
         self.__listBox       = wx.ListBox( self,
                                            style=(wx.LB_SINGLE))
-        
+
         self.__listBox.Set(self.__getMatches(text))
 
         self.__sizer = wx.BoxSizer(wx.VERTICAL)
@@ -318,22 +318,22 @@ class AutoCompletePopup(wx.Frame):
         if wx.Platform == '__WXGTK__':
             self.__listBox .Bind(wx.EVT_LEFT_DOWN,  self.__onListMouseDown)
             self.__listBox .Bind(wx.EVT_RIGHT_DOWN, self.__onListMouseDown)
-        
+
         self           .Bind(wx.EVT_KILL_FOCUS,     self.__onKillFocus)
         self.__textCtrl.Bind(wx.EVT_KILL_FOCUS,     self.__onKillFocus)
         self.__listBox .Bind(wx.EVT_KILL_FOCUS,     self.__onKillFocus)
-        
+
         self           .Bind(wx.EVT_SET_FOCUS,     self.__onSetFocus)
         self.__textCtrl.Bind(wx.EVT_SET_FOCUS,     self.__onSetFocus)
         self.__listBox .Bind(wx.EVT_SET_FOCUS,     self.__onSetFocus)
 
-        
+
     def GetCount(self):
         """Returns the number of auto-completion options currently available.
         """
         return self.__listBox.GetCount()
 
-        
+
     def __onSetFocus(self, ev):
         """Called when this ``AutoCompletePopup`` or any of its children gains
         focus. Makes sure that the text control insertion point is at the end
@@ -367,7 +367,7 @@ class AutoCompletePopup(wx.Frame):
             log.debug('Focus lost - destroying popup')
             self.__destroy(False, False)
 
-        
+
     def __destroy(self, genEnter=True, returnFocus=True):
         """Called by various event handlers. Copies the current value in
         this ``AutoCompletePopup`` to the owning :class:`AutoTextCtrl`,
@@ -386,7 +386,7 @@ class AutoCompletePopup(wx.Frame):
         self.__listBox .Bind(wx.EVT_SET_FOCUS,  None)
         self           .Bind(wx.EVT_KILL_FOCUS, None)
         self.__textCtrl.Bind(wx.EVT_KILL_FOCUS, None)
-        self.__listBox .Bind(wx.EVT_KILL_FOCUS, None) 
+        self.__listBox .Bind(wx.EVT_KILL_FOCUS, None)
 
         atc.ChangeValue(      value)
         atc.SetInsertionPoint(idx)
@@ -395,15 +395,15 @@ class AutoCompletePopup(wx.Frame):
         # should take the focus when this
         # popup is destroyed.
         atc.SetTakeFocus(returnFocus)
-        
+
         if genEnter:
-            atc.GenEnterEvent() 
+            atc.GenEnterEvent()
 
         def destroy():
             try:
                 self.Close()
                 self.Destroy()
-                
+
             except wx.PyDeadObjectError:
                 pass
 
@@ -414,7 +414,7 @@ class AutoCompletePopup(wx.Frame):
         """Returns a list of auto-completion options which match the given
         prefix.
         """
-        
+
         prefix  = prefix.strip()
         options = self.__options
 
@@ -455,31 +455,31 @@ class AutoCompletePopup(wx.Frame):
             self.__destroy(key == enter)
             return
 
-        # If the user hits the down 
+        # If the user hits the down
         # arrow, focus the listbox
         self.__listBox.SetFocus()
         self.__listBox.SetSelection(0)
-                
+
 
     def __onText(self, ev):
         """Called on an ``EVT_TEXT`` event from the text control."""
-        
+
         text    = self.__textCtrl.GetValue().strip()
         matches = self.__getMatches(text)
-        
+
         if text == '' or len(matches) == 0:
             log.debug('Text on popup text control ("{}") - '
                       'no matches, destroying popup'.format(text))
             self.__destroy(False)
         else:
             log.debug('Text on popup text control ("{}") - '
-                      'displaying {} matches'.format(text, len(matches))) 
+                      'displaying {} matches'.format(text, len(matches)))
             self.__listBox.Set(matches)
 
 
     def __onEnter(self, ev):
         """Called on an ``EVT_TEXT_ENTER`` event from the text control."""
-        
+
         log.debug('Enter on popup text control - destroying popup')
         self.__destroy()
 
@@ -528,7 +528,7 @@ class AutoCompletePopup(wx.Frame):
 
         elif key in (esc, backspace, delete):
             log.debug('Escape on popup list box ("{}") '
-                      '- destroying popup'.format(val)) 
+                      '- destroying popup'.format(val))
             genEnter = False
 
         # The user hitting enter or escape
@@ -548,12 +548,12 @@ class AutoCompletePopup(wx.Frame):
     def __onListMouseDblClick(self, ev):
         """Called when the user double clicks an item in the list box. """
         ev.Skip()
-        
+
         sel = self.__listBox.GetSelection()
         val = self.__listBox.GetString(sel)
 
         log.debug('Double click on popup list box ("{}") - '
-                  'destroying popup (and submitting value)'.format(val)) 
+                  'destroying popup (and submitting value)'.format(val))
 
         self.__textCtrl.ChangeValue(val)
         self.__textCtrl.SetInsertionPointEnd()

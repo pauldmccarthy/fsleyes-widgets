@@ -25,7 +25,7 @@ class PlaceholderTextCtrl(wx.TextCtrl):
     def __init__(self, *args, **kwargs):
         """Create a ``PlaceholderTextCtrl``.
 
-        :arg placeholder:       The text to display when the control is empty 
+        :arg placeholder:       The text to display when the control is empty
                                 and unfocused.
 
         :arg placeholderColour: Colour to display the placeholder text in.
@@ -59,7 +59,7 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         """Returns the placeholder text colour."""
         return self.__placeholderColour
 
-    
+
     def SetPlaceholder(self, placeholder):
         """Sets the placeholder text. """
 
@@ -73,12 +73,12 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         """Sets the placeholder text colour. """
 
         colour = list(colour)
-        
+
         if len(colour) != 3:
             raise ValueError('Colour must be an RGB sequence')
 
         for i, c in enumerate(colour):
-            
+
             if c < 0:   c = 0
             if c > 255: c = 255
 
@@ -105,18 +105,18 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         ev.Skip()
 
         value = wx.TextCtrl.GetValue(self)
-        
+
         if value == self.__placeholder:
-            
+
             self.SetForegroundColour(self.__fgColour)
             self.SetValue('')
 
-        
+
     def __onKillFocus(self, ev):
         """Called when this ``PlaceholderTextCtrl`` loses focus.
 
         Displays the placeholder text if necessary.
-        """ 
+        """
         if ev is not None:
             ev.Skip()
 

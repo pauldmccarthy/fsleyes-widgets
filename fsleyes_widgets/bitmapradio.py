@@ -40,7 +40,7 @@ class BitmapRadioBox(wx.Panel):
         """Create a ``BitmapRadioBox``.
 
         :arg parent: A parent window.
-        
+
         :arg style:  Either ``wx.HORIZONTAL`` (the default) or ``wx.VERTICAL``,
                      to control the button layout direction.
         """
@@ -66,7 +66,7 @@ class BitmapRadioBox(wx.Panel):
         :arg selectedBmp:   A :class:`wx.Bitmap` to display on the button when
                             it is selected.
 
-        :arg unselectedBmp: Optional. A :class:`wx.Bitmap` to display on the 
+        :arg unselectedBmp: Optional. A :class:`wx.Bitmap` to display on the
                             button when it is not selected.
 
         :arg clientData:    Arbitrary data which is associated with the choice.
@@ -89,7 +89,7 @@ class BitmapRadioBox(wx.Panel):
         if self.__selection == -1:
             self.SetSelection(0)
 
-        
+
     def Clear(self):
         """Remove all buttons from this ``BitmapRadioBox``."""
 
@@ -103,12 +103,12 @@ class BitmapRadioBox(wx.Panel):
         """Enable or disable the button at the specified index. """
         self.__buttons[index].Enable(enable)
 
-    
+
     def Disable(self, index):
         """Disable the button at the specified index. """
         self.Enable(index, False)
 
-        
+
     def Set(self, bitmaps, clientData=None):
         """Set all buttons at once.
 
@@ -129,7 +129,7 @@ class BitmapRadioBox(wx.Panel):
         """Returns the index of the curently selected choice."""
         return self.__selection
 
-    
+
     def SetSelection(self, index):
         """Sets the current selection."""
 
@@ -137,7 +137,7 @@ class BitmapRadioBox(wx.Panel):
             raise ValueError('Invalid index {}'.format(index))
 
         self.__selection = index
-        
+
         for i, button in enumerate(self.__buttons):
 
             if i == index: button.SetValue(True)
@@ -153,7 +153,7 @@ class BitmapRadioBox(wx.Panel):
         data = self.__clientData[idx]
 
         self.SetSelection(idx)
-        
+
         wx.PostEvent(self, BitmapRadioEvent(index=idx, clientData=data))
 
 

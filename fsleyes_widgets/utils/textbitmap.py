@@ -25,19 +25,19 @@ def textBitmap(text,
     located at index ``[0, 0, :]``.
 
     :arg text:     Text to render.
-    
+
     :arg width:    Width in pixels.
-    
+
     :arg height:   Height in pixels.
-    
+
     :arg fontSize: Font size in points.
-    
+
     :arg fgColour: Foreground (text) colour - can be any colour specification
                    that is accepted by :mod:`matplotlib`.
-    
+
     :arg bgColour: Background colour  - can be any colour specification that
                    is accepted by :mod:`matplotlib`..
-    
+
     :arg alpha:    Text transparency, in the range ``[0.0 - 1.0]``.
     """
 
@@ -83,4 +83,4 @@ def textBitmap(text,
     a   = bitmap[:, :, 0]
     bitmap = np.dstack((rgb, a))
 
-    return bitmap 
+    return bitmap

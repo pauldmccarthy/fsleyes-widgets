@@ -46,10 +46,10 @@ class ImagePanel(wx.Panel):
 
         if image is not None: self.SetMinSize(image.GetSize())
         else:                 self.SetMinSize((0, 0))
-        
+
         self.Refresh()
 
-        
+
     def __onSize(self, ev):
         """Redraw this panel when it is sized, so the image is scaled
         appropriately - see the :meth:`Draw` method.
@@ -64,8 +64,8 @@ class ImagePanel(wx.Panel):
 
         if self.__image is None: return (0, 0)
         else:                    return self.__image.GetSize()
-        
-        
+
+
     def Draw(self, ev=None):
         """Draws this ``ImagePanel``. The image is scaled to the current panel
         size.
@@ -80,13 +80,13 @@ class ImagePanel(wx.Panel):
         else:          dc = wx.PaintDC( self)
 
         if not dc.IsOk():
-            return 
-        
+            return
+
         width, height = dc.GetSize().Get()
 
         if width == 0 or height == 0:
             return
 
         bitmap = self.__image.Scale(width, height).ConvertToBitmap()
-        
+
         dc.DrawBitmap(bitmap, 0, 0, False)

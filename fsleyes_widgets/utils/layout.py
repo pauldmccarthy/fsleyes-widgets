@@ -68,7 +68,7 @@ class Bitmap(object):
     .. warning:: Note the unusual array shape - height is the first axis,
                  and width the second!
 
-    
+
     A ``Bitmap`` instance has the following attributes:
 
       - ``bitmap``: The bitmap data
@@ -85,11 +85,11 @@ class Bitmap(object):
         self.width  = bitmap.shape[1]
         self.height = bitmap.shape[0]
 
-        
+
 class Space(object):
     """A class which represents empty space of a specific width/height.
 
-    
+
     A ``Space`` instance has the following attributes:
 
       - ``width``:  Width in pixels.
@@ -106,7 +106,7 @@ class Space(object):
         self.width  = width
         self.height = height
 
-        
+
 class HBox(object):
     """A class which contains items to be laid out horizontally.
 
@@ -119,7 +119,7 @@ class HBox(object):
       - ``items``:  List of items in this ``HBox``.
     """
 
-    
+
     def __init__(self, items=None):
         """Create a ``HBox``.
 
@@ -130,7 +130,7 @@ class HBox(object):
         self.items  = []
         if items is not None: map(self.append, items)
 
-        
+
     def append(self, item):
         """Append a new item to this ``HBox``. """
         self.items.append(item)
@@ -138,7 +138,7 @@ class HBox(object):
         if item.height > self.height:
             self.height = item.height
 
-            
+
 class VBox(object):
     """A class which contains items to be laid out vertically.
 
@@ -148,20 +148,20 @@ class VBox(object):
 
       - ``width``:  Total width in pixels.
       - ``height``: Total height in pixels.
-      - ``items``:  List of items in this ``VBox``.    
+      - ``items``:  List of items in this ``VBox``.
     """
-    
+
     def __init__(self, items=None):
         """Create a ``VBox``.
 
         :arg items: List of items contained in this ``VBox``.
-        """ 
+        """
         self.width  = 0
         self.height = 0
         self.items  = []
         if items is not None: map(self.append, items)
 
-        
+
     def append(self, item):
         """Append a new item to this ``VBox``. """
         self.items.append(item)
@@ -175,26 +175,26 @@ def padBitmap(bitmap, width, height, vert, bgColour):
     with the ``vert`` parameter), so that it fits in the given
     ``width``/``height``.
 
-    
+
     :arg bitmap:   A ``numpy.array`` of size :math:`x \\times y \\times 4`
                    containing a RGBA bitmap.
-    
+
     :arg width:    Desired width in pixels.
-    
+
     :arg height:   Desired height in pixels.
-    
-    :arg vert:     If ``vert`` is ``True``, the bitmap is padded 
-                   horizontally to fit ``width``. Otherwise, the 
+
+    :arg vert:     If ``vert`` is ``True``, the bitmap is padded
+                   horizontally to fit ``width``. Otherwise, the
                    bitmap is padded vertically to fit ``height``.
 
     :arg bgColour: Background colour to use for padding. Must be
                    a ``(r, g, b, a)`` tuple with each channel in
                    the range ``[0 - 255]``.
     """
-    
+
     iheight = bitmap.shape[0]
     iwidth  = bitmap.shape[1]
-    
+
     if vert:
         if iwidth < width:
             lpad   = int(np.floor((width - iwidth) / 2.0))
@@ -211,7 +211,7 @@ def padBitmap(bitmap, width, height, vert, bgColour):
             tpad   = np.zeros((tpad, iwidth, 4), dtype=np.uint8)
             bpad   = np.zeros((bpad, iwidth, 4), dtype=np.uint8)
             tpad[:] = bgColour
-            bpad[:] = bgColour 
+            bpad[:] = bgColour
             bitmap = np.vstack((tpad, bitmap, bpad))
 
     return bitmap
@@ -220,7 +220,7 @@ def padBitmap(bitmap, width, height, vert, bgColour):
 def layoutToBitmap(layout, bgColour):
     """Recursively turns the given ``layout`` object into a bitmap.
 
-    :arg layout:   A :class:`Bitmap`, :class:`Space`, :class:`HBox` or 
+    :arg layout:   A :class:`Bitmap`, :class:`Space`, :class:`HBox` or
                    :class:`VBox` instance.
 
     :arg bgColour: Background colour used to fill in empty space. Must be
@@ -234,7 +234,7 @@ def layoutToBitmap(layout, bgColour):
     if bgColour is None: bgColour = [0, 0, 0, 0]
     bgColour = np.array(bgColour, dtype=np.uint8)
 
-    # Space is easy 
+    # Space is easy
     if isinstance(layout, Space):
         space = np.zeros((layout.height, layout.width, 4), dtype=np.uint8)
         space[:] = bgColour
@@ -256,7 +256,7 @@ def layoutToBitmap(layout, bgColour):
     # if the layout is a VBox, and height if the layout
     # is a HBox).
     width    = layout.width
-    height   = layout.height 
+    height   = layout.height
     itemBmps = map(lambda bmp: padBitmap(bmp, width, height, vert, bgColour),
                    itemBmps)
 
@@ -268,18 +268,18 @@ def buildCanvasBox(canvasBmp, labelBmps, showLabels, labelSize):
     """Builds a layout containing the given canvas bitmap, and orientation
     labels (if ``showLabels`` is ``True``).
 
-    
+
     :arg canvasBmp:  A ``numpy.uint8`` array containing a bitmap.
-    
+
     :arg labelBmps:  Only used if ``showLabels`` is ``True``. ``numpy.uint8``
                      arrays containing label bitmaps. Must be a
                      dictionary of ``{side : numpy.uint8}`` mappings,
                      and must have keys ``top``, ``bottom``, ``left`` and
                      ``right``.
-    
+
     :arg showLabels: If ``True``, the orientation labels provided in
                      ``labelBmps`` are added to the layout.
-    
+
     :arg labelSize:  Label sizes - the ``left``/``right`` label widths,
                      and ``top``/``bottom`` label heights are padded to this
                      size using ``Space`` objects.
@@ -312,7 +312,7 @@ def buildOrthoLayout(canvasBmps,
     """Builds a layout containing the given canvas bitmaps, label bitmaps, and
     colour bar bitmap.
 
-    
+
     :arg canvasBmps: A list of ``numpy.uint8`` arrays containing the canvas
                      bitmaps to be laid out.
 
@@ -320,7 +320,7 @@ def buildOrthoLayout(canvasBmps,
 
     See the :func:`buildCanvasBox` for details on the other parameters.
 
-    
+
     :returns: A :class:`HBox` or :class:`VBox` describing the layout.
     """
 
@@ -350,30 +350,30 @@ def calcSizes(layout, canvasaxes, bounds, width, height):
     """Convenience function which, based upon whether the `layout` argument
     is ``'horizontal'``, ``'vertical'``, or ``'grid'``,  respectively calls
     one of:
-    
+
       - :func:`calcHorizontalSizes`
       - :func:`calcVerticalSizes`
       - :func:`calcGridSizes`
 
     :arg layout:    String specifying the layout type.
-    
+
     :arg canvsaxes: A list of tuples, one for each canvas to be laid out.
                     Each tuple contains two values, ``(i, j)``, where ``i``
                     is an index, into ``bounds``, specifying the canvas
                     width, and ``j`` is an index into ``bounds``, specifying
                     the canvas height, in the display coordinate system.
-    
+
     :arg bounds:    A list of three values specifying the size of the display
                     space.
-    
+
     :arg width:     Maximum width in pixels.
-    
+
     :arg height:    Maximum height in pixels.
 
     :returns:       A list of ``(width, height)`` tuples, one for each canvas,
                     each specifying the canvas width and height in pixels.
     """
-    
+
     layout = layout.lower()
     func   = None
 
@@ -391,7 +391,7 @@ def calcSizes(layout, canvasaxes, bounds, width, height):
 
     return sizes
 
-        
+
 def calcGridSizes(canvasaxes, bounds, width, height):
     """Calculates the size of three canvases so that they are laid
     out in a grid, i.e.:
@@ -412,7 +412,7 @@ def calcGridSizes(canvasaxes, bounds, width, height):
 
     canvasWidths  = [bounds[c[0]] for c in canvasaxes]
     canvasHeights = [bounds[c[1]] for c in canvasaxes]
-    
+
     ttlWidth      = float(canvasWidths[ 0] + canvasWidths[ 1])
     ttlHeight     = float(canvasHeights[0] + canvasHeights[2])
 
@@ -421,7 +421,7 @@ def calcGridSizes(canvasaxes, bounds, width, height):
     for i in range(len(canvasaxes)):
 
         cw = width  * (canvasWidths[ i] / ttlWidth)
-        ch = height * (canvasHeights[i] / ttlHeight) 
+        ch = height * (canvasHeights[i] / ttlHeight)
 
         acw, ach = _adjustPixelSize(canvasWidths[ i],
                                     canvasHeights[i],
@@ -430,7 +430,7 @@ def calcGridSizes(canvasaxes, bounds, width, height):
 
         if (float(cw) / ch) > (float(acw) / ach): cw, ch = cw, ach
         else:                                     cw, ch = acw, ch
-        
+
         sizes.append((cw, ch))
 
     return sizes
@@ -450,13 +450,13 @@ def calcHorizontalSizes(canvasaxes, bounds, width, height):
     horizontally.
 
     See :func:`calcSizes` for details on the arguments.
-    """ 
+    """
     return _calcFlatSizes(canvasaxes, bounds, width, height, False)
 
-        
+
 def _calcFlatSizes(canvasaxes, bounds, width, height, vert=True):
     """Used by :func:`calcVerticalSizes` and :func:`calcHorizontalSizes`.
-    
+
     Calculates the width and height, in pixels, of each canvas.
 
     :arg vert: If ``True`` the sizes are calculated for a vertical layout;
@@ -465,7 +465,7 @@ def _calcFlatSizes(canvasaxes, bounds, width, height, vert=True):
     See :func:`calcSizes` for details on the other arguments.
 
     :returns:  A list of ``(width, height)`` tuples, one for each canvas,
-               each specifying the canvas width and height in pixels. 
+               each specifying the canvas width and height in pixels.
     """
 
     # Get the canvas dimensions in world space
@@ -522,8 +522,8 @@ def calcPixHeight(wldWidth, wldHeight, pixWidth):
 
     :arg pixWidth:   Available width in pixels.
 
-    :returns:        The required height in pixels. 
-    """ 
+    :returns:        The required height in pixels.
+    """
     return _adjustPixelSize(wldWidth,
                             wldHeight,
                             pixWidth,
@@ -549,7 +549,7 @@ def _adjustPixelSize(wldWidth, wldHeight, pixWidth, pixHeight):
 
     if   pixRatio > wldRatio:
         pixWidth  = wldWidth  * (pixHeight / wldHeight)
-            
+
     elif pixRatio < wldRatio:
         pixHeight = wldHeight * (pixWidth  / wldWidth)
 

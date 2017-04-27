@@ -26,7 +26,7 @@ import            webbrowser
 
 def fileToUrl(fileName):
     """Converts a file path to a URL. """
-    
+
     import urlparse
     import urllib
     return urlparse.urljoin(

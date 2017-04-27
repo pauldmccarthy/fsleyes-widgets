@@ -34,7 +34,7 @@ passed to this target.
 
 .. warning:: If the status update target is a ``wx`` GUI object, you must
              make sure that it is updated asynchronously (e.g. via
-             ``wx.CallAfter``). 
+             ``wx.CallAfter``).
 """
 
 
@@ -56,7 +56,7 @@ can be set via :func:`setTarget`.
 
 _clearThread = None
 """Reference to a :class:`ClearThread`, which is a daemon thread that clears
-the status after the timeout passed to the :func:`update` function. 
+the status after the timeout passed to the :func:`update` function.
 """
 
 
@@ -85,7 +85,7 @@ def update(message, timeout=1.0):
     global _statusUpdateTarget
 
     if log.getEffectiveLevel() == logging.DEBUG:
-        
+
         frame   = inspect.stack()[1]
         module  = frame[1]
         linenum = frame[2]
@@ -100,7 +100,7 @@ def update(message, timeout=1.0):
 
     if timeout is not None:
         log.debug('timeout is not None - starting clear thread')
-        
+
         if _clearThread is None:
             _clearThread = ClearThread()
             _clearThread.start()
@@ -115,10 +115,10 @@ def update(message, timeout=1.0):
 def clearStatus():
     """Clear the status. If a status update target has been set, it is passed
     the empty string.
-    """ 
+    """
     if _statusUpdateTarget is None:
         return
-        
+
     _statusUpdateTarget('')
 
 
@@ -133,10 +133,10 @@ def reportError(title, msg, err):
 
     if fslplatform.haveGui:
         msg = '{}\n\nDetails: {}'.format(msg, str(err))
-        
+
         import wx
         async.idle(wx.MessageBox, msg, title, wx.ICON_ERROR | wx.OK)
-    
+
 
 @contextlib.contextmanager
 def reportIfError(title, msg, raiseError=True, report=True):
@@ -151,7 +151,7 @@ def reportIfError(title, msg, raiseError=True, report=True):
     """
     try:
         yield
-        
+
     except Exception as e:
 
         log.error('{}: {}'.format(title, msg), exc_info=True)
@@ -166,7 +166,7 @@ def reportIfError(title, msg, raiseError=True, report=True):
 def reportErrorDecorator(*args, **kwargs):
     """A decorator which wraps the decorated function with
     :func:`reportIfError`.
-    """ 
+    """
 
     def decorator(func):
         def wrapper(*wargs, **wkwargs):
@@ -177,7 +177,7 @@ def reportErrorDecorator(*args, **kwargs):
 
     return decorator
 
-    
+
 class ClearThread(threading.Thread):
     """The ``ClearThread`` is a daemon thread used by the :func:`update`
     function. Only one ``ClearThread`` is ever started - it is started on the
@@ -189,7 +189,7 @@ class ClearThread(threading.Thread):
     status via a call to :func:`clearStatus`.
     """
 
-    
+
     def __init__(self):
         """Create a ``ClearThread``. """
 
@@ -200,10 +200,10 @@ class ClearThread(threading.Thread):
         self.__vetoEvent  = threading.Event()
         self.__timeout    = None
 
-        
+
     def clear(self, timeout):
         """Clear the status after the specified timeout (in seconds). """
-        
+
         self.__timeout = timeout
         self.__vetoEvent .clear()
         self.__clearEvent.set()
@@ -215,7 +215,7 @@ class ClearThread(threading.Thread):
         """
         self.__vetoEvent.set()
 
-        
+
     def run(self):
         """The ``ClearThread`` function. Infinite loop which waits until
         the :meth:`clear` method is called, and then clears the status
@@ -240,6 +240,6 @@ class ClearThread(threading.Thread):
 
                     log.debug('Timeout - clearing status')
                     clearStatus()
-                    
+
             except TypeError:
                 return

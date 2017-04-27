@@ -29,14 +29,14 @@ class Notebook(wx.Panel):
 
         :arg parent: The :mod:`wx` parent object.
         """
-        
+
         wx.Panel.__init__(self, parent, style=wx.SUNKEN_BORDER)
-        
+
         self.__buttonPanel = wx.Panel(self)
 
         self.__sizer       = wx.BoxSizer(wx.VERTICAL)
         self.__buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         self.              SetSizer(self.__sizer)
         self.__buttonPanel.SetSizer(self.__buttonSizer)
 
@@ -84,13 +84,13 @@ class Notebook(wx.Panel):
 
         pageWidths  = [ps[0] for ps in pageSizes]
         pageHeights = [ps[1] for ps in pageSizes]
-        
+
         myWidth  = max([buttonWidth] + pageWidths)                 + 20
         myHeight = max(pageHeights) + buttonHeight + divLineHeight + 20
 
         self.SetMinSize((myWidth, myHeight))
 
-        
+
     def FindPage(self, page):
         """Returns the index of the given page, or :data:`wx.NOT_FOUND`
         if the page is not in this notebook.
@@ -139,7 +139,7 @@ class Notebook(wx.Panel):
         def _showPage(ev):
             if not button.IsEnabled(): return
             self.SetSelection(self.FindPage(page))
-            
+
         button.Bind(wx.EVT_LEFT_DOWN, _showPage)
 
         if self.__selected is None:
@@ -152,7 +152,7 @@ class Notebook(wx.Panel):
 
         self.__updateMinSize()
 
-        
+
     def AddPage(self, page, text):
         """Adds the given page (and a corresponding button with the given
         text) to the end of the notebook.
@@ -165,11 +165,11 @@ class Notebook(wx.Panel):
         """
 
         if (index >= len(self.__pages)) or (index < 0):
-            raise IndexError('Index out of range: {}'.format(index)) 
+            raise IndexError('Index out of range: {}'.format(index))
 
         buttonIdx = index * 2 + 1
         pageIdx   = index + 2
-        
+
         self.__buttons.pop(index)
         self.__pages  .pop(index)
 
@@ -183,14 +183,14 @@ class Notebook(wx.Panel):
 
         if len(self.__pages) == 0:
             self.__selected = None
-        
+
         self.__updateMinSize()
 
-        
+
     def DeletePage(self, index):
         """Removes the page at the specified index, and (attempts to) destroy
-        it. 
-        """ 
+        it.
+        """
         page = self.__pages[index]
         self.RemovePage(index)
         page.Destroy()
@@ -210,7 +210,7 @@ class Notebook(wx.Panel):
         self.__selected = index
 
         for i in range(len(self.__pages)):
-            
+
             page     = self.__pages[  i]
             button   = self.__buttons[i]
             showThis = i == self.__selected
@@ -221,13 +221,13 @@ class Notebook(wx.Panel):
             else:
                 button.SetBackgroundColour(None)
                 page.Hide()
-                
+
         button.Layout()
         self.__buttonPanel.Layout()
         self.Layout()
         self.Refresh()
 
-        
+
     def AdvanceSelection(self, forward=True):
         """Selects the next (or previous, if ``forward``
         is ``False``) enabled page.
@@ -252,17 +252,17 @@ class Notebook(wx.Panel):
         """Enables the page at the specified index."""
         self.__buttons[index].Enable()
 
-        
+
     def DisablePage(self, index):
         """Disables the page at the specified index."""
         self.__buttons[index].Disable()
-        
+
         if self.GetSelection() == index:
             self.AdvanceSelection()
 
         self.Refresh()
 
-            
+
     def ShowPage(self, index):
         """Shows the page at the specified index."""
         self.EnablePage(index)
@@ -271,7 +271,7 @@ class Notebook(wx.Panel):
         self.__buttonPanel.Layout()
         self.Refresh()
 
-        
+
     def HidePage(self, index):
         """Hides the page at the specified index."""
 
@@ -281,7 +281,7 @@ class Notebook(wx.Panel):
         # we disable the page as well as hiding it,, as the
         # AdvanceSelection method, and button handlers, use
         # button.IsEnabled to determine whether a page is
-        # active or not. 
+        # active or not.
         self.DisablePage(index)
 
         self.__buttonPanel.Layout()

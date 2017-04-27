@@ -125,7 +125,7 @@ class FloatSpinCtrl(FloatSpinBase):
         else:
             self.__spinMin = self.__realSpinMin
             self.__spinMax = self.__realSpinMax
-            
+
         self.__spinRange = abs(self.__spinMax - self.__spinMin)
 
         self.__text = wx.TextCtrl(  self,
@@ -181,12 +181,12 @@ class FloatSpinCtrl(FloatSpinBase):
             self.__text.Bind(wx.EVT_LEFT_DCLICK, self.__onDoubleClick)
 
         self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         self.__sizer.Add(self.__text, flag=wx.EXPAND, proportion=1)
         self.__sizer.Add(self.__spin)
 
         self.Layout()
-        
+
         self.SetSizer(  self.__sizer)
         self.SetMinSize(self.__sizer.GetMinSize())
 
@@ -210,23 +210,23 @@ class FloatSpinCtrl(FloatSpinBase):
         """
         return self.__spin
 
-        
+
     def DoGetBestClientSize(self):
         """Returns the best size for this ``FloatSpinCtrl``.
         """
         return self.__sizer.GetMinSize()
 
-    
+
     def GetValue(self):
         """Returns the current value."""
         return self.__value
-    
+
 
     def GetMin(self):
         """Returns the current minimum value."""
         return float(self.__realMin)
 
-    
+
     def GetMax(self):
         """Returns the current maximum value."""
         return float(self.__realMax)
@@ -242,7 +242,7 @@ class FloatSpinCtrl(FloatSpinBase):
         if self.__integer: self.__increment = int(round(inc))
         else:              self.__increment =           inc
 
-        
+
     def GetRange(self):
         """Returns the current data range, a tuple containing the
         ``(min, max)`` values.
@@ -254,16 +254,16 @@ class FloatSpinCtrl(FloatSpinBase):
         """Sets the minimum value."""
         self.SetRange(minval, self.__realMax)
 
-    
+
     def SetMax(self, maxval):
         """Sets the maximum value."""
         self.SetRange(self.__realMin, maxval)
 
-    
+
     def SetRange(self, minval, maxval):
         """Sets the minimum and maximum values."""
 
-            
+
         if self.__integer:
             minval = int(round(minval))
             maxval = int(round(maxval))
@@ -277,7 +277,7 @@ class FloatSpinCtrl(FloatSpinBase):
 
         self.SetValue(self.__value)
 
-    
+
     def SetValue(self, value):
         """Sets the value.
 
@@ -288,7 +288,7 @@ class FloatSpinCtrl(FloatSpinBase):
             return
 
         # Throttle the value so it stays
-        # within the min/max, unless the 
+        # within the min/max, unless the
         # FSC_NO_LIMIT style flag is set.
         if not self.__nolimit:
             if value < self.__realMin: value = self.__realMin
@@ -296,7 +296,7 @@ class FloatSpinCtrl(FloatSpinBase):
 
         if self.__integer:
             value = int(round(value))
-        
+
         oldValue     = self.__value
         self.__value = value
 
@@ -353,7 +353,7 @@ class FloatSpinCtrl(FloatSpinBase):
         elif key == down: self.__onSpinDown()
         else:             ev.Skip()
 
-        
+
     def __onText(self, ev):
         """Called when the user changes the value via the text control.
 
@@ -363,7 +363,7 @@ class FloatSpinCtrl(FloatSpinBase):
         """
 
         val = self.__text.GetValue().strip()
-        
+
         if self.__textPattern.match(val) is None:
             self.SetValue(self.__value)
             return
@@ -379,7 +379,7 @@ class FloatSpinCtrl(FloatSpinBase):
             return
 
         if self.SetValue(val):
-            wx.PostEvent(self, FloatSpinEvent(value=self.__value)) 
+            wx.PostEvent(self, FloatSpinEvent(value=self.__value))
 
 
     def __onSpinDown(self, ev=None):
@@ -407,7 +407,7 @@ class FloatSpinCtrl(FloatSpinBase):
         if self.SetValue(self.__value - self.__increment):
             wx.PostEvent(self, FloatSpinEvent(value=self.__value))
 
-        
+
     def __onSpinUp(self, ev=None):
         """Called when the *up* button on the ``wx.SpinButton`` is pushed.
 
@@ -422,7 +422,7 @@ class FloatSpinCtrl(FloatSpinBase):
 
             if thisEv - lastEv < self.__eventDelta:
                 return
-            self.__lastEvent = thisEv 
+            self.__lastEvent = thisEv
 
         log.debug('Spin up button - attempting to change value '
                   'from {} to {}'.format(self.__value,
@@ -457,7 +457,7 @@ class FloatSpinCtrl(FloatSpinBase):
         """
         self.__text.SelectAll()
 
-        
+
     def __realToSpin(self, value):
         """Converts the given value from real space to spin button space."""
 
@@ -476,8 +476,8 @@ class FloatSpinCtrl(FloatSpinBase):
         # the real wx.SpinButton range.
         if   value < self.__realSpinMin: value = self.__realSpinMin
         elif value > self.__realSpinMax: value = self.__realSpinMax
-        
-        return int(round(value))        
+
+        return int(round(value))
 
 
 _FloatSpinEvent, _EVT_FLOATSPIN = wxevent.NewEvent()

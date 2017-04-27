@@ -34,7 +34,7 @@ class ColourButton(wx.Button):
 
         :arg size:   A tuple containing the ``(width, height)`` of the
                      colour bitmap in pixels. Defaults to ``(32, 32)``.
-        
+
         :arg colour: Initial colour. Defaults to black.
         """
 
@@ -44,7 +44,7 @@ class ColourButton(wx.Button):
         # BU_NOTEXT causes crash under OSX
         if wx.Platform == '__WXMAC__': style = wx.BU_EXACTFIT
         else:                          style = wx.BU_EXACTFIT | wx.BU_NOTEXT
-        
+
         wx.Button.__init__(self, parent, style=style)
 
         # Under wxPython-phoenix, setting
@@ -66,7 +66,7 @@ class ColourButton(wx.Button):
         """
         return self.__colour
 
-    
+
     def SetValue(self, colour):
         """Sets the current colour to the specified ``colour``."""
 
@@ -86,14 +86,14 @@ class ColourButton(wx.Button):
         """
 
         import numpy as np
-        
+
         w, h = self.__size
         data = np.zeros((w, h, 4), dtype=np.uint8)
 
         data[:, :] = colour
 
         if six.PY2: self.__bmp = wx.BitmapFromBufferRGBA( w, h, data)
-        else:       self.__bmp = wx.Bitmap.FromBufferRGBA(w, h, data) 
+        else:       self.__bmp = wx.Bitmap.FromBufferRGBA(w, h, data)
 
         self.SetBitmap(self.__bmp)
 
@@ -120,7 +120,7 @@ class ColourButton(wx.Button):
                      newColour.Alpha()]
 
         self.SetValue(newColour)
-        
+
         wx.PostEvent(self, ColourButtonEvent(colour=newColour))
 
 
