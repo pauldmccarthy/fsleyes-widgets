@@ -15,23 +15,17 @@ The following functions are provided:
    fileToUrl
    openPage
    openFile
-   localHelpUrl
-   openLocalHelp
 """
 
-import            os
-import os.path as op
-import            webbrowser
+import                             webbrowser
+import six.moves.urllib.parse   as urlparse
+import six.moves.urllib.request as urlrequest
 
 
 def fileToUrl(fileName):
     """Converts a file path to a URL. """
 
-    import urlparse
-    import urllib
-    return urlparse.urljoin(
-        'file:', urllib.pathname2url(fileName))
-
+    return urlparse.urljoin('file:', urlrequest.pathname2url(fileName))
 
 
 def openPage(url):
@@ -42,35 +36,3 @@ def openPage(url):
 def openFile(fileName):
     """Opens the given file in the system-default web browser."""
     openPage(fileToUrl(fileName))
-
-
-def localHelpUrl(toolName):
-    """Checks the ``$FSLDIR`` to see if a local help page exists for the
-    FSL tool with the specified name.
-    """
-    fsldir = os.environ.get('FSLDIR', None)
-
-    if fsldir is None:
-        return None
-
-    toolName = toolName.lower()
-    localUrl = op.join(fsldir, 'doc', 'redirects', '{}.html'.format(toolName))
-
-    if op.exists(localUrl):
-        return fileToUrl(localUrl)
-
-    return None
-
-
-def openLocalHelp(toolName):
-    """Attempts to open the locally hosted FSL help documentation
-    for the given FSL tool. If there is no help page for the
-    given tool, attempts to open the FSL wiki.
-    """
-
-    localUrl = localHelpUrl(toolName)
-
-    if localUrl is None:
-        localUrl = "http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/"
-
-    openPage(localUrl)

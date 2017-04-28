@@ -69,8 +69,11 @@ def textBitmap(text,
             color=fgColour,
             alpha=alpha)
 
-    try:    fig.tight_layout()
-    except: pass
+    fig.subplots_adjust(
+        bottom=0,
+        top=1,
+        left=0,
+        right=1)
 
     canvas.draw()
     buf = canvas.tostring_argb()
