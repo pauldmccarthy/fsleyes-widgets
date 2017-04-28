@@ -36,6 +36,31 @@ def _test_AutoTextCtrl_getSet():
     assert atc.GetValue() == 'b'
 
 
+def test_AutoTextCtrl_event():
+    run_with_wx( _test_AutoTextCtrl_event)
+def _test_AutoTextCtrl_event():
+
+    called = [None]
+
+    def handler(ev):
+        called[0] = ev.text
+
+    sim    = wx.UIActionSimulator()
+    parent = wx.GetApp().GetTopWindow()
+    atc    = autott.AutoTextCtrl(parent)
+
+    atc.Bind(autott.EVT_ATC_TEXT_ENTER, handler)
+    atc.SetFocus()
+    sim.Char(ord('a'))
+    sim.Char(ord('b'))
+    sim.Char(ord('c'))
+    sim.KeyDown(wx.WXK_RETURN)
+    wx.Yield()
+
+    assert atc.GetValue() == 'abc'
+    assert called[0]      == 'abc'
+
+
 # Make sure that when the cotrol receives
 # focus, its insertion point is at the end
 def test_AutoTextCtrl_onFocus():
