@@ -7,13 +7,9 @@
 
 from __future__ import print_function
 
-
 import numpy as np
 
-import logging
-
-logging.getLogger('PIL').setLevel(logging.INFO)
-
+import wx
 
 def compare_images(img1, img2, threshold):
     """Compares two images using the euclidean distance in RGB space
@@ -54,8 +50,6 @@ def run_with_wx(func, *args, **kwargs):
     finishingDelay = kwargs.pop('finishingDelay', 500)
     callAfterApp   = kwargs.pop('callAfterApp',   None)
 
-    import wx
-
     result = [None]
     raised = [None]
 
@@ -91,3 +85,13 @@ def run_with_wx(func, *args, **kwargs):
         raise raised[0]
 
     return result[0]
+
+
+def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, double=False):
+
+    x, y = target.GetScreenPosition()
+    sim.MouseMove(x + 10, y + 10)
+    wx.Yield()
+    if double: sim.MouseDblClick(btn)
+    else:      sim.MouseClick(btn)
+    wx.Yield()

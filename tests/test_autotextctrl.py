@@ -6,7 +6,7 @@
 #
 
 
-from . import run_with_wx
+from . import run_with_wx, simclick
 
 import wx
 import fsleyes_widgets.autotextctrl as autott
@@ -22,9 +22,9 @@ def sendEvent(target, evType, source=None):
 
 # Simple test - programmatically
 # set, then retrieve the value
-def test_AutoTextCtrl_getSet():
-    run_with_wx( _test_AutoTextCtrl_getSet)
-def _test_AutoTextCtrl_getSet():
+def test_getSet():
+    run_with_wx( _test_getSet)
+def _test_getSet():
 
     parent = wx.GetApp().GetTopWindow()
     atc = autott.AutoTextCtrl(parent)
@@ -36,9 +36,9 @@ def _test_AutoTextCtrl_getSet():
     assert atc.GetValue() == 'b'
 
 
-def test_AutoTextCtrl_event():
-    run_with_wx( _test_AutoTextCtrl_event)
-def _test_AutoTextCtrl_event():
+def test_event():
+    run_with_wx( _test_event)
+def _test_event():
 
     called = [None]
 
@@ -63,9 +63,9 @@ def _test_AutoTextCtrl_event():
 
 # Make sure that when the cotrol receives
 # focus, its insertion point is at the end
-def test_AutoTextCtrl_onFocus():
-    run_with_wx(_test_AutoTextCtrl_onFocus)
-def _test_AutoTextCtrl_onFocus():
+def test_onFocus():
+    run_with_wx(_test_onFocus)
+def _test_onFocus():
 
     parent = wx.GetApp().GetTopWindow()
     atc = autott.AutoTextCtrl(parent)
@@ -84,9 +84,9 @@ def _test_AutoTextCtrl_onFocus():
 
 
 # Test showing the popup and selecting a value
-def test_AutoTextCtrl_popup_select1():
-    run_with_wx(_test_AutoTextCtrl_popup_select1)
-def _test_AutoTextCtrl_popup_select1():
+def test_popup_select1():
+    run_with_wx(_test_popup_select1)
+def _test_popup_select1():
 
     sim = wx.UIActionSimulator()
 
@@ -105,9 +105,9 @@ def _test_AutoTextCtrl_popup_select1():
     assert atc.GetValue() == 'aab'
 
 
-def test_AutoTextCtrl_popup_select2():
-    run_with_wx(_test_AutoTextCtrl_popup_select2)
-def _test_AutoTextCtrl_popup_select2():
+def test_popup_select2():
+    run_with_wx(_test_popup_select2)
+def _test_popup_select2():
 
     sim = wx.UIActionSimulator()
 
@@ -125,9 +125,9 @@ def _test_AutoTextCtrl_popup_select2():
     assert atc.GetValue() == 'bcc'
 
 
-def test_AutoTextCtrl_popup_select3():
-    run_with_wx(_test_AutoTextCtrl_popup_select3)
-def _test_AutoTextCtrl_popup_select3():
+def test_popup_select3():
+    run_with_wx(_test_popup_select3)
+def _test_popup_select3():
 
     sim = wx.UIActionSimulator()
 
@@ -146,9 +146,9 @@ def _test_AutoTextCtrl_popup_select3():
     assert atc.GetValue() == 'aba'
 
 
-def test_AutoTextCtrl_popup_cancel():
-    run_with_wx(_test_AutoTextCtrl_popup_cancel)
-def _test_AutoTextCtrl_popup_cancel():
+def test_popup_cancel():
+    run_with_wx(_test_popup_cancel)
+def _test_popup_cancel():
 
     sim = wx.UIActionSimulator()
 
@@ -166,9 +166,9 @@ def _test_AutoTextCtrl_popup_cancel():
     assert atc.GetValue() == ''
 
 
-def test_AutoTextCtrl_popup_focusback():
-    run_with_wx(_test_AutoTextCtrl_popup_focusback)
-def _test_AutoTextCtrl_popup_focusback():
+def test_popup_focusback():
+    run_with_wx(_test_popup_focusback)
+def _test_popup_focusback():
 
     sim = wx.UIActionSimulator()
 
@@ -187,3 +187,33 @@ def _test_AutoTextCtrl_popup_focusback():
     wx.Yield()
 
     assert atc.GetValue() == 'abc'
+
+
+def test_popup_dblclick():
+    run_with_wx(_test_popup_dblclick)
+def _test_popup_dblclick():
+    sim    = wx.UIActionSimulator()
+    parent = wx.GetApp().GetTopWindow()
+    atc    = autott.AutoTextCtrl(parent)
+
+    atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
+
+    atc.SetFocus()
+    sim.KeyDown(wx.WXK_RETURN)
+
+    # Sneakily get a ref to the listbox
+    # in the AutoCompletePopup
+    wx.Yield()
+    listbox = None
+    for c in atc.GetChildren():
+        if isinstance(c, autott.AutoCompletePopup):
+
+            for pc in c.GetChildren():
+                if isinstance(pc, wx.ListBox):
+                    listbox = pc
+                    break
+
+    simclick(sim, listbox, double=True)
+    wx.Yield()
+
+    assert atc.GetValue() == 'aaa'
