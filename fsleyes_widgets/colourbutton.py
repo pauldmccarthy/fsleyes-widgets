@@ -70,6 +70,9 @@ class ColourButton(wx.Button):
     def SetValue(self, colour):
         """Sets the current colour to the specified ``colour``."""
 
+        if len(colour) not in (3, 4):
+            raise ValueError('Invalid RGB[A] colour: {}'.format(colour))
+
         if len(colour) == 3:
             colour = list(colour) + [255]
 
