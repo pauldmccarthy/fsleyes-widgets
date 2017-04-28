@@ -103,7 +103,8 @@ def test_reportError():
     assert wx.msg.startswith('Error message')
     assert wx.msg.endswith(str(exc))
 
-    with mock.patch('fsleyes_widgets.utils.status.log.error') as log:
+    with mock.patch.dict('sys.modules', {'wx' : None}), \
+         mock.patch('fsleyes_widgets.utils.status.log.error') as log:
         status.reportError('Error title', 'Error message', exc)
         log.assert_called_once()
 
