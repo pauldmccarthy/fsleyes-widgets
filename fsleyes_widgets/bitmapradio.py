@@ -122,7 +122,8 @@ class BitmapRadioBox(wx.Panel):
             clientData = [None] * len(bitmaps)
 
         self.Clear()
-        map(self.AddChoice, bitmaps, clientData)
+        for bmp, cd in zip(bitmaps, clientData):
+            self.AddChoice(bmp, clientData=cd)
 
 
     def GetSelection(self):
@@ -134,7 +135,7 @@ class BitmapRadioBox(wx.Panel):
         """Sets the current selection."""
 
         if index < 0 or index >= len(self.__buttons):
-            raise ValueError('Invalid index {}'.format(index))
+            raise IndexError('Invalid index {}'.format(index))
 
         self.__selection = index
 
@@ -168,6 +169,6 @@ BitmapRadioEvent = _BitampRadioEvent
 """Event emitted when the user changes the radio selection. Contains
 the following attributes:
 
-  - ``idx``:        The index of the new selection.
+  - ``index``:      The index of the new selection.
   - ``clientData``: Client data associated with the new selection.
 """
