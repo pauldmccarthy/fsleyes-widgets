@@ -23,8 +23,8 @@ import os
 import signal
 import logging
 
-import subprocess as subp
-import threading  as thread
+import subprocess as sp
+import threading
 
 try:    import queue
 except: import Queue as queue
@@ -87,7 +87,7 @@ class RunPanel(wx.Panel):
         self.btnSizer.Add(self.closeButton, flag=wx.EXPAND, proportion=1)
 
 
-class ProcessManager(thread.Thread):
+class ProcessManager(threading.Thread):
     """A thread which manages the execution of a child process, and capture
     of its output.
 
@@ -113,7 +113,7 @@ class ProcessManager(thread.Thread):
                        finishes. May be ``None``. Must accept two parameters,
                        the GUI ``parent`` object, and the process return code.
         """
-        thread.Thread.__init__(self, name=cmd[0])
+        threading.Thread.__init__(self, name=cmd[0])
 
         self.cmd      = cmd
         self.parent   = parent
@@ -164,11 +164,11 @@ class ProcessManager(thread.Thread):
         # a process group, so we are able to kill the child
         # process, and all of its children, if necessary.
         log.debug('Running process: "{}"'.format(' '.join(self.cmd)))
-        self.proc = subp.Popen(self.cmd,
-                               stdout=subp.PIPE,
-                               bufsize=1,
-                               stderr=subp.STDOUT,
-                               preexec_fn=os.setsid)
+        self.proc = sp.Popen(self.cmd,
+                             stdout=sp.PIPE,
+                             bufsize=1,
+                             stderr=sp.STDOUT,
+                             preexec_fn=os.setsid)
 
         # read process output, line by line, pushing
         # each line onto the output queue and
