@@ -96,7 +96,12 @@ def update(message, timeout=1.0):
     if _statusUpdateTarget is None:
         return
 
-    _statusUpdateTarget(message)
+    try:
+        _statusUpdateTarget(message)
+
+    except Exception as e:
+        log.warning('Target raised excepton {}'.format(e), exc_info=True)
+        return
 
     if timeout is not None:
         log.debug('timeout is not None - starting clear thread')
@@ -124,18 +129,17 @@ def clearStatus():
 
 def reportError(title, msg, err):
     """Reports an error to the user in a generic manner. If a GUI is available,
-    (see the :meth.`.Platform.haveGui` attribute), a ``wx.MessageBox`` is
-    shown. Otherwise a log message is generated.
+    a ``wx.MessageBox`` is shown. Otherwise a log message is generated.
     """
 
-    from .platform import platform as fslplatform
-    from .         import async
+    msg = '{}\n\nDetails: {}'.format(msg, str(err))
 
-    if fslplatform.haveGui:
-        msg = '{}\n\nDetails: {}'.format(msg, str(err))
-
+    try:
         import wx
-        async.idle(wx.MessageBox, msg, title, wx.ICON_ERROR | wx.OK)
+        wx.MessageBox(msg, title, wx.ICON_ERROR | wx.OK)
+
+    except:
+        log.error('{}: {}'.format(title, msg))
 
 
 @contextlib.contextmanager
