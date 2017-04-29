@@ -87,11 +87,26 @@ def run_with_wx(func, *args, **kwargs):
     return result[0]
 
 
-def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, double=False):
+# stype:
+#   0 for single click
+#   1 for double click
+#   2 for separatemouse down/up events
+def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
 
+    w, h = target.GetClientSize().Get()
     x, y = target.GetScreenPosition()
-    sim.MouseMove(x + 10, y + 10)
+
+    if pos is None:
+        pos = [0.5, 0.5]
+
+    x += w * pos[0]
+    y += h * pos[1]
+
+    sim.MouseMove(x, y)
     wx.Yield()
-    if double: sim.MouseDblClick(btn)
-    else:      sim.MouseClick(btn)
+    if   stype == 0: sim.MouseClick(btn)
+    elif stype == 1: sim.MouseDblClick(btn)
+    else:
+        sim.MouseDown(btn)
+        sim.MouseUp(btn)
     wx.Yield()

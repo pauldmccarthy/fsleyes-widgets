@@ -213,7 +213,7 @@ def _test_popup_dblclick():
                     listbox = pc
                     break
 
-    simclick(sim, listbox, double=True)
+    simclick(sim, listbox, stype=1, pos=[0.5, 0.05])
     wx.Yield()
 
     assert atc.GetValue() == 'aaa'
