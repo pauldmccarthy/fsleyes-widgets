@@ -49,7 +49,8 @@ class FloatSpinCtrl(FloatSpinBase):
                  increment=1,
                  value=0,
                  style=0,
-                 width=None):
+                 width=None,
+                 evDelta=0.5):
         """Create a ``FloatSpinCtrl``.
 
         The following style flags are available:
@@ -74,6 +75,22 @@ class FloatSpinCtrl(FloatSpinBase):
 
         :arg width:     If provided, desired text control width (in
                         characters).
+
+        :arg evDelta:   Minimum time between consecutive ``wx.SpinButton``
+                        events. On Linux/GTK, the wx.SpinButton is badly
+                        behaved - if, while clicking on the mouse button, the
+                        user moves the mouse even a tiny bit, more than one
+                        spin event will be generated. To work around this
+                        (without having to write my own ``wx.SpinButton``
+                        implementation), the ``evDelta`` parameter allows me
+                        to throttle the maximum rate at which events received
+                        from the spin button can be processed. This is
+                        implemented in the :meth:`__onSpinDown` and
+                        :meth:`__onSpinUp` methods.
+
+                        This has the side effect that if the user clicks and
+                        holds on the spin button, they have to wait <delta>
+                        seconds between increments/decrements.
         """
         FloatSpinBase.__init__(self, parent)
 
@@ -88,24 +105,10 @@ class FloatSpinCtrl(FloatSpinBase):
         self.__realMax   = float(maxValue)
         self.__realRange = abs(self.__realMax - self.__realMin)
 
-        # On Linux/GTK, the wx.SpinButton is badly
-        # behaved - if, while clicking on the mouse
-        # button, the user moves the mouse even a
-        # tiny bit, more than one spin event will
-        # be generated. To work around this (without
-        # having to write my own wx.SpinButton
-        # implementation), I am throttling the
-        # maximum rate at which events received
-        # from the spin button can be processed. This
-        # is implemented in the __onSpinDown and
-        # __onSpinUp methods.
-        #
-        # This has the side effect that if the user
-        # clicks and holds on the spin button, they
-        # have to wait <delta> seconds between
-        # increments/decrements.
+        # Attributes used in spin
+        # button event rate throttling
         self.__lastEvent  = time.time()
-        self.__eventDelta = 0.5
+        self.__eventDelta = evDelta
 
         # We use the full signed 32 bit integer
         # range offered by the wx.SpinButton class.
@@ -263,13 +266,13 @@ class FloatSpinCtrl(FloatSpinBase):
     def SetRange(self, minval, maxval):
         """Sets the minimum and maximum values."""
 
+        if minval > maxval:
+            raise ValueError('Min cannot be greater than max '
+                             '({} > {})'.format(minval, maxval))
 
         if self.__integer:
             minval = int(round(minval))
             maxval = int(round(maxval))
-
-        if minval >= maxval:
-            maxval = minval + 1
 
         self.__realMin   = float(minval)
         self.__realMax   = float(maxval)
@@ -284,15 +287,15 @@ class FloatSpinCtrl(FloatSpinBase):
         :returns ``True`` if the value was changed, ``False`` otherwise.
         """
 
-        if value == self.__value:
-            return
-
         # Throttle the value so it stays
         # within the min/max, unless the
         # FSC_NO_LIMIT style flag is set.
         if not self.__nolimit:
             if value < self.__realMin: value = self.__realMin
             if value > self.__realMax: value = self.__realMax
+
+        if value == self.__value:
+            return False
 
         if self.__integer:
             value = int(round(value))
@@ -310,7 +313,7 @@ class FloatSpinCtrl(FloatSpinBase):
         # event, it will trigger another event. So we disable
         # events from the spin button when setting the value.
         self.__spin.SetEvtHandlerEnabled(False)
-        self.__spin.SetValue(   self.__realToSpin(value))
+        self.__spin.SetValue(self.__realToSpin(value))
 
         # We have to re-enable event processing
         # asynchronously, otherwise the SpinButton
@@ -460,6 +463,9 @@ class FloatSpinCtrl(FloatSpinBase):
 
     def __realToSpin(self, value):
         """Converts the given value from real space to spin button space."""
+
+        if self.__realRange == 0:
+            return 0
 
         if self.__integer:
             value = int(round(value))

@@ -230,6 +230,10 @@ class FloatSlider(wx.Slider):
 
     def __sliderToReal(self, value):
         """Converts the given value from slider space to real space."""
+
+        if self.__realRange == 0:
+            return 0
+
         value = self.__realMin + (value - self.__sliderMin) * \
             (float(self.__realRange) / self.__sliderRange)
 
@@ -242,6 +246,9 @@ class FloatSlider(wx.Slider):
 
         if self.__integer:
             value = int(round(value))
+
+        if self.__realRange == 0:
+            return 0
 
         value = self.__sliderMin + (value - self.__realMin) * \
             (self.__sliderRange / float(self.__realRange))
