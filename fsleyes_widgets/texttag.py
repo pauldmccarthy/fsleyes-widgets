@@ -125,6 +125,8 @@ class StaticTextTag(wx.Panel):
 
     def SetText(self, text):
         """Sets the text shown on this ``StaticTextTag``. """
+        if text is None:
+            text = ''
         self.__text.SetLabel(text)
         self.Layout()
         self.Fit()
@@ -152,25 +154,6 @@ class StaticTextTag(wx.Panel):
         if ev.GetWindow() not in (self, self.__text, self.__closeBtn):
             wx.Panel.SetBackgroundColour(self, self.__bgColour)
             self.Refresh()
-
-
-    def __onKeyDown(self, ev):
-        """Called when a key is pushed.  If delete or backspace was pushed, an
-        :data:`EVT_STT_CLOSE` is generated.
-        """
-
-        key       = ev.GetKeyCode()
-        delete    = wx.WXK_DELETE
-        backspace = wx.WXK_BACK
-
-        log.debug('StaticTextTag key event ({})'.format(key))
-
-        if key not in (delete, backspace):
-            ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
-            ev.Skip()
-            return
-
-        self.__onCloseButton(None)
 
 
     def __onCloseButton(self, ev):
