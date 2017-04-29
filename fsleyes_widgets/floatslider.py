@@ -74,7 +74,9 @@ class FloatSlider(wx.Slider):
 
         # Under GTK, slider widgets absorb
         # mousewheel events, so we bind our
-        # own handler to prevent this.
+        # own handler to prevent this, and
+        # propagate the mousewheel event
+        # upwards.
         elif wx.Platform == '__WXGTK__':
             def wheel(ev):
                 self.GetParent().GetEventHandler().ProcessEvent(ev)
@@ -183,9 +185,6 @@ class FloatSlider(wx.Slider):
             minValue  = int(round(minValue))
             maxValue  = int(round(maxValue))
 
-        if minValue >= maxValue:
-            maxValue = minValue + 1
-
         self.__realMin   = minValue
         self.__realMax   = maxValue
         self.__realRange = abs(self.__realMax - self.__realMin)
@@ -193,6 +192,11 @@ class FloatSlider(wx.Slider):
 
     def SetRange(self, minValue, maxValue):
         """Set the minimum/maximum slider values."""
+
+        if minValue > maxValue:
+            raise ValueError('Min cannot be greater than max '
+                             '({} > {})'.format(minValue, maxValue))
+
 
         # wx.Slider values change when their bounds
         # are changed. It does this to keep the
