@@ -17,11 +17,8 @@ from . import run_with_wx, simclick
 import fsleyes_widgets.floatslider as floatslider
 
 
-def test_FloatSlider_logic():
-    run_with_wx(_test_FloatSlider_logic)
-def _test_FloatSlider_logic():
-
-    frame = wx.GetApp().GetTopWindow()
+# Used by test_FloatSlider_logic and test_SliderSpinPanel_logic.
+def _test_widget_logic(widget):
 
     # min, max
     testcases = [
@@ -33,39 +30,55 @@ def _test_FloatSlider_logic():
         (-2**31,   2**31 - 1),
     ]
 
-    slider = floatslider.FloatSlider(frame)
+    widget.SetMin(0)
+    widget.SetMax(1)
+    assert np.isclose(widget.GetMin(), 0)
+    assert np.isclose(widget.GetMax(), 1)
 
-    slider.SetMin(0)
-    slider.SetMax(1)
-    assert np.isclose(slider.GetMin(), 0)
-    assert np.isclose(slider.GetMax(), 1)
-
+    # Min > max
     with pytest.raises(ValueError):
-        slider.SetRange(1, 0)
+        widget.SetRange(1, 0)
+
+    # Min > max
+    with pytest.raises(ValueError):
+        widget.SetMin(2)
+
+    # Max < min
+    with pytest.raises(ValueError):
+        widget.SetMax(-1)
+
+    # Min == max
+    widget.SetRange(0, 0)
+    assert widget.GetRange() == (0, 0)
+    assert widget.GetMin() == 0
+    assert widget.GetMax() == 0
+    widget.SetValue(1)
+    assert widget.GetValue() == 0
+    widget.SetValue(-1)
+    assert widget.GetValue() == 0
+    widget.SetValue(0)
+    assert widget.GetValue() == 0
 
     for minv, maxv in testcases:
 
-        slider.SetRange(minv, maxv)
-        assert np.all(np.isclose(slider.GetRange(), (minv, maxv)))
+        widget.SetRange(minv, maxv)
+        assert np.all(np.isclose(widget.GetRange(), (minv, maxv)))
 
-        slider.SetValue(minv - 1)
-        assert slider.GetValue() == minv
-        slider.SetValue(maxv + 1)
-        assert slider.GetValue() == maxv
+        widget.SetValue(minv - 1)
+        assert widget.GetValue() == minv
+        widget.SetValue(maxv + 1)
+        assert widget.GetValue() == maxv
 
         testvals = np.linspace(minv, maxv, 100)
 
         for v in testvals:
-            slider.SetValue(v)
-            assert np.isclose(slider.GetValue(), v)
+            widget.SetValue(v)
+            assert np.isclose(widget.GetValue(), v)
 
 
-
-def test_FloatSlider_logic_integer():
-    run_with_wx(_test_FloatSlider_logic_integer)
-def _test_FloatSlider_logic_integer():
-    frame  = wx.GetApp().GetTopWindow()
-    slider = floatslider.FloatSlider(frame)
+# Used by test_FloatSlider_logic_integer and
+# test_SliderSpinPanel_logic_integer
+def _test_widget_logic_integer(widget):
 
     testcases = [
         (     0,    100),
@@ -73,13 +86,11 @@ def _test_FloatSlider_logic_integer():
         (-2**31,   2**31 - 1),
     ]
 
-    slider = floatslider.FloatSlider(frame, style=floatslider.FS_INTEGER)
-
     for minv, maxv in testcases:
 
-        slider.SetRange(minv, maxv)
+        widget.SetRange(minv, maxv)
 
-        assert slider.GetRange() == (minv, maxv)
+        assert widget.GetRange() == (minv, maxv)
 
         if minv == -2**31:
             testvals = np.arange(minv, maxv, 2**24)
@@ -87,26 +98,46 @@ def _test_FloatSlider_logic_integer():
             testvals = np.arange(minv, maxv)
 
         for v in testvals:
-            slider.SetValue(v)
-            assert slider.GetValue() == v
+            widget.SetValue(v)
+            assert widget.GetValue() == v
+
+
+# You should get it by now
+def _test_widget_changeRange(widget):
+    widget.SetRange(0, 100)
+    widget.SetValue(10)
+    widget.SetRange(-100, 100)
+    assert np.isclose(widget.GetValue(), 10)
+    widget.SetRange(11, 100)
+    assert np.isclose(widget.GetValue(), 11)
+    widget.SetRange(0, 11)
+    assert np.isclose(widget.GetValue(), 11)
+    widget.SetRange(0, 5)
+    assert np.isclose(widget.GetValue(), 5)
+
+
+def test_FloatSlider_logic():
+    run_with_wx(_test_FloatSlider_logic)
+def _test_FloatSlider_logic():
+    frame  = wx.GetApp().GetTopWindow()
+    slider = floatslider.FloatSlider(frame)
+    _test_widget_logic(slider)
+
+
+def test_FloatSlider_logic_integer():
+    run_with_wx(_test_FloatSlider_logic_integer)
+def _test_FloatSlider_logic_integer():
+    frame  = wx.GetApp().GetTopWindow()
+    slider = floatslider.FloatSlider(frame, style=floatslider.FS_INTEGER)
+    _test_widget_logic_integer(slider)
 
 
 def test_FloatSlider_changeRange():
     run_with_wx(_test_FloatSlider_changeRange)
 def _test_FloatSlider_changeRange():
     frame  = wx.GetApp().GetTopWindow()
-    slider = floatslider.FloatSlider(frame, minValue=0, maxValue=100)
-    slider.SetValue(10)
-    slider.SetRange(-100, 100)
-    assert np.isclose(slider.GetValue(), 10)
-    slider.SetRange(11, 100)
-    assert np.isclose(slider.GetValue(), 11)
-    slider.SetRange(11, 100)
-    assert np.isclose(slider.GetValue(), 11)
-    slider.SetRange(0, 11)
-    assert np.isclose(slider.GetValue(), 11)
-    slider.SetRange(0, 5)
-    assert np.isclose(slider.GetValue(), 5)
+    slider = floatslider.FloatSlider(frame)
+    _test_widget_changeRange(slider)
 
 
 def test_FloatSlider_mouse():
@@ -194,3 +225,100 @@ def _test_FloatSlider_wheel():
     wx.Yield()
     assert not called[0]
     assert np.isclose(slider.GetValue(), val)
+
+
+
+def test_SliderSpinPanel_logic():
+    run_with_wx(_test_SliderSpinPanel_logic)
+def _test_SliderSpinPanel_logic():
+    frame = wx.GetApp().GetTopWindow()
+    panel = floatslider.SliderSpinPanel(frame)
+    _test_widget_logic(panel)
+
+
+def test_SliderSpinPanel_logic_integer():
+    run_with_wx(_test_SliderSpinPanel_logic_integer)
+def _test_SliderSpinPanel_logic_integer():
+    frame  = wx.GetApp().GetTopWindow()
+    panel = floatslider.SliderSpinPanel(frame, style=floatslider.SSP_INTEGER)
+    _test_widget_logic_integer(panel)
+
+
+def test_SliderSpinPanel_changeRange():
+    run_with_wx(_test_SliderSpinPanel_changeRange)
+def _test_SliderSpinPanel_changeRange():
+    frame = wx.GetApp().GetTopWindow()
+    panel = floatslider.SliderSpinPanel(frame)
+    _test_widget_changeRange(panel)
+
+
+def test_SliderSpinPanel_show_edit_limits():
+    run_with_wx(_test_SliderSpinPanel_show_edit_limits)
+def _test_SliderSpinPanel_show_edit_limits():
+
+    sim   = wx.UIActionSimulator()
+    frame = wx.GetApp().GetTopWindow()
+    sizer = wx.BoxSizer(wx.HORIZONTAL)
+    panel = floatslider.SliderSpinPanel(
+        frame,
+        style=floatslider.SSP_SHOW_LIMITS | floatslider.SSP_EDIT_LIMITS)
+    sizer.Add(panel, flag=wx.EXPAND)
+    frame.SetSizer(sizer)
+    frame.Layout()
+
+    panel.SetRange(0, 100)
+
+    result = [None]
+
+    def handler(ev):
+        result[0] = (ev.min, ev.max)
+
+    panel.Bind(floatslider.EVT_SSP_LIMIT, handler)
+
+    numberdlg = mock.MagicMock()
+    numberdlg.ShowModal.return_value = wx.ID_OK
+    numberdlg.GetValue .return_value = 9
+
+    minbtn = panel._SliderSpinPanel__minButton
+    maxbtn = panel._SliderSpinPanel__maxButton
+
+    # limbutton, value, expectedrange, shouldTriggerEvent
+    testcases = [
+        (minbtn,   50, (  50, 100),  True),
+        (minbtn,  150, (  50, 100), False),
+        (minbtn, -100, (-100, 100),  True),
+        (maxbtn,   50, (-100,  50),  True),
+        (maxbtn, -200, (-100,  50), False),
+        (maxbtn,  500, (-100, 500),  True),
+
+    ]
+
+    with mock.patch('fsleyes_widgets.floatslider.numberdialog.NumberDialog',
+                    return_value=numberdlg):
+
+        for btn, val, expected, shouldEv in testcases:
+
+            result[0] = None
+
+            numberdlg.GetValue.return_value = val
+
+            simclick(sim, btn)
+            assert tuple(panel.GetRange()) == expected
+
+            if shouldEv: assert result[0] == expected
+            else:        assert result[0] is None
+
+
+def test_SliderSpinPanel_nolimit():
+    run_with_wx(_test_SliderSpinPanel_nolimit)
+def _test_SliderSpinPanel_nolimit():
+    frame = wx.GetApp().GetTopWindow()
+    panel = floatslider.SliderSpinPanel(frame, style=floatslider.SSP_NO_LIMITS)
+
+    panel.SetRange(0, 100)
+
+    values = [-100, -50, -1, 0, 1, 50, 99, 100, 101, 150, 200]
+
+    for v in values:
+        panel.SetValue(v)
+        assert panel.GetValue() == v
