@@ -110,3 +110,17 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
         sim.MouseDown(btn)
         sim.MouseUp(btn)
     wx.Yield()
+
+
+def simtext(sim, target, text, enter=True):
+    target.SetFocus()
+    target.SetValue(text)
+    if enter: sim.KeyDown(wx.WXK_RETURN)
+    wx.Yield()
+
+
+def simkey(sim, target, key, down=True, up=False):
+    if target is not None: target.SetFocus()
+    if down:               sim.KeyDown(key)
+    if up:                 sim.KeyUp(key)
+    wx.Yield()

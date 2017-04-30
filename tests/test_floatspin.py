@@ -16,7 +16,7 @@ from .test_floatslider import (_test_widget_logic,
                                _test_widget_logic_integer,
                                _test_widget_changeRange)
 
-from . import run_with_wx, simclick
+from . import run_with_wx, simclick, simtext
 
 
 def test_FloatSpinCtrl_logic():
@@ -167,12 +167,6 @@ def _test_FloatSpinCtrl_text():
 
     spin.Bind(floatspin.EVT_FLOATSPIN, handler)
 
-    def enterText(text):
-        spin.textCtrl.SetFocus()
-        spin.textCtrl.SetValue(text)
-        sim.KeyDown(wx.WXK_RETURN)
-        wx.Yield()
-
     # input, expected
     testcases = [
         (   '1',         1),
@@ -191,7 +185,7 @@ def _test_FloatSpinCtrl_text():
 
         oldValue  = spin.GetValue()
         result[0] = None
-        enterText(text)
+        simtext(sim, spin.textCtrl, text)
         assert spin.GetValue() == expected
 
         if oldValue == expected: assert result[0] is None
