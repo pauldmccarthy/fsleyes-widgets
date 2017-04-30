@@ -84,6 +84,12 @@ class AutoTextCtrl(wx.Panel):
         self.__textCtrl.SetInsertionPointEnd()
 
 
+    @property
+    def textCtrl(self):
+        """Returns a reference to the internal ``wx.TextCtrl``. """
+        return self.__textCtrl
+
+
     def AutoComplete(self, options):
         """Set the list of options to be shown to the user. """
         self.__options = list(options)

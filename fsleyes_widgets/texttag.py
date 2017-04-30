@@ -104,6 +104,22 @@ class StaticTextTag(wx.Panel):
         return 'StaticTextTag(\'{}\')'.format(self.GetText())
 
 
+    @property
+    def closeButton(self):
+        """Returns a reference to the ``StaticText`` control used as the
+        close button.
+        """
+        return self.__closeBtn
+
+
+    @property
+    def text(self):
+        """Returns a reference to the ``StaticText`` control used for
+        displaying the tag text.
+        """
+        return self.__text
+
+
     def SetBackgroundColour(self, colour):
         """Sets the background colour of this ``StaticTextTag``. """
 
@@ -257,10 +273,20 @@ class TextTagPanel(wx.Panel):
         self.Layout()
 
 
+    @property
+    def newTagCtrl(self):
+        """Returns a reference to the :class:`.AutoTextCtrl`. """
+        return self.__newTagCtrl
+
+
+    @property
+    def tags(self):
+        """Returns a list containing all :class:`StaticTextTag` widgets. """
+        return list(self.__tagWidgets)
+
+
     def FocusNewTagCtrl(self):
-        """Gives focus to the new tag control (either an :class:`.AutoTextCtrl`
-        or a ``wx.Choice``, depending on whether the :data:`ATC_ALLOW_NEW_TAGS`
-        style is set.
+        """Gives focus to the new tag control (an :class:`.AutoTextCtrl`).
         """
         self.__newTagCtrl.SetFocus()
 
@@ -600,6 +626,14 @@ class TextTagPanel(wx.Panel):
         if tag == '':
             return
 
+        # If we don't care about case, and
+        # this is a known option, use the
+        # 'display' version of the tag.
+        origTag = tag
+        if not self.__caseSensitive:
+            tag     = tag.lower()
+            origTag = self.__tagDisplays.get(tag, origTag)
+
         if self.__noDuplicates and self.HasTag(tag):
             log.debug('New tag {} ignored (noDuplicates is True)'.format(tag))
             return
@@ -608,19 +642,13 @@ class TextTagPanel(wx.Panel):
             log.debug('New tag {} ignored (allowNewTags is False)'.format(tag))
             return
 
-        # If we don't care about case, and
-        # this is a known option, use the
-        # 'display' version of the tag.
-        if not self.__caseSensitive:
-            tag = self.__tagDisplays.get(tag.lower(), tag)
-
-        log.debug('New tag from text control: {}'.format(tag))
+        log.debug('New tag from text control: {}'.format(origTag))
 
         self.__newTagCtrl.Refresh()
 
-        self.AddTag(tag)
+        self.AddTag(origTag)
 
-        ev = TextTagPanelTagAddedEvent(tag=tag)
+        ev = TextTagPanelTagAddedEvent(tag=origTag)
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
 
@@ -640,14 +668,14 @@ class TextTagPanel(wx.Panel):
 
 TTP_ALLOW_NEW_TAGS  = 1
 """Style flag for use with a :class:`TextTagPanel` - if set, the user is able
-to type in tag names that are not in the ``ComboBox``.
+to type in tag names that are not known by the :class:`.AutoTextCtrl`.
 """
 
 
 TTP_ADD_NEW_TAGS = 2
 """Style flag for use with a :class:`TextTagPanel` - if set, when the user
-types in a tag name that is not in the ``ComboBox``, that name is added to the
-list of options in the ``ComboBox``. This flag only has an effect if the
+types in a tag name that is not known by the ``AutoTextCtrl``, that name is
+added to its list of options. This flag only has an effect if the
 :data:`TTP_ALLOW_NEW_TAGS` flag is also set.
 """
 
