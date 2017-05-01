@@ -9,6 +9,9 @@
 values.
 """
 
+
+import numpy as np
+
 import wx
 import wx.lib.newevent as wxevent
 
@@ -16,7 +19,7 @@ from . import floatspin
 from . import numberdialog
 
 
-class FloatSlider(wx.Slider):
+class FloatSlider(wx.Panel):
     """Floating point slider widget.
 
     This class is an alternative to :class:`wx.Slider`, which supports
@@ -60,14 +63,17 @@ class FloatSlider(wx.Slider):
         self.__sliderMin   = -2 ** 31
         self.__sliderMax   =  2 ** 31 - 1
         self.__sliderRange = abs(self.__sliderMax - self.__sliderMin)
-
         self.__integer     = style & FS_INTEGER > 0
 
-        wx.Slider.__init__(self,
-                           parent,
-                           minValue=self.__sliderMin,
-                           maxValue=self.__sliderMax,
-                           style=wx.SL_HORIZONTAL)
+        wx.Panel.__init__(self, parent)
+
+        self.__slider = wx.Slider(self,
+                                  minValue=self.__sliderMin,
+                                  maxValue=self.__sliderMax,
+                                  style=wx.SL_HORIZONTAL)
+        self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.__sizer.Add(self.__slider, flag=wx.EXPAND, proportion=1)
+        self.SetSizer(self.__sizer)
 
         if style & FS_MOUSEWHEEL:
             self.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
@@ -82,6 +88,7 @@ class FloatSlider(wx.Slider):
                 self.GetParent().GetEventHandler().ProcessEvent(ev)
             self.Bind(wx.EVT_MOUSEWHEEL, wheel)
 
+        self.__lastSliderValue = None
         self.__SetRange(minValue, maxValue)
         self.SetValue(value)
 
@@ -89,40 +96,55 @@ class FloatSlider(wx.Slider):
         # be sized appropriately, so setting
         # the min size will force them to
         # have a good size
-        if self.HasFlag(wx.VERTICAL): self.SetMinSize((-1,  150))
-        else:                         self.SetMinSize((150, -1))
+        if self.HasFlag(wx.VERTICAL): self.__slider.SetMinSize((-1,  150))
+        else:                         self.__slider.SetMinSize((150, -1))
 
-        # Under GTK, mouse click on the
-        # slider do not update the slider
+        # Under CentOS6/GTK, mouse clicks on
+        # the slider do not update the slider
         # position - users have to click+drag
-        # on the slider thumb
+        # on the slider thumb. Workaround
+        # is to re-implement mouse dragging
+        # logic on GTK.
         if wx.Platform == '__WXGTK__':
-            self.__mousePos = None
-            self.Bind(wx.EVT_LEFT_DOWN, self.__onMouseDown)
-            self.Bind(wx.EVT_LEFT_UP,   self.__onMouseUp)
+            self.__dragging = False
+            self.__slider.Bind(wx.EVT_LEFT_DOWN, self.__onMouseDown)
+            self.__slider.Bind(wx.EVT_MOTION,    self.__onMouseMove)
+            self.__slider.Bind(wx.EVT_LEFT_UP,   self.__onMouseUp)
+
+        self.__slider.Bind(wx.EVT_SLIDER, self.__onSlider)
+
+
+    def __onSlider(self, ev):
+        """Called when the child ``wx.Slider`` instance generates an
+        ``EVT_SLIDER`` event. If the slider value has changed, the
+        event is propagated upwards.
+        """
+
+        newSliderValue = self.__slider.GetValue()
+
+        # Under OSX, slider values are emitted on
+        # both mouse down and mouse up events, so
+        # we make sure to only propagate the event
+        # if the slider value has actually changed.
+        if self.__lastSliderValue is None or \
+           not np.isclose(self.__lastSliderValue, newSliderValue):
+            self.__lastSliderValue = newSliderValue
+            ev.Skip()
 
 
     def __onMouseDown(self, ev):
-        """Only called when running on GTK. Stores the mouse down position,
-        and passes the event on.
+        """Only called when running on GTK. Sets an internal dragging
+        flag, and calls :meth:`__mouseMove`.
         """
-        self.__mousePos = (ev.GetX(), ev.GetY())
-        ev.Skip()
+        self.__dragging = True
+        self.__onMouseMove(ev)
 
 
-    def __onMouseUp(self, ev):
-        """Only called when running on GTK. If the mouse position has moved
-        since its corresponding mouse down position (i.e. a drag), passes
-        the event on to the next handler.
-
-        Otherwise (a mouse click) changes the slider value according to the
-        mouse position.
+    def __onMouseMove(self, ev):
+        """Only called when running on GTK. Updates the slider value based
+        on the mouse location.
         """
-        if self.__mousePos is None:
-            return
-
-        if self.__mousePos != (ev.GetX(), ev.GetY()):
-            ev.Skip()
+        if not self.__dragging:
             return
 
         dataMin, dataMax = self.GetRange()
@@ -134,11 +156,16 @@ class FloatSlider(wx.Slider):
         if vertical: value = dataMin + (y / height) * (dataMax - dataMin)
         else:        value = dataMin + (x / width)  * (dataMax - dataMin)
 
-        self.__mousePos = None
+        if self.SetValue(value):
+            ev = wx.PyCommandEvent(wx.EVT_SLIDER.typeId, self.GetId())
+            wx.PostEvent(self.GetEventHandler(), ev)
 
-        self.SetValue(value)
-        ev = wx.PyCommandEvent(wx.EVT_SLIDER.typeId, self.GetId())
-        wx.PostEvent(self.GetEventHandler(), ev)
+
+    def __onMouseUp(self, ev):
+        """Only called when running on GTK. Clears the internal dragging
+        flag.
+        """
+        self.__dragging = False
 
 
     def __onMouseWheel(self, ev):
@@ -157,10 +184,9 @@ class FloatSlider(wx.Slider):
         elif wheelDir > 0: increment =  increment
         else:              return
 
-        self.SetValue(self.GetValue() + increment)
-
-        ev = wx.PyCommandEvent(wx.EVT_SLIDER.typeId, self.GetId())
-        wx.PostEvent(self.GetEventHandler(), ev)
+        if self.SetValue(self.GetValue() + increment):
+            ev = wx.PyCommandEvent(wx.EVT_SLIDER.typeId, self.GetId())
+            wx.PostEvent(self.GetEventHandler(), ev)
 
 
     def GetRange(self):
@@ -196,7 +222,6 @@ class FloatSlider(wx.Slider):
         if minValue > maxValue:
             raise ValueError('Min cannot be greater than max '
                              '({} > {})'.format(minValue, maxValue))
-
 
         # wx.Slider values change when their bounds
         # are changed. It does this to keep the
@@ -256,19 +281,25 @@ class FloatSlider(wx.Slider):
 
 
     def SetValue(self, value):
-        """Set the slider value."""
+        """Set the slider value. Returns ``True`` if the value changed,
+        ``False`` otherwise.
+        """
 
-        value = self.__realToSlider(value)
+        svalue   = self.__realToSlider(value)
+        oldValue = self.GetValue()
 
-        if value < self.__sliderMin: value = self.__sliderMin
-        if value > self.__sliderMax: value = self.__sliderMax
+        if svalue < self.__sliderMin: svalue = self.__sliderMin
+        if svalue > self.__sliderMax: svalue = self.__sliderMax
 
-        wx.Slider.SetValue(self, value)
+        self.__slider.SetValue(svalue)
+        self.__lastSliderValue = svalue
+
+        return not np.isclose(value, oldValue)
 
 
     def GetValue(self):
         """Returns the slider value."""
-        value = wx.Slider.GetValue(self)
+        value = self.__slider.GetValue()
         return self.__sliderToReal(value)
 
 
