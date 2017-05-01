@@ -48,10 +48,10 @@ def test_FloatSpinCtrl_nolimit():
 def _test_FloatSpinCtrl_nolimit():
     frame = wx.GetApp().GetTopWindow()
     spin  = floatspin.FloatSpinCtrl(frame, style=floatspin.FSC_NO_LIMIT)
-
     spin.SetRange(0, 100)
 
     values = [-100, -50, -1, 0, 1, 50, 99, 100, 101, 150, 200]
+
 
     for v in values:
         spin.SetValue(v)
@@ -165,10 +165,17 @@ def _test_FloatSpinCtrl_text():
     def handler(ev):
         result[0] = ev.value
 
+    enter = [False]
+
+    def enterHandler(ev):
+        enter[0] = True
+
     spin.Bind(floatspin.EVT_FLOATSPIN, handler)
+    spin.Bind(wx.EVT_TEXT_ENTER,       enterHandler)
 
     # input, expected
     testcases = [
+        (   '',          0),
         (   '1',         1),
         (   '5',         5),
         ('Baba',         5),
@@ -185,8 +192,15 @@ def _test_FloatSpinCtrl_text():
 
         oldValue  = spin.GetValue()
         result[0] = None
+        enter[0]  = False
         simtext(sim, spin.textCtrl, text)
         assert spin.GetValue() == expected
+
+        try:
+            float(text)
+            assert enter[0]
+        except:
+            assert not enter[0]
 
         if oldValue == expected: assert result[0] is None
         else:                    assert result[0] == expected
