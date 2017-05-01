@@ -44,9 +44,9 @@ class RangePanel(wx.Panel):
 
 
     A situation may arise whereby a change to one limit will affect the other
-    (see e.g. the :meth:`CentreAt` method). When this occurs, an
-    :data:`EVT_RANGE` event is generated. So you may need to listen for
-    all three types of event.
+    ( e.g. when enforcing a minimum distance between the values).  When this
+    occurs, an :data:`EVT_RANGE` event is generated. So you may need to listen
+    for all three types of event.
 
 
     The following style flags are available:
@@ -111,15 +111,14 @@ class RangePanel(wx.Panel):
         if highValue   is None: highValue   = 100
         if minDistance is None: minDistance = 0
 
-        minValue  = float(minValue)
-        maxValue  = float(maxValue)
-        lowValue  = float(lowValue)
-        highValue = float(highValue)
+        minValue    = float(minValue)
+        maxValue    = float(maxValue)
+        lowValue    = float(lowValue)
+        highValue   = float(highValue)
+        minDistance = float(minDistance)
 
         self.__nolimit     = style & RP_NO_LIMIT
         self.__minDistance = minDistance
-        self.__centreVal   = None
-
         self.__controlType = widgetType
 
         if widgetType == 'slider':
@@ -188,7 +187,9 @@ class RangePanel(wx.Panel):
                              flag=wx.EXPAND | wx.ALL)
 
         self.SetLimits(minValue, maxValue)
-        self.SetRange( lowValue, highValue)
+        self.__lowWidget .SetValue(lowValue)
+        self.__highWidget.SetValue(highValue)
+        self.SetDistance(minDistance)
 
         self.__sizer.AddGrowableCol(1)
 
@@ -218,46 +219,21 @@ class RangePanel(wx.Panel):
         min distance), then posts a :data:`RangeEvent`.
         """
 
-        lowValue    = self.GetLow()
-        highValue   = self.GetHigh()
-        maxValue    = self.GetMax()
-        minDist     = self.__minDistance
-        centreVal   = self.__centreVal
-        highChanged = False
-
-        # Adjust the max limit for the low
-        # value if are centering the range
-        if centreVal is not None: maxValue = centreVal - minDist / 2.0
-        else:                     maxValue = maxValue  - minDist
-
-        # Throttle the low value
-        if lowValue >= highValue:
-            lowValue = highValue - minDist
-
-        # Adjust the high value if we
-        # are centering the range
-        if centreVal is not None:
-            highChanged = True
-            highValue   = centreVal + (centreVal - lowValue)
-
-        # Or if the low value has moved
-        # too close to the high value
-        elif highValue <= (lowValue + minDist):
-            newHigh     = lowValue + minDist
-            highChanged = not np.isclose(highValue, newHigh)
-            highValue   = newHigh
+        lowValue  = self.GetLow()
+        highValue = self.GetHigh()
 
         self.SetRange(lowValue, highValue)
 
-        if highChanged:
-            evType = 'RangeEvent'
-            ev     = RangeEvent(   low=lowValue, high=highValue)
+        # If the high value changed as a result of
+        # the low value changing, we emit a RangeEvent.
+        # Otherwise we emit a LowRangeEvent.
+        if np.isclose(self.GetHigh(), highValue):
+            ev = LowRangeEvent(low=lowValue, high=highValue)
         else:
-            evType = 'LowRangeEvent'
-            ev     = LowRangeEvent(low=lowValue, high=highValue)
+            ev = RangeEvent(   low=lowValue, high=highValue)
 
         log.debug('Low range value changed - posting {}: '
-                  '[{} - {}]'.format(evType, lowValue, highValue))
+                  '[{} - {}]'.format(type(ev).__name__, lowValue, highValue))
 
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
@@ -270,60 +246,42 @@ class RangePanel(wx.Panel):
         min distance), then posts a :data:`RangeEvent`.
         """
 
-        lowValue   = self.GetLow()
-        highValue  = self.GetHigh()
-        minValue   = self.GetMin()
-        minDist    = self.__minDistance
-        centreVal  = self.__centreVal
-        lowChanged = False
-
-        # Adjust the min limit for the high
-        # value if are centering the range
-        if centreVal is not None: minValue = centreVal + minDist / 2.0
-        else:                     minValue = minValue  + minDist
-
-        # Throttle the high value
-        if highValue <= lowValue:
-            highValue = lowValue + minDist
-
-        # Adjust the low value if we
-        # are centering the range
-        if centreVal is not None:
-            lowChanged = True
-            lowValue   = centreVal - (highValue - centreVal)
-
-        # Or if the high value has moved
-        # too close to the high value
-        elif lowValue >= (highValue - minDist):
-            newLow     = highValue - minDist
-            lowChanged = not np.isclose(lowValue, newLow)
-            lowValue   = newLow
+        lowValue  = self.GetLow()
+        highValue = self.GetHigh()
 
         self.SetRange(lowValue, highValue)
 
-        if lowChanged:
-            evType = 'RangeEvent'
-            ev     = RangeEvent(    low=lowValue, high=highValue)
+        if np.isclose(self.GetLow(), lowValue):
+            ev = HighRangeEvent(low=lowValue, high=highValue)
         else:
-            evType = 'HighRangeEvent'
-            ev     = HighRangeEvent(low=lowValue, high=highValue)
+            ev = RangeEvent(    low=lowValue, high=highValue)
 
         log.debug('High range value changed - posting {}: '
-                  '[{} - {}]'.format(evType, lowValue, highValue))
+                  '[{} - {}]'.format(type(ev).__name__, lowValue, highValue))
 
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
 
 
-    def GetRange(self):
-        """Returns a tuple containing the current (low, high) range values."""
-        return (self.GetLow(), self.GetHigh())
+    def GetDistance(self):
+        """Returns the minimum distance that is maintained between
+        the low/high range values.
+        """
+        return self.__minDistance
 
 
-    def SetRange(self, lowValue, highValue):
-        """Sets the current (low, high) range values."""
-        self.SetLow( lowValue)
-        self.SetHigh(highValue)
+    def SetDistance(self, distance):
+        """Sets the minimum distance to be maintained between the low/high
+        range values.
+        """
+
+        lo, hi = self.GetLimits()
+
+        if distance < 0 or distance > (hi - lo):
+            raise ValueError('Invalid distance: {}'.format(distance))
+
+        self.__minDistance = distance
+        self.SetRange(*self.GetRange())
 
 
     def GetLow(self):
@@ -337,25 +295,47 @@ class RangePanel(wx.Panel):
 
 
     def SetLow(self, lowValue):
-        """Set the current low range value, and attempts to make sure
-        that the high value is at least (low value + min distance).
-        """
-        self.__lowWidget.SetValue(lowValue)
-
-        highValue = self.GetHigh()
-        if highValue <= lowValue + self.__minDistance:
-            self.__highWidget.SetValue(lowValue + self.__minDistance)
+        """Set the current low range value """
+        self.SetRange(lowValue, self.GetHigh())
 
 
     def SetHigh(self, highValue):
-        """Set the current high range value, and attempts to make sure
-        that the high value is at least (low value + min distance).
+        """Set the current high range value
         """
-        self.__highWidget.SetValue(highValue)
+        self.SetRange(self.GetLow(), highValue)
 
-        lowValue = self.GetLow()
-        if lowValue >= highValue - self.__minDistance:
-            self.__lowWidget.SetValue(highValue - self.__minDistance)
+
+    def GetRange(self):
+        """Returns a tuple containing the current (low, high) range values."""
+        return (self.GetLow(), self.GetHigh())
+
+
+    def SetRange(self, lowValue, highValue):
+        """Sets the current (low, high) range values, making sure that they
+        are at within the low/high limits, and least (min distance) apart.
+        """
+
+        minLow, maxHigh = self.GetLimits()
+        dist            = self.GetDistance()
+
+        if highValue < lowValue:
+            lowValue, highValue = highValue, lowValue
+
+        if lowValue  < minLow:  lowValue  = minLow
+        if highValue > maxHigh: highValue = maxHigh
+
+        if highValue - lowValue < dist:
+            centre   = lowValue + (highValue - lowValue) / 2.0
+            halfdist = dist / 2.0
+
+            if   centre < (minLow  + halfdist): centre = minLow  + halfdist
+            elif centre > (maxHigh - halfdist): centre = maxHigh - halfdist
+
+            lowValue  = centre - dist / 2.0
+            highValue = centre + dist / 2.0
+
+        self.__lowWidget .SetValue(lowValue)
+        self.__highWidget.SetValue(highValue)
 
 
     def GetLimits(self):
@@ -367,8 +347,21 @@ class RangePanel(wx.Panel):
 
     def SetLimits(self, minValue, maxValue):
         """Sets the current (minimum, maximum) range limit values."""
-        self.SetMin(minValue)
-        self.SetMax(maxValue)
+
+        if maxValue < minValue:
+            minValue, maxValue = maxValue, minValue
+
+        if maxValue - minValue < self.GetDistance():
+            raise ValueError(
+                'Invalid limits (range {} - {} is less than distance '
+                '{})'.format(minValue, maxValue, self.GetDistance()))
+
+        self.__lowWidget .SetMin(minValue)
+        self.__highWidget.SetMin(minValue)
+        self.__lowWidget .SetMax(maxValue)
+        self.__highWidget.SetMax(maxValue)
+
+        self.SetRange(*self.GetRange())
 
 
     def GetMin(self):
@@ -383,50 +376,12 @@ class RangePanel(wx.Panel):
 
     def SetMin(self, minValue):
         """Sets the current minimum range value."""
-
-        self.__lowWidget .SetMin(minValue)
-        self.__highWidget.SetMin(minValue)
+        self.SetLimits(minValue, self.GetMax())
 
 
     def SetMax(self, maxValue):
         """Sets the current maximum range value."""
-
-        self.__lowWidget .SetMax(maxValue)
-        self.__highWidget.SetMax(maxValue)
-
-
-    def CentreAt(self, centreVal, postEv=True):
-        """Centres the range at the given centre value. The low and high
-        values are forced to be symmetric about the given centre. Pass
-        in ``None`` to disable range centering.
-        """
-
-        if centreVal is None:
-            self.__centreVal = None
-            return
-
-        lowVal  = self.GetLow()
-        highVal = self.GetHigh()
-        minVal  = self.GetMin()
-        maxVal  = self.GetMax()
-        minDist = self.__minDistance
-
-        if centreVal < minVal + minDist / 2.0:
-            raise ValueError('Invalid centre value: {}'.format(centreVal))
-
-        if centreVal > maxVal - minDist / 2.0:
-            raise ValueError('Invalid centre value: {}'.format(centreVal))
-
-        self.__centreVal = centreVal
-
-        currentRange = highVal - lowVal
-        newLow       = centreVal - currentRange / 2.0
-        newHigh      = centreVal + currentRange / 2.0
-
-        self.SetLow(newLow)
-
-        if postEv: self.__onLowChange()
-        else:      self.SetHigh(newHigh)
+        self.SetLimits(self.GetMin(), maxValue)
 
 
 class RangeSliderSpinPanel(wx.Panel):
@@ -766,12 +721,6 @@ class RangeSliderSpinPanel(wx.Panel):
         """Set the current low and high range values."""
         self.__sliderPanel.SetRange(lowValue, highValue)
         self.__spinPanel  .SetRange(lowValue, highValue)
-
-
-    def CentreAt(self, centreVal):
-        """Sets the current range centre - see :meth:`RangePanel.CentreAt`. """
-        self.__sliderPanel.CentreAt(centreVal, postEv=False)
-        self.__spinPanel  .CentreAt(centreVal, postEv=True)
 
 
 RP_INTEGER = 1
