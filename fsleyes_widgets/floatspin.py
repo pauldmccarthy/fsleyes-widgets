@@ -44,13 +44,13 @@ class FloatSpinCtrl(FloatSpinBase):
 
     def __init__(self,
                  parent,
-                 minValue=0,
-                 maxValue=100,
-                 increment=1,
-                 value=0,
-                 style=0,
+                 minValue=None,
+                 maxValue=None,
+                 increment=None,
+                 value=None,
+                 style=None,
                  width=None,
-                 evDelta=0.5):
+                 evDelta=None):
         """Create a ``FloatSpinCtrl``.
 
         The following style flags are available:
@@ -94,12 +94,16 @@ class FloatSpinCtrl(FloatSpinBase):
         """
         FloatSpinBase.__init__(self, parent)
 
+        if minValue  is None: minValue  = 0
+        if maxValue  is None: maxValue  = 100
+        if value     is None: value     = 0
+        if increment is None: increment = 1
+        if style     is None: style     = 0
+
         self.__integer = style & FSC_INTEGER
         self.__nolimit = style & FSC_NO_LIMIT
 
-        # The value is set at the
-        # end of this method
-        self.__value     = None
+        self.__value     = value
         self.__increment = increment
         self.__realMin   = float(minValue)
         self.__realMax   = float(maxValue)
@@ -194,7 +198,6 @@ class FloatSpinCtrl(FloatSpinBase):
         self.SetMinSize(self.__sizer.GetMinSize())
 
         self.SetRange(minValue, maxValue)
-        self.SetValue(value)
         self.SetIncrement(increment)
 
 
@@ -281,29 +284,26 @@ class FloatSpinCtrl(FloatSpinBase):
         self.SetValue(self.__value)
 
 
-    def SetValue(self, value):
+    def SetValue(self, newValue):
         """Sets the value.
 
         :returns ``True`` if the value was changed, ``False`` otherwise.
         """
 
-        # Throttle the value so it stays
+        # Clamp the value so it stays
         # within the min/max, unless the
         # FSC_NO_LIMIT style flag is set.
         if not self.__nolimit:
-            if value < self.__realMin: value = self.__realMin
-            if value > self.__realMax: value = self.__realMax
-
-        if value == self.__value:
-            return False
+            if newValue < self.__realMin: newValue = self.__realMin
+            if newValue > self.__realMax: newValue = self.__realMax
 
         if self.__integer:
-            value = int(round(value))
+            newValue = int(round(newValue))
 
         oldValue     = self.__value
-        self.__value = value
+        self.__value = newValue
 
-        self.__text.ChangeValue(self.__format.format(value))
+        self.__text.ChangeValue(self.__format.format(newValue))
 
         # The wx.SpinButton is badly behaved. It doesn't have
         # a ChangeValue method (which would explicitly allow
@@ -313,7 +313,7 @@ class FloatSpinCtrl(FloatSpinBase):
         # event, it will trigger another event. So we disable
         # events from the spin button when setting the value.
         self.__spin.SetEvtHandlerEnabled(False)
-        self.__spin.SetValue(self.__realToSpin(value))
+        self.__spin.SetValue(self.__realToSpin(newValue))
 
         # We have to re-enable event processing
         # asynchronously, otherwise the SpinButton
@@ -327,7 +327,7 @@ class FloatSpinCtrl(FloatSpinBase):
 
         wx.CallAfter(reset)
 
-        return value != oldValue
+        return newValue != oldValue
 
 
     def __onKillFocus(self, ev):
@@ -362,7 +362,14 @@ class FloatSpinCtrl(FloatSpinBase):
 
         This method is called when the enter key is pressed.
 
-        If the value has changed, a :data:`FloatSpinEvent` is generated.
+        If the entered value is a valid number, a ``wx.EVT_TEXT_ENTER``
+        event is generated. This event will have a boolean attribute,
+        ``changed``, which is ``True`` if the value that was stored was
+        different to that entered by the user (e.g. if it was clamped
+        to the min/max bounds).
+
+        If the value was changed from its previous value, a
+        :data:`FloatSpinEvent` is also generated.
         """
 
         val = self.__text.GetValue().strip()
@@ -381,7 +388,20 @@ class FloatSpinCtrl(FloatSpinBase):
             self.SetValue(self.__value)
             return
 
-        if self.SetValue(val):
+        valset = self.SetValue(val)
+
+        # Add a 'changed' attribute so
+        # users can tell if the value
+        # that was entered was not the
+        # value that ended up getting
+        # stored
+        ev         = wx.PyCommandEvent(wx.EVT_TEXT_ENTER.typeId, self.GetId())
+        ev.changed = val != self.__value
+        wx.PostEvent(self.GetEventHandler(), ev)
+
+        # Emit a spin event if the value
+        # changed from its previous value
+        if valset:
             wx.PostEvent(self, FloatSpinEvent(value=self.__value))
 
 
@@ -486,7 +506,8 @@ class FloatSpinCtrl(FloatSpinBase):
         return int(round(value))
 
 
-_FloatSpinEvent, _EVT_FLOATSPIN = wxevent.NewEvent()
+_FloatSpinEvent,      _EVT_FLOATSPIN       = wxevent.NewEvent()
+_FloatSpinEnterEvent, _EVT_FLOATSPIN_ENTER = wxevent.NewEvent()
 
 
 EVT_FLOATSPIN = _EVT_FLOATSPIN

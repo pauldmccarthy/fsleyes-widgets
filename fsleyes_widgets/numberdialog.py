@@ -11,29 +11,19 @@ allows the user to enter a number.
 import wx
 
 
+from . import floatspin
+
+
 class NumberDialog(wx.Dialog):
     """A :class:`wx.Dialog` which prompts the user for a number.
 
     This class differs from the :class:`wx.NumberEntryDialog` in that
     it supports floating point numbers.
 
-    A ``NumberDialog`` contains a :class:`wx.TextCtrl` and *Ok*/*Cancel*
+    A ``NumberDialog`` contains a :class:`wx.FloatSpinCtrl` and *Ok*/*Cancel*
     buttons, allowing the user to specify a number. If the user pushes the
     *Ok* button, the number they entered will be accessible via the
     :meth:`GetValue` method.
-
-    If the user enters an invalid value (i.e. not a number, or outside
-    of the minimum/maximum range if specifed), an error message is
-    displayed, and the user is prompted to enter a new value.
-
-     .. note::
-        I've specifically not used the :class:`wx.SpinCtrl` or
-        :class:`wx.SpinCtrlDouble`, because they are too limited in their
-        flexibility with regard to validation and events.
-
-        This class was written before I wrote the :class:`.FloatSpinCtrl`
-        class - I may update this class at some stage in the future to
-        use ``FloatSpinCtrl``.
     """
 
     def __init__(self,
@@ -77,14 +67,6 @@ class NumberDialog(wx.Dialog):
 
         wx.Dialog.__init__(self, parent, title=title)
 
-        self.__value    = None
-        self.__real     = real
-        self.__minValue = minValue
-        self.__maxValue = maxValue
-
-        if self.__real: initial = float(initial)
-        else:           initial = int(  initial)
-
         self.__panel = wx.Panel(self)
         self.__sizer = wx.BoxSizer(wx.VERTICAL)
         self.__panel.SetSizer(self.__sizer)
@@ -98,11 +80,18 @@ class NumberDialog(wx.Dialog):
         else:
             self.__label = (0, 0)
 
-        self.__textctrl = wx.TextCtrl(self.__panel, style=wx.TE_PROCESS_ENTER)
-        self.__textctrl.SetValue('{}'.format(initial))
+        style = floatspin.FSC_MOUSEWHEEL
+        if real:
+            style |= floatspin.FSC_INTEGER
+        if minValue is None and maxValue is None:
+            style |= floatspin.FSC_NO_LIMIT
 
-        self.__errorLabel = wx.StaticText(self.__panel)
-        self.__errorLabel.SetForegroundColour('#992222')
+        self.__spinCtrl = floatspin.FloatSpinCtrl(
+            self.__panel,
+            minValue=minValue,
+            maxValue=maxValue,
+            value=initial,
+            style=style)
 
         self.__okButton     = wx.Button(self.__buttonPanel, label=okText)
         self.__cancelButton = wx.Button(self.__buttonPanel, label=cancelText)
@@ -117,17 +106,15 @@ class NumberDialog(wx.Dialog):
                                border=2)
 
         self.__sizer.Add(self.__label, flag=wx.EXPAND | wx.ALL, border=10)
-        self.__sizer.Add(self.__textctrl,
+        self.__sizer.Add(self.__spinCtrl,
                          flag=(wx.EXPAND | wx.LEFT | wx.RIGHT),
                          border=15)
 
-        self.__sizer.Add(self.__errorLabel, flag=wx.ALL, border=5)
-        self.__sizer.Show(self.__errorLabel, False)
         self.__sizer.Add(self.__buttonPanel,
                          flag=wx.EXPAND | wx.ALL,
                          border=10)
 
-        self.__textctrl    .Bind(wx.EVT_TEXT_ENTER, self.__onOk)
+        self.__spinCtrl    .Bind(wx.EVT_TEXT_ENTER, self.__onEnter)
         self.__okButton    .Bind(wx.EVT_BUTTON,     self.__onOk)
         self.__cancelButton.Bind(wx.EVT_BUTTON,     self.__onCancel)
 
@@ -136,6 +123,21 @@ class NumberDialog(wx.Dialog):
 
         self.Fit()
         self.CentreOnParent()
+
+
+    def floatSpinCtrl(self):
+        """Returns a reference to the :class:`.FloatSpinCtrl`. """
+        return self.__spinCtrl
+
+
+    def okButton(self):
+        """Returns a reference to the ok ``Button``. """
+        return self.__okButton
+
+
+    def cancelButton(self):
+        """Returns a reference to the cancel ``Button``. """
+        return self.__cancelButton
 
 
     def GetValue(self):
@@ -148,56 +150,25 @@ class NumberDialog(wx.Dialog):
         return self.__value
 
 
-    def __validate(self):
-        """Validates the current value.
-
-        If the value is valid, returns it.  Otherwise a :exc:`ValueError`
-        is raised with an appropriate message.
+    def __onEnter(self, ev):
+        """Called when the enter key is pressed in the ``FloatSpinCtrl``.
+        Forwards the event to the :meth:`__onOk` method.
         """
-
-        value = self.__textctrl.GetValue()
-
-        if self.__real: cast = float
-        else:           cast = int
-
-        try:
-            value = cast(value)
-        except:
-            if self.__real: err = ' floating point'
-            else:           err = 'n integer'
-            raise ValueError('The value must be a{}'.format(err))
-
-        if self.__minValue is not None and value < self.__minValue:
-            raise ValueError('The value must be at '
-                             'least {}'.format(self.__minValue))
-
-        if self.__maxValue is not None and value > self.__maxValue:
-            raise ValueError('The value must be at '
-                             'most {}'.format(self.__maxValue))
-
-        return value
+        # If the user typed in a value, and the
+        # floatspin changed that value (e.g.
+        # clamped it to min/max bounds), don't
+        # close the dialog.
+        if not ev.changed:
+            self.__onOk(ev)
 
 
     def __onOk(self, ev):
-        """Called when the Ok button is pushed, or enter is pressed.
-
-        If the entered value is valid, it is stored and the dialog is closed.
-        The value may be retrieved via the :meth:`GetValue` method. If the
-        value is not valid, the dialog remains open.
+        """Called when the Ok button is pushed. The entered value is stored
+        and the dialog is closed.  The value may be retrieved via the
+        :meth:`GetValue` method.
         """
 
-        try:
-            value = self.__validate()
-
-        except ValueError as e:
-            self.__errorLabel.SetLabel(str(e))
-            self.__sizer.Show(self.__errorLabel, True)
-            self.__panel.Layout()
-            self.__panel.Fit()
-            self.Fit()
-            return
-
-        self.__value = value
+        self.__value = self.__spinCtrl.GetValue()
         self.EndModal(wx.ID_OK)
         self.Destroy()
 
