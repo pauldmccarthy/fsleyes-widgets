@@ -12,44 +12,8 @@ import tempfile
 
 import fsleyes_widgets.utils.runwindow as runwindow
 
+from . import run_with_wx
 
-def _run_with_wx(func, *args, **kwargs):
-
-
-    import wx
-
-    app    = wx.App()
-    frame  = wx.Frame(None)
-
-    result = [None]
-    raised = [None]
-
-    def wrap():
-
-        try:
-            result[0] = func(*args, **kwargs)
-
-        except Exception as e:
-            print(e)
-            raised[0] = e
-
-        finally:
-            def finish():
-                for f in wx.GetTopLevelWindows():
-                    f.Destroy()
-                app.ExitMainLoop()
-
-            wx.CallLater(500, finish)
-
-    frame.Show()
-    wx.CallLater(500, wrap)
-
-    app.MainLoop()
-
-    if raised[0]:
-        raise raised[0]
-
-    return result[0]
 
 def _gen_dummy_script():
 
@@ -94,7 +58,7 @@ def test_ProcessManager_run():
 
         pm.start()
 
-    _run_with_wx(runTest)
+    run_with_wx(runTest)
 
     os.remove(path)
 
@@ -125,7 +89,7 @@ def test_ProcessManager_termProc():
 
         pm.termProc()
 
-    _run_with_wx(runTest)
+    run_with_wx(runTest)
 
     assert finishArgs[0][1] == -signal.SIGTERM
 
@@ -147,7 +111,7 @@ def test_run():
 
         runwindow.run('Tool', cmd, frame, onFinish, modal=False)
 
-    _run_with_wx(runTest)
+    run_with_wx(runTest)
 
     os.remove(path)
 

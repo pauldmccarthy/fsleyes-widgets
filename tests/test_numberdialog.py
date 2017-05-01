@@ -13,11 +13,6 @@ import fsleyes_widgets.numberdialog as numdlg
 from . import run_with_wx, simclick, simtext, simkey
 
 
-import logging
-logging.basicConfig()
-logging.getLogger('fsleyes_widgets').setLevel(logging.DEBUG)
-
-
 def test_NumberDialog_create():
     run_with_wx(_test_NumberDialog_create)
 def _test_NumberDialog_create():
@@ -102,4 +97,8 @@ def _test_NumberDialog_limit():
             assert dlg.GetValue() is None
             simclick(sim, dlg.okButton)
 
+        for i in range(5):
+            import time
+            time.sleep(0.02)
+            wx.Yield()
         assert dlg.GetValue() == expected

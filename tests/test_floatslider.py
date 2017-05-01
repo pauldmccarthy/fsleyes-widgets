@@ -145,7 +145,6 @@ def test_FloatSlider_mouse_non_gtk():
 def test_FloatSlider_mouse_gtk():
     with mock.patch('fsleyes_widgets.floatslider.wx.Platform', '__WXGTK__'):
         run_with_wx(_test_FloatSlider_mouse)
-
 def _test_FloatSlider_mouse():
 
     sim    = wx.UIActionSimulator()
