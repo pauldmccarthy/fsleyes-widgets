@@ -12,7 +12,7 @@ import wx
 import mock
 import pytest
 
-from . import run_with_wx, simclick
+from . import run_with_wx, simclick, simkey
 
 import fsleyes_widgets.floatslider as floatslider
 
@@ -140,21 +140,33 @@ def _test_FloatSlider_changeRange():
     _test_widget_changeRange(slider)
 
 
-def test_FloatSlider_mouse():
+def test_FloatSlider_mouse_non_gtk():
+    run_with_wx(_test_FloatSlider_mouse)
+def test_FloatSlider_mouse_gtk():
     with mock.patch('fsleyes_widgets.floatslider.wx.Platform', '__WXGTK__'):
         run_with_wx(_test_FloatSlider_mouse)
+
 def _test_FloatSlider_mouse():
 
     sim    = wx.UIActionSimulator()
     frame  = wx.GetApp().GetTopWindow()
     minval = 0
+    init   = 50
     maxval = 100
-    slider = floatslider.FloatSlider(frame, minValue=minval, maxValue=maxval)
+    slider = floatslider.FloatSlider(frame,
+                                     value=init,
+                                     minValue=minval,
+                                     maxValue=maxval)
+    sizer = wx.BoxSizer(wx.HORIZONTAL)
+    sizer.Add(slider, flag=wx.EXPAND, proportion=1)
+    frame.SetSizer(sizer)
+    frame.Layout()
+    wx.Yield()
 
-    called = [False]
+    called = [0]
 
     def handler(ev):
-        called[0] = True
+        called[0] += 1
 
     slider.Bind(wx.EVT_SLIDER, handler)
 
@@ -162,10 +174,11 @@ def _test_FloatSlider_mouse():
 
     for xpos in xposes:
 
-        called[0] = False
-        simclick(sim, slider, pos=[xpos, 0.5], stype=2)
+        called[0] = 0
 
-        wx.Yield()
+        # Make sure clicking on the same spot
+        # doesn't result in multiple events
+        simclick(sim, slider, pos=[xpos, 0.5])
 
         expected = minval + xpos * (maxval - minval)
 
@@ -173,8 +186,9 @@ def _test_FloatSlider_mouse():
         # because the above xposes may not
         # take into account widget borders.
         tol = (maxval - minval) * 0.05
-        assert called[0]
+        assert called[0] == 1
         assert abs(slider.GetValue() - expected) <= tol
+
 
 
 def test_FloatSlider_wheel():
@@ -307,6 +321,49 @@ def _test_SliderSpinPanel_show_edit_limits():
 
             if shouldEv: assert result[0] == expected
             else:        assert result[0] is None
+
+
+def test_SliderSpinPanel_events():
+    run_with_wx(_test_SliderSpinPanel_events)
+def _test_SliderSpinPanel_events():
+
+    sim   = wx.UIActionSimulator()
+    frame = wx.GetApp().GetTopWindow()
+    panel = floatslider.SliderSpinPanel(frame, label='Value', style=0)
+    sizer = wx.BoxSizer(wx.HORIZONTAL)
+    sizer.Add(panel, flag=wx.EXPAND, proportion=1)
+    frame.SetSizer(sizer)
+    frame.Layout()
+
+    ncalls = [0]
+    called = [None]
+
+    def handler(ev):
+        ncalls[0] += 1
+        called[0] = ev.value
+
+    panel.Bind(floatslider.EVT_SSP_VALUE, handler)
+
+    panel.SetRange(0, 100)
+
+    simclick(sim, panel.slider, pos=[0.5, 0.5])
+
+    assert abs(panel.spinCtrl.GetValue() - 50) < 5
+    assert abs(panel.slider  .GetValue() - 50) < 5
+    assert abs(panel         .GetValue() - 50) < 5
+    assert called[0]                 - 50 < 5
+    assert ncalls[0] == 1
+
+    called[0] = None
+    ncalls[0] = 0
+    panel.spinCtrl.textCtrl.ChangeValue('75')
+    simkey(sim, panel.spinCtrl.textCtrl, wx.WXK_RETURN)
+
+    assert np.isclose(panel.spinCtrl.GetValue(), 75)
+    assert np.isclose(panel.slider  .GetValue(), 75)
+    assert np.isclose(panel         .GetValue(), 75)
+    assert np.isclose(called[0],                 75)
+    assert ncalls[0] == 1
 
 
 def test_SliderSpinPanel_nolimit():
