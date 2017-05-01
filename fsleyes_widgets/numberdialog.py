@@ -67,6 +67,7 @@ class NumberDialog(wx.Dialog):
 
         wx.Dialog.__init__(self, parent, title=title)
 
+        self.__value = None
         self.__panel = wx.Panel(self)
         self.__sizer = wx.BoxSizer(wx.VERTICAL)
         self.__panel.SetSizer(self.__sizer)
@@ -81,7 +82,7 @@ class NumberDialog(wx.Dialog):
             self.__label = (0, 0)
 
         style = floatspin.FSC_MOUSEWHEEL
-        if real:
+        if not real:
             style |= floatspin.FSC_INTEGER
         if minValue is None and maxValue is None:
             style |= floatspin.FSC_NO_LIMIT
@@ -125,16 +126,19 @@ class NumberDialog(wx.Dialog):
         self.CentreOnParent()
 
 
+    @property
     def floatSpinCtrl(self):
         """Returns a reference to the :class:`.FloatSpinCtrl`. """
         return self.__spinCtrl
 
 
+    @property
     def okButton(self):
         """Returns a reference to the ok ``Button``. """
         return self.__okButton
 
 
+    @property
     def cancelButton(self):
         """Returns a reference to the cancel ``Button``. """
         return self.__cancelButton
@@ -170,11 +174,9 @@ class NumberDialog(wx.Dialog):
 
         self.__value = self.__spinCtrl.GetValue()
         self.EndModal(wx.ID_OK)
-        self.Destroy()
 
 
     def __onCancel(self, ev):
         """Called when the Cancel button is pushed. Closes the dialog."""
         self.__value = None
         self.EndModal(wx.ID_CANCEL)
-        self.Destroy()
