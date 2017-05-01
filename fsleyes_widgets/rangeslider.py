@@ -221,8 +221,13 @@ class RangePanel(wx.Panel):
 
         lowValue  = self.GetLow()
         highValue = self.GetHigh()
+        distance  = self.GetDistance()
+        newHigh   = highValue
 
-        self.SetRange(lowValue, highValue)
+        if lowValue > highValue:
+            newHigh = lowValue + distance
+
+        self.SetRange(lowValue, newHigh)
 
         # If the high value changed as a result of
         # the low value changing, we emit a RangeEvent.
@@ -248,8 +253,13 @@ class RangePanel(wx.Panel):
 
         lowValue  = self.GetLow()
         highValue = self.GetHigh()
+        distance  = self.GetDistance()
+        newLow    = lowValue
 
-        self.SetRange(lowValue, highValue)
+        if highValue < lowValue:
+            newLow = highValue - distance
+
+        self.SetRange(newLow, highValue)
 
         if np.isclose(self.GetLow(), lowValue):
             ev = HighRangeEvent(low=lowValue, high=highValue)
@@ -318,8 +328,9 @@ class RangePanel(wx.Panel):
         minLow, maxHigh = self.GetLimits()
         dist            = self.GetDistance()
 
-        if highValue < lowValue:
-            lowValue, highValue = highValue, lowValue
+        if not np.isclose(lowValue, highValue) and highValue < lowValue:
+            raise ValueError('high [{}] < low [{}]'.format(
+                highValue, lowValue))
 
         if lowValue  < minLow:  lowValue  = minLow
         if highValue > maxHigh: highValue = maxHigh
@@ -348,8 +359,8 @@ class RangePanel(wx.Panel):
     def SetLimits(self, minValue, maxValue):
         """Sets the current (minimum, maximum) range limit values."""
 
-        if maxValue < minValue:
-            minValue, maxValue = maxValue, minValue
+        if not np.isclose(minValue, maxValue) and maxValue < minValue:
+            raise ValueError('max [{}] < min [{}]'.format(maxValue, minValue))
 
         if maxValue - minValue < self.GetDistance():
             raise ValueError(
@@ -590,8 +601,6 @@ class RangeSliderSpinPanel(wx.Panel):
         """
 
         source = ev.GetEventObject()
-        low    = ev.low
-        high   = ev.high
         slider = self.__sliderPanel
         spin   = self.__spinPanel
 
@@ -600,13 +609,10 @@ class RangeSliderSpinPanel(wx.Panel):
         if   source is slider: slave = spin
         elif source is spin:   slave = slider
 
-        if low  is not None: slave.SetLow( low)
-        if high is not None: slave.SetHigh(high)
+        slave.SetRange(*source.GetRange())
 
-        lowValue, highValue = source.GetRange()
-
-        log.debug('Range values changed - posting event: [{} - {}]'.format(
-            lowValue, highValue))
+        log.debug('Range values changed - posting event: [{}]'.format(
+            source.GetRange()))
 
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
