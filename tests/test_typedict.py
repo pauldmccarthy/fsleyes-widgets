@@ -41,10 +41,10 @@ def test_create():
 
     tknkeys = [td.tokenifyKey(k) for k in keys]
 
-    assert len(td)                   == len(keys)
-    assert list(sorted(td.keys()))   == list(sorted(tknkeys))
-    assert list(sorted(td.values())) == list(sorted(values))
-    assert list(sorted(td.items()))  == list(sorted(zip(tknkeys, values)))
+    assert len(td)                       == len(keys)
+    assert sorted(map(str, td.keys()))   == sorted(map(str, tknkeys))
+    assert sorted(map(str, td.values())) == sorted(map(str, values))
+    assert sorted(map(str, td.items()))  == sorted(map(str, zip(tknkeys, values)))
 
     for k, v in zip(keys, values):
         assert td[k] == v

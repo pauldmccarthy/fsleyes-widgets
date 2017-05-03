@@ -5,12 +5,13 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
+import six
 
 # python 3
-try:
+if six.PY3:
     import unittest.mock as mock
 # python 2
-except:
+elif six.PY2:
     import mock
 
 import fsleyes_widgets.utils.webpage as webpage
@@ -24,6 +25,10 @@ def test_fileToUrl():
         ('./file.html',          'file:///file.html'),
         ('../file.html',         'file:///../file.html'),
     ]
+
+    # urljoin has changed in python3 to make paths absolute
+    if six.PY3:
+        testcases[-1] = ('../file.html', 'file:///file.html')
 
     for fname, expected in testcases:
         assert webpage.fileToUrl(fname) == expected
