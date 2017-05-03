@@ -128,8 +128,9 @@ class HBox(object):
         self.width  = 0
         self.height = 0
         self.items  = []
-        if items is not None: map(self.append, items)
-
+        if items is not None:
+            for i in items:
+                self.append(i)
 
     def append(self, item):
         """Append a new item to this ``HBox``. """
@@ -159,7 +160,9 @@ class VBox(object):
         self.width  = 0
         self.height = 0
         self.items  = []
-        if items is not None: map(self.append, items)
+        if items is not None:
+            for i in items:
+                self.append(i)
 
 
     def append(self, item):
@@ -249,7 +252,7 @@ def layoutToBitmap(layout, bgColour=None):
     elif isinstance(layout, VBox): vert = True
 
     # Recursively bitmapify the children of the box
-    itemBmps = map(lambda i: layoutToBitmap(i, bgColour), layout.items)
+    itemBmps = [layoutToBitmap(i, bgColour) for i in layout.items]
 
     # Pad each of the bitmaps so they are all the same
     # size along the secondary axis (which is width
@@ -257,8 +260,7 @@ def layoutToBitmap(layout, bgColour=None):
     # is a HBox).
     width    = layout.width
     height   = layout.height
-    itemBmps = map(lambda bmp: padBitmap(bmp, width, height, vert, bgColour),
-                   itemBmps)
+    itemBmps = [padBitmap(i, width, height, vert, bgColour) for i in itemBmps]
 
     if vert: return np.vstack(itemBmps)
     else:    return np.hstack(itemBmps)

@@ -10,9 +10,16 @@ some text, oriented either horizontally or vertically.
 
 
 import wx
+import six
 
 
-class TextPanel(wx.PyPanel):
+# Python 2 -> wxPython 3.x
+# Python 3 -> wxPython 4.x (Phoenix)
+if six.PY2: TextPanelBase = wx.PyPanel
+else:       TextPanelBase = wx.Panel
+
+
+class TextPanel(TextPanelBase):
     """A :class:`wx.PyPanel` which may be used to display a string of
     text, oriented either horizotnally or vertically.
     """
@@ -29,7 +36,7 @@ class TextPanel(wx.PyPanel):
                      default) or ``wx.VERTICAL``. This can be changed
                      later via :meth:`SetOrient`.
         """
-        wx.PyPanel.__init__(self, parent)
+        TextPanelBase.__init__(self, parent)
 
         self.Bind(wx.EVT_PAINT, self.Draw)
         self.Bind(wx.EVT_SIZE,  self.__onSize)
@@ -84,8 +91,7 @@ class TextPanel(wx.PyPanel):
 
         self.__size = (width, height)
 
-        self.SetMinSize(( width, height))
-        self.SetBestSize((width, height))
+        self.SetMinSize((width, height))
 
         self.Refresh()
 
