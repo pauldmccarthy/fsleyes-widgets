@@ -41,9 +41,7 @@ class ColourButton(wx.Button):
         if size   is None: size   = (32, 32)
         if colour is None: colour = (0, 0, 0, 255)
 
-        # BU_NOTEXT causes crash under OSX
-        if wx.Platform == '__WXMAC__': style = wx.BU_EXACTFIT
-        else:                          style = wx.BU_EXACTFIT | wx.BU_NOTEXT
+        style = wx.BU_EXACTFIT | wx.BU_NOTEXT
 
         wx.Button.__init__(self, parent, style=style)
 
@@ -98,7 +96,7 @@ class ColourButton(wx.Button):
         if six.PY2: self.__bmp = wx.BitmapFromBufferRGBA( w, h, data)
         else:       self.__bmp = wx.Bitmap.FromBufferRGBA(w, h, data)
 
-        self.SetBitmap(self.__bmp)
+        self.SetBitmapLabel(self.__bmp)
 
 
     def __onClick(self, ev):

@@ -82,8 +82,8 @@ class BitmapToggleButton(wx.ToggleButton):
         if trueBmp is None:
             return
 
-        if self.GetValue(): wx.ToggleButton.SetBitmap(self, trueBmp)
-        else:               wx.ToggleButton.SetBitmap(self, falseBmp)
+        if self.GetValue(): wx.ToggleButton.SetBitmapLabel(self, trueBmp)
+        else:               wx.ToggleButton.SetBitmapLabel(self, falseBmp)
 
 
     def __onToggle(self, ev):
