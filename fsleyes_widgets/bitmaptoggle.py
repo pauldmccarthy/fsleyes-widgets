@@ -9,8 +9,6 @@ which toggles between two bitmaps.
 """
 
 
-import six
-
 import wx
 import wx.lib.newevent as wxevent
 
@@ -44,17 +42,12 @@ class BitmapToggleButton(wx.ToggleButton):
         falseBmp = kwargs.pop('falseBmp', None)
         style    = kwargs.get('style',    0)
 
+        # wx.ToggleButton(style=BU_NOTEXT)
+        # causes segfault under mac
         if wx.Platform == '__WXMAC__' and (style | wx.BU_NOTEXT):
             kwargs['style'] = style & ~wx.BU_NOTEXT
 
         wx.ToggleButton.__init__(self, parent, *args, **kwargs)
-
-        # Under wxPython/Phoenix, setting the
-        # label to the empty string results
-        # in the button being labelled with
-        # "Button". Ridiculous.
-        if (not six.PY2) and 'label' not in kwargs:
-            self.SetLabel(" ")
 
         self.__trueBmp  = None
         self.__falseBmp = None
