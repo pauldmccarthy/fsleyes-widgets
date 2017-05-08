@@ -345,6 +345,8 @@ class RangePanel(wx.Panel):
             lowValue  = centre - dist / 2.0
             highValue = centre + dist / 2.0
 
+        log.debug('Setting range: {}'.format((lowValue, highValue)))
+
         self.__lowWidget .SetValue(lowValue)
         self.__highWidget.SetValue(highValue)
 
@@ -367,10 +369,10 @@ class RangePanel(wx.Panel):
                 'Invalid limits (range {} - {} is less than distance '
                 '{})'.format(minValue, maxValue, self.GetDistance()))
 
-        self.__lowWidget .SetMin(minValue)
-        self.__highWidget.SetMin(minValue)
-        self.__lowWidget .SetMax(maxValue)
-        self.__highWidget.SetMax(maxValue)
+        log.debug('Setting limits: {}'.format((minValue, maxValue)))
+
+        self.__lowWidget .SetRange(minValue, maxValue)
+        self.__highWidget.SetRange(minValue, maxValue)
 
         self.SetRange(*self.GetRange())
 

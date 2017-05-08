@@ -556,26 +556,22 @@ class SliderSpinPanel(wx.Panel):
 
     def SetRange(self, minValue, maxValue):
         """Sets the minimum/maximum slider/spinbox values."""
-        self.SetMin(minValue)
-        self.SetMax(maxValue)
+        self.__slider.SetRange(minValue, maxValue)
+        self.__spin  .SetRange(minValue, maxValue)
+
+        if self.__showLimits:
+            self.__minButton.SetLabel(self.__fmt.format(minValue))
+            self.__maxButton.SetLabel(self.__fmt.format(maxValue))
 
 
     def SetMin(self, minValue):
         """Sets the minimum slider/spinbox value."""
-        self.__slider .SetMin(minValue)
-        self.__spinbox.SetMin(minValue)
-
-        if self.__showLimits:
-            self.__minButton.SetLabel(self.__fmt.format(minValue))
+        self.SetRange(minValue, self.GetMax())
 
 
     def SetMax(self, maxValue):
         """Sets the maximum slider/spinbox value."""
-        self.__slider .SetMax(maxValue)
-        self.__spinbox.SetMax(maxValue)
-
-        if self.__showLimits:
-            self.__maxButton.SetLabel(self.__fmt.format(maxValue))
+        self.SetRange(self.GetMin(), maxValue)
 
 
     def SetValue(self, value):
