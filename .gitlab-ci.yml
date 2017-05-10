@@ -18,6 +18,7 @@ test:2.7:
   script:
     - cat requirements.txt | xargs -n 1 pip install
     - xvfb-run python setup.py test
+    - coverage report -m
 
 test:3.6:
   image: wxpython-python3.6:4.0.0a2
@@ -25,3 +26,4 @@ test:3.6:
   script:
     - cat requirements.txt | xargs -n 1 pip install
     - xvfb-run python setup.py test
+    - coverage report -m
