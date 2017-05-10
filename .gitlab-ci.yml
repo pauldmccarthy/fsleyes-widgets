@@ -1,19 +1,17 @@
 before_script:
   - apt-get update
   - apt-get install -y --no-install-recommends xvfb
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
 
 test:2.7:
   image: python:2.7
 
   script:
     - cat requirements.txt | xargs -n 1 pip install
-    - python setup.py test
+    - xvfb-run python setup.py test
 
 test:3.6:
   image: python:3.6
 
   script:
     - cat requirements.txt | xargs -n 1 pip install
-    - python setup.py test
+    - xvfb-run python setup.py test
