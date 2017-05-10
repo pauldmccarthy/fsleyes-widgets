@@ -13,14 +13,14 @@ before_script:
       libnotify-dev
 
 test:2.7:
-  image: python:2.7
+  image: wxpython-python2.7:4.0.0a2
 
   script:
     - cat requirements.txt | xargs -n 1 pip install
     - xvfb-run python setup.py test
 
 test:3.6:
-  image: python:3.6
+  image: wxpython-python3.6:4.0.0a2
 
   script:
     - cat requirements.txt | xargs -n 1 pip install
