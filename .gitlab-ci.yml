@@ -1,0 +1,20 @@
+
+test:2.7:
+  image: python2.7
+  before_script:
+    - export DISPLAY=:99.0
+    - sh -e /etc/init.d/xvfb start
+
+  script:
+    - cat requirements.txt | xargs -n 1 pip install
+    - python setup.py test
+
+test:3.6:
+  image: python3.6
+  before_script:
+    - export DISPLAY=:99.0
+    - sh -e /etc/init.d/xvfb start
+
+  script:
+    - cat requirements.txt | xargs -n 1 pip install
+    - python setup.py test
