@@ -14,7 +14,7 @@ import pytest
 
 import fsleyes_widgets.rangeslider as rangeslider
 
-from . import run_with_wx, simclick, simtext, simkey
+from . import run_with_wx, simclick, simtext, simkey, realYield
 
 
 def _test_RangePanel_logic(panel):
@@ -197,6 +197,8 @@ def _test_RangePanel_events_spin():
     panel.SetRange(0, 100)
     panel.SetDistance(5)
 
+    realYield()
+
     panel.lowWidget.textCtrl.ChangeValue('25')
     simkey(sim, panel.lowWidget, wx.WXK_RETURN)
     assert np.all(np.isclose(panel.GetRange(), (25, 100)))
@@ -265,6 +267,8 @@ def _test_RangeSliderSpinPanel_onchange():
 
     panel.SetRange(0, 100)
     panel.SetDistance(5)
+
+    realYield()
 
     panel.lowSpin.textCtrl.ChangeValue('75')
     simkey(sim, panel.lowSpin.textCtrl, wx.WXK_RETURN)

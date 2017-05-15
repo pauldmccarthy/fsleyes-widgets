@@ -12,7 +12,7 @@ import wx
 import mock
 import pytest
 
-from . import run_with_wx, simclick, simkey
+from . import run_with_wx, simclick, simkey, realYield
 
 import fsleyes_widgets.floatslider as floatslider
 
@@ -345,6 +345,7 @@ def _test_SliderSpinPanel_events():
 
     panel.SetRange(0, 100)
 
+    realYield()
     simclick(sim, panel.slider, pos=[0.5, 0.5])
 
     assert abs(panel.spinCtrl.GetValue() - 50) < 5

@@ -6,7 +6,7 @@
 #
 
 
-from . import run_with_wx, simclick
+from . import run_with_wx, simclick, realYield
 
 import wx
 import fsleyes_widgets.autotextctrl as autott
@@ -51,11 +51,12 @@ def _test_event():
 
     atc.Bind(autott.EVT_ATC_TEXT_ENTER, handler)
     atc.SetFocus()
+    realYield()
     sim.Char(ord('a'))
     sim.Char(ord('b'))
     sim.Char(ord('c'))
     sim.KeyDown(wx.WXK_RETURN)
-    wx.Yield()
+    realYield()
 
     assert atc.GetValue() == 'abc'
     assert called[0]      == 'abc'
@@ -94,13 +95,13 @@ def _test_popup_select1():
     atc = autott.AutoTextCtrl(parent)
 
     atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
-
     atc.SetFocus()
     sim.KeyDown(wx.WXK_RETURN)
+    realYield()
     sim.KeyDown(wx.WXK_DOWN)
     sim.KeyDown(wx.WXK_DOWN)
     sim.KeyDown(wx.WXK_RETURN)
-    wx.Yield()
+    realYield()
 
     assert atc.GetValue() == 'aab'
 
@@ -118,9 +119,10 @@ def _test_popup_select2():
 
     atc.SetFocus()
     sim.Char(ord('b'))
+    realYield()
     sim.KeyDown(wx.WXK_DOWN)
     sim.KeyDown(wx.WXK_RETURN)
-    wx.Yield()
+    realYield()
 
     assert atc.GetValue() == 'bcc'
 
@@ -139,9 +141,10 @@ def _test_popup_select3():
     atc.SetFocus()
     sim.Char(ord('a'))
     sim.Char(ord('b'))
+    realYield()
     sim.KeyDown(wx.WXK_DOWN)
     sim.KeyDown(wx.WXK_RETURN)
-    wx.Yield()
+    realYield()
 
     assert atc.GetValue() == 'aba'
 
@@ -159,9 +162,10 @@ def _test_popup_cancel():
 
     atc.SetFocus()
     sim.KeyDown(wx.WXK_RETURN)
+    realYield()
     sim.KeyDown(wx.WXK_DOWN)
     sim.KeyDown(wx.WXK_ESCAPE)
-    wx.Yield()
+    realYield()
 
     assert atc.GetValue() == ''
 
@@ -179,12 +183,14 @@ def _test_popup_focusback():
 
     atc.SetFocus()
     sim.KeyDown(wx.WXK_RETURN)
+    realYield()
     sim.KeyDown(wx.WXK_DOWN)
     sim.KeyDown(wx.WXK_UP)
+    realYield()
 
     sim.Text('abc')
     sim.KeyDown(wx.WXK_RETURN)
-    wx.Yield()
+    realYield()
 
     assert atc.GetValue() == 'abc'
 
@@ -200,10 +206,11 @@ def _test_popup_dblclick():
 
     atc.SetFocus()
     sim.KeyDown(wx.WXK_RETURN)
+    realYield()
 
     # Sneakily get a ref to the listbox
     # in the AutoCompletePopup
-    wx.Yield()
+    realYield()
     listbox = None
     for c in atc.GetChildren():
         if isinstance(c, autott.AutoCompletePopup):
@@ -214,6 +221,6 @@ def _test_popup_dblclick():
                     break
 
     simclick(sim, listbox, stype=1, pos=[0.5, 0.05])
-    wx.Yield()
+    realYield()
 
     assert atc.GetValue() == 'aaa'

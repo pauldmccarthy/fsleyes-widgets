@@ -7,9 +7,10 @@
 
 import wx
 
-from . import run_with_wx, simclick, simtext, simkey
+from . import run_with_wx, simclick, simtext, simkey, realYield
 
 import fsleyes_widgets.texttag as tt
+
 
 def test_StaticTextTag():
     run_with_wx(_test_StaticTextTag)
@@ -23,13 +24,13 @@ def _test_StaticTextTag():
     frame.SetSizer(sizer)
     frame.Layout()
 
-    wx.Yield()
+    realYield()
     assert tag.GetText() == ''
 
     tag.SetText('TagText')
     tag.SetBackgroundColour('#bb3333')
     tag.SetBorderColour(    '#3333bb')
-    wx.Yield()
+    realYield()
     assert tag.GetText() == 'TagText'
 
     dummy.SetFocus()
@@ -157,6 +158,7 @@ def _test_TextTagPanel_nostyle():
     panel.SetOptions(tags)
 
     # Add an existing tag
+    realYield()
     simtext(sim, panel.newTagCtrl, tags[0])
     assert panel.GetTags() == [tags[0]]
     assert result[0] == tags[0]
@@ -227,6 +229,7 @@ def _test_TextTagPanel_allow_new_tags():
     frame.SetSizer(sizer)
     frame.Layout()
 
+    realYield()
     simtext(sim, panel.newTagCtrl, 'MyNewTag')
 
     assert panel.GetTags()    == ['MyNewTag']
@@ -246,6 +249,7 @@ def _test_TextTagPanel_add_new_tags():
     frame.SetSizer(sizer)
     frame.Layout()
 
+    realYield()
     simtext(sim, panel.newTagCtrl, 'MyNewTag')
 
     assert panel.GetTags()    == ['MyNewTag']
@@ -266,6 +270,7 @@ def _test_TextTagPanel_no_duplicates():
 
     tags = ['Tag1', 'Tag2']
     panel.SetOptions(tags)
+    realYield()
     simtext(sim, panel.newTagCtrl, tags[0])
     assert panel.GetTags() == [tags[0]]
 
@@ -295,6 +300,7 @@ def _test_TextTagPanel_case_sensitive():
     panel.SetOptions(tags)
     assert panel.GetOptions() == tags
 
+    realYield()
     for i in range(len(tags)):
         simtext(sim, panel.newTagCtrl, tags[i])
         assert panel.GetTags() == tags[:i + 1]
@@ -331,7 +337,7 @@ def _test_TextTagPanel_mouse_focus():
 
     panel.SetOptions(['tag1', 'tag2'])
     panel.AddTag('tag1')
-    wx.Yield()
+    realYield()
 
     simclick(sim, panel.tags[0].text)
     assert result[0] == 'tag1'
@@ -361,9 +367,11 @@ def _test_TextTagPanel_keyboard_nav():
     panel.SetOptions(tags)
     for t in tags:
         panel.AddTag(t)
-    wx.Yield()
+    realYield()
 
     panel.FocusNewTagCtrl()
+
+    realYield()
 
     simkey(sim, panel.newTagCtrl, wx.WXK_LEFT)
     assert result[0] is None
@@ -412,7 +420,7 @@ def _test_TextTagPanel_keyboard_close():
     panel.SetOptions(tags)
     for t in tags:
         panel.AddTag(t)
-    wx.Yield()
+    realYield()
 
     # Give a tag focus
     simclick(sim, panel.tags[0], stype=2)

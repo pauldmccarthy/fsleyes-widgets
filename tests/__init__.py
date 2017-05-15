@@ -7,6 +7,8 @@
 
 from __future__ import print_function
 
+import time
+
 import numpy as np
 
 import wx
@@ -87,6 +89,14 @@ def run_with_wx(func, *args, **kwargs):
     return result[0]
 
 
+# Under GTK, a single call to
+# yield just doesn't cut it
+def realYield():
+    for i in range(10):
+        wx.Yield()
+        time.sleep(0.01)
+
+
 # stype:
 #   0 for single click
 #   1 for double click
@@ -109,18 +119,18 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
     else:
         sim.MouseDown(btn)
         sim.MouseUp(btn)
-    wx.Yield()
+    realYield()
 
 
 def simtext(sim, target, text, enter=True):
     target.SetFocus()
     target.SetValue(text)
     if enter: sim.KeyDown(wx.WXK_RETURN)
-    wx.Yield()
+    realYield()
 
 
 def simkey(sim, target, key, down=True, up=False):
     if target is not None: target.SetFocus()
     if down:               sim.KeyDown(key)
     if up:                 sim.KeyUp(key)
-    wx.Yield()
+    realYield()

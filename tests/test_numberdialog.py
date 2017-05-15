@@ -10,7 +10,7 @@ import wx
 
 import fsleyes_widgets.numberdialog as numdlg
 
-from . import run_with_wx, simclick, simtext, simkey
+from . import run_with_wx, simclick, simtext, simkey, realYield
 
 
 def test_NumberDialog_create():
@@ -39,7 +39,7 @@ def _test_NumberDialog_create():
         else:              target = dlg.cancelButton
 
         dlg.Show()
-
+        realYield()
         simclick(sim, target)
         assert dlg.GetValue() == expected
 
@@ -92,13 +92,9 @@ def _test_NumberDialog_limit():
 
         dlg.floatSpinCtrl.SetFocus()
         dlg.floatSpinCtrl.textCtrl.ChangeValue(text)
+        realYield()
         simkey(sim, dlg.floatSpinCtrl, wx.WXK_RETURN)
         if needClick:
             assert dlg.GetValue() is None
             simclick(sim, dlg.okButton)
-
-        for i in range(5):
-            import time
-            time.sleep(0.02)
-            wx.Yield()
         assert dlg.GetValue() == expected

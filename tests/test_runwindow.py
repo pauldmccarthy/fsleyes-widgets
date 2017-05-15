@@ -41,7 +41,7 @@ def _gen_dummy_script():
 def test_ProcessManager_run():
 
     path, expected = _gen_dummy_script()
-    cmd            = ['sh', path]
+    cmd            = ['bash', path]
     result         = [None]
     finishArgs     = [None]
 
@@ -62,8 +62,9 @@ def test_ProcessManager_run():
 
     os.remove(path)
 
-    assert finishArgs[0][1] == 0
     assert expected in result[0]
+    assert finishArgs[0][1] == 0
+
 
 
 def test_ProcessManager_termProc():
@@ -99,7 +100,7 @@ def test_run():
     import wx
 
     path, expected = _gen_dummy_script()
-    cmd            = ['sh', path]
+    cmd            = ['bash', path]
     finishArgs     = [None]
 
     def runTest():
