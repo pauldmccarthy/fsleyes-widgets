@@ -332,8 +332,9 @@ class RangePanel(wx.Panel):
             raise ValueError('high [{}] < low [{}]'.format(
                 highValue, lowValue))
 
-        if lowValue  < minLow:  lowValue  = minLow
-        if highValue > maxHigh: highValue = maxHigh
+        if not self.__nolimit:
+            if lowValue  < minLow:  lowValue  = minLow
+            if highValue > maxHigh: highValue = maxHigh
 
         if highValue - lowValue < dist:
             centre   = lowValue + (highValue - lowValue) / 2.0
