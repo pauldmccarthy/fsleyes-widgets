@@ -478,6 +478,8 @@ def _calcFlatSizes(canvasaxes, bounds, width, height, vert=True):
     :returns:  A list of ``(width, height)`` tuples, one for each canvas,
                each specifying the canvas width and height in pixels.
     """
+    if len(canvasaxes) == 0:
+        return []
 
     # Get the canvas dimensions in world space
     canvasWidths  = [bounds[c[0]] for c in canvasaxes]
