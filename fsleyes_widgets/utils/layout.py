@@ -262,6 +262,11 @@ def layoutToBitmap(layout, bgColour=None):
     height   = layout.height
     itemBmps = [padBitmap(i, width, height, vert, bgColour) for i in itemBmps]
 
+    if len(itemBmps) == 0:
+        bmp         = np.zeros((height, width, 4))
+        bmp[..., :] = bgColour
+        return bmp
+
     if vert: return np.vstack(itemBmps)
     else:    return np.hstack(itemBmps)
 
