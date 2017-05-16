@@ -99,6 +99,7 @@ class FloatSpinCtrl(FloatSpinBase):
         if value     is None: value     = 0
         if increment is None: increment = 1
         if style     is None: style     = 0
+        if evDelta   is None: evDelta   = 0.5
 
         self.__integer = style & FSC_INTEGER
         self.__nolimit = style & FSC_NO_LIMIT
