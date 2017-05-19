@@ -1,5 +1,5 @@
 test:2.7:
-  image: wxpython-python2.7:4.0.0a2
+  image: fsleyes-py27
 
   script:
     - cat requirements.txt | xargs -n 1 pip install
@@ -7,7 +7,7 @@ test:2.7:
     - coverage report -m
 
 test:3.6:
-  image: wxpython-python3.6:4.0.0a2
+  image: fsleyes-py36
 
   script:
     - cat requirements.txt | xargs -n 1 pip install
