@@ -723,7 +723,6 @@ class EditableListBox(wx.Panel):
         if not self.__showTooltips:
             if listItem.tooltip is not None:
                 tooltip = wx.ToolTip(listItem.tooltip)
-                listItem.container  .SetToolTip(tooltip)
                 listItem.labelWidget.SetToolTip(tooltip)
 
         else:
