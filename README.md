@@ -20,3 +20,11 @@ by installing `sphinx` and `sphinx-rtd-theme`, and running:
     python setup.py doc
 
 The HTML documentation will be generated and saved in the `doc/html/` directory.
+
+
+Contributing
+------------
+
+If you would like to contribute to `fsleyes-widgets`, take a look at the
+`fslpy` [contributing
+guide](https://git.fmrib.ox.ac.uk/fsl/fslpy/blob/master/doc/contributing.rst).
