@@ -15,4 +15,4 @@ behaviour in the existing controls.
 """
 
 
-__version__ = '0.0.2'
+__version__ = 'dev'
