@@ -9,11 +9,8 @@
 
 from __future__ import print_function
 
-import               os
-import os.path    as op
-import subprocess as sp
-import               shutil
-import               pkgutil
+import os.path as op
+import            shutil
 
 from setuptools import setup
 from setuptools import find_packages
@@ -60,34 +57,42 @@ class doc(Command):
         if op.exists(destdir):
             shutil.rmtree(destdir)
 
-        env   = dict(os.environ)
-        dirname = pkgutil.get_loader('fsleyes_widgets').get_filename()
-        dirname = op.dirname(dirname)
-        dirname = op.abspath(op.join(dirname, '..'))
-        ppath   = [dirname]
-
-        env['PYTHONPATH'] = op.pathsep.join(ppath)
-
         print('Building documentation [{}]'.format(destdir))
 
-        sp.call(['sphinx-build', docdir, destdir], env=env)
+        import sphinx
+
+        try:
+            import unittest.mock as mock
+        except:
+            import mock
+
+        mockedModules = [
+            'wx',
+            'wx.lib',
+            'wx.lib.newevent',
+            'wx.lib.stattext',
+            'wx.lib.scrolledpanel',
+            'numpy'
+        ]
+
+        mockobj       = mock.MagicMock()
+        mockedModules = {m : mockobj for m in mockedModules}
+
+        with mock.patch.dict('sys.modules', **mockedModules), \
+             mock.patch('wx.lib.newevent.NewEvent',
+                        return_value=(mockobj, mockobj)):
+            sphinx.main(['sphinx-build', docdir, destdir])
 
 
 setup(
 
     name='fsleyes-widgets',
-
     version=version,
-
     description='A collection of wxPython widgets used by FSLeyes',
     long_description=readme,
-
     url='https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets',
-
     author='Paul McCarthy',
-
     author_email='pauldmccarthy@gmail.com',
-
     license='Apache License Version 2.0',
 
     classifiers=[
@@ -99,17 +104,16 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'],
 
     packages=packages,
-
-    cmdclass={
-        'doc' : doc
-    },
-
     install_requires=install_requires,
-    setup_requires=['pytest-runner'],
+    setup_requires=['pytest-runner', 'sphinx', 'sphinx-rtd-theme', 'mock'],
     tests_require=['mock',
                    'pytest-cov',
                    'pytest-html',
                    'pytest-runner',
                    'pytest'],
     test_suite='tests',
+
+    cmdclass={
+        'doc' : doc
+    }
 )
