@@ -14,6 +14,8 @@ import logging
 import wx
 import wx.lib.newevent as wxevent
 
+import fsleyes_widgets as fw
+
 
 log = logging.getLogger(__name__)
 
@@ -716,8 +718,13 @@ class WidgetGrid(wx.ScrolledWindow):
         """
 
         def scroll(ev):
-            posx, posy = self.GetViewStart().Get()
-            rotation   = ev.GetWheelRotation()
+            pos      = self.GetViewStart()
+            rotation = ev.GetWheelRotation()
+
+            if fw.wxversion() == fw.WX_PHOENIX:
+                posx, posy = pos
+            else:
+                posx, posy = pos.Get()
 
             if   rotation > 0: delta =  5
             elif rotation < 0: delta = -5
