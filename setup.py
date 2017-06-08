@@ -34,7 +34,7 @@ with open(op.join(basedir, "fsleyes_widgets", "__init__.py"), 'rt') as f:
             break
 version = version.get('__version__')
 
-with open(op.join(basedir, 'README.md'), 'rt') as f:
+with open(op.join(basedir, 'README.rst'), 'rt') as f:
     readme = f.read()
 
 
@@ -100,13 +100,16 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules'],
 
     packages=packages,
     install_requires=install_requires,
     setup_requires=['pytest-runner', 'sphinx', 'sphinx-rtd-theme', 'mock'],
     tests_require=['mock',
+                   'coverage',
                    'pytest-cov',
                    'pytest-html',
                    'pytest-runner',
