@@ -5,7 +5,10 @@
 #
 # The build pipeline comprises four stages:
 #
-#    1. test:   Unit tests
+#    1. test:   Unit tests. This stage is actually disabled for
+#               fsleyes-widgets, because GTK mouse, keyboard, and focus
+#               events behave differently under xvfb, and cause most
+#               tests to fail.
 #
 #    2. doc:    Building API documentation
 #
@@ -238,14 +241,15 @@ variables:
     - python -m coverage report
 
 
-test:2.7:
-  <<: *test_template
-  image: python:2.7
+# test:2.7:
+#   <<: *test_template
+#   image: python:2.7
 
 
-test:3.4:
-  <<: *test_template
-  image: python:3.4
+# test:3.4:
+#   <<: *test_template
+#   image: python:3.4
+
 
 # a wxphoenix/3.5 build
 # is not yet available
