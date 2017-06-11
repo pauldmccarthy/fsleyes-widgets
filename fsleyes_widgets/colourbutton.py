@@ -9,10 +9,10 @@ allows the user to select a RGBA colour.
 """
 
 
-import six
-
 import wx
 import wx.lib.newevent as wxevent
+
+import fsleyes_widgets as fw
 
 
 class ColourButton(wx.Button):
@@ -47,7 +47,7 @@ class ColourButton(wx.Button):
 
         # Under wxPython-phoenix, setting
         # label='' results in "Button".
-        if not six.PY2:
+        if fw.wxversion() == fw.WX_PHOENIX:
             self.SetLabel(' ')
 
         self.__size = size
@@ -93,8 +93,11 @@ class ColourButton(wx.Button):
 
         data[:, :] = colour
 
-        if six.PY2: self.__bmp = wx.BitmapFromBufferRGBA( w, h, data)
-        else:       self.__bmp = wx.Bitmap.FromBufferRGBA(w, h, data)
+        if fw.wxversion() == fw.WX_PHOENIX:
+            self.__bmp = wx.Bitmap.FromBufferRGBA(w, h, data)
+        else:
+            self.__bmp = wx.BitmapFromBufferRGBA( w, h, data)
+
 
         self.SetBitmapLabel(self.__bmp)
 
