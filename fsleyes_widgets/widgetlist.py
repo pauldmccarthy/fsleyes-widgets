@@ -380,7 +380,8 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         """Only called if running on GTK. Scrolls the widget list according
         to the mouse wheel rotation.
         """
-        posx, posy = self.GetViewStart().Get()
+
+        posx, posy = self.GetViewStart()
         rotation   = ev.GetWheelRotation()
 
         if   rotation > 0: delta =  5

@@ -25,10 +25,7 @@ import            threading
 import            six
 import            wx
 
-
-def isPhoenix():
-    wxv = wx.version()
-    return wxv[0] == '4'
+import fsleyes_widgets as fw
 
 
 class SimpleMessageDialog(wx.Dialog):
@@ -464,7 +461,7 @@ class TextEditDialog(wx.Dialog):
 
             icon = wx.ArtProvider.GetMessageBoxIcon(icon)
 
-            if isPhoenix():
+            if fw.wxversion() == fw.WX_PHOENIX:
                 bmp = wx.Bitmap()
             else:
                 bmp = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
@@ -678,7 +675,7 @@ class FSLDirDialog(wx.Dialog):
 
         icon = wx.ArtProvider.GetMessageBoxIcon(wx.ICON_EXCLAMATION)
 
-        if isPhoenix():
+        if fw.wxversion() == fw.WX_PHOENIX:
             bmp = wx.Bitmap()
         else:
             bmp  = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
@@ -848,7 +845,7 @@ class CheckBoxMessageDialog(wx.Dialog):
             icon = wx.ArtProvider.GetMessageBoxIcon(icon)
             self.__icon = wx.StaticBitmap(self)
 
-            if isPhoenix():
+            if fw.wxversion() == fw.WX_PHOENIX:
                 bmp = wx.Bitmap()
             else:
                 bmp = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
