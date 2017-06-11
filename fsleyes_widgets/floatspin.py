@@ -14,16 +14,17 @@ import re
 import time
 import logging
 
-import                    six
 import                    wx
 import wx.lib.newevent as wxevent
+
+import fsleyes_widgets as fw
 
 
 log = logging.getLogger(__name__)
 
 
-if six.PY2: FloatSpinBase = wx.PyPanel
-else:       FloatSpinBase = wx.Panel
+if fw.wxversion() == fw.WX_PHOENIX: FloatSpinBase = wx.Panel
+else:                               FloatSpinBase = wx.PyPanel
 
 
 class FloatSpinCtrl(FloatSpinBase):
