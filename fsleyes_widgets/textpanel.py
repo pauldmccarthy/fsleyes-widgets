@@ -10,13 +10,12 @@ some text, oriented either horizontally or vertically.
 
 
 import wx
-import six
+
+import fsleyes_widgets as fw
 
 
-# Python 2 -> wxPython 3.x
-# Python 3 -> wxPython 4.x (Phoenix)
-if six.PY2: TextPanelBase = wx.PyPanel
-else:       TextPanelBase = wx.Panel
+if fw.wxversion() == fw.WX_PHOENIX: TextPanelBase = wx.Panel
+else:                               TextPanelBase = wx.PyPanel
 
 
 class TextPanel(TextPanelBase):
