@@ -60,7 +60,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
     """Border and title background colour for widget groups. """
 
 
-    def __init__(self, parent):
+    def __init__(self, parent, style=0):
         """Create a ``WidgetList``.
 
         :arg parent: The :mod:`wx` parent object.
@@ -78,6 +78,8 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
         self.__sizer.Add(self.__widgSizer,  flag=wx.EXPAND)
         self.__sizer.Add(self.__groupSizer, flag=wx.EXPAND)
+
+        self.__oneExpanded = style & WL_ONE_EXPANDED
 
         # The SP.__init__ method seemingly
         # induces a call to DoGetBestSize,
@@ -285,7 +287,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             parentPanel.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
             colPanel   .Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
 
-        colPanel.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.__refresh)
+        colPanel.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.__onGroupExpand)
 
 
     def AddWidget(self, widget, displayName, tooltip=None, groupName=None):
@@ -392,6 +394,22 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         else:                                            posx += delta
 
         self.Scroll(posx, posy)
+
+
+    def __onGroupExpand(self, ev):
+        """Called when the user expands or collapses a group. Enforces
+        the :data:`WL_ONE_EXPANDED` style if it is enabled, and refreshes
+        the panel.
+        """
+
+        panel = ev.GetEventObject()
+
+        if panel.IsExpanded() and self.__oneExpanded:
+            for group in self.__groups.values():
+                if group.colPanel is not panel:
+                    group.colPanel.Collapse()
+
+        self.__refresh()
 
 
     def AddSpace(self, groupName=None):
@@ -579,3 +597,9 @@ WidgetListChangeEvent = _WidgetListChangeEvent
 
 EVT_WL_CHANGE_EVENT = _EVT_WL_CHANGE_EVENT
 """Identifier for the :data:`WidgetListChangeEvent`. """
+
+
+WL_ONE_EXPANDED = 1
+""":class:`WidgetList` style flag. When applied, at most one group will
+be expanded at any one time.
+"""
