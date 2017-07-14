@@ -19,7 +19,7 @@ contains the :func:`wxversion` function.
 """
 
 
-__version__ = '0.0.5.dev'
+__version__ = '0.0.6.dev'
 
 
 
