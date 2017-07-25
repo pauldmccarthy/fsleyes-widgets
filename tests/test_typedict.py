@@ -240,3 +240,26 @@ def test_class_hierarchy():
     assert td.get((A, 'b'), allhits=True,  bykey=True) == {('A', 'b') : 'A.b'}
     assert td.get((A, 'c'), allhits=True,  bykey=True) == {('A', 'c') : 'A.c'}
     assert td.get((A, 'd'), allhits=True,  bykey=True) == {('A', 'd') : 'A.d'}
+
+
+
+def test_exact():
+
+    class A(object):
+        pass
+
+    class B(A):
+        pass
+
+    class C(A):
+        pass
+
+    td = typedict.TypeDict()
+
+    td['A'] = 'A'
+    td['B'] = 'B'
+
+    assert td[C]     == 'A'
+    assert td.get(C, allhits=True) == ['A']
+    assert td.get(C) == 'A'
+    assert td.get(C, allhits=True, exact=True) is None
