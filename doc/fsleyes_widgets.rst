@@ -19,6 +19,7 @@ fsleyes_widgets package
    fsleyes_widgets.rangeslider
    fsleyes_widgets.textpanel
    fsleyes_widgets.texttag
+   fsleyes_widgets.togglepanel
    fsleyes_widgets.widgetgrid
    fsleyes_widgets.widgetlist
 
