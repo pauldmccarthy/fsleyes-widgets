@@ -104,7 +104,7 @@ class TogglePanel(wx.Panel):
                                  flag=wx.EXPAND | wx.ALL,
                                  border=2)
 
-        self.__toggleButton.Bind(wx.EVT_LEFT_UP, self.Toggle)
+        self.__toggleButton.Bind(wx.EVT_LEFT_DOWN, self.Toggle)
 
         self.SetSizer(self.__mainSizer)
         self.Expand(initialState)
@@ -143,9 +143,23 @@ class TogglePanel(wx.Panel):
 
 
     def SetLabel(self, label):
-        """Sets the label to show on the toggle button. """
+        """Sets the label to show on the toggle button. Pass in ``None``
+        for no label.
+        """
         self.__label = label
         self.__expand(self.IsExpanded(), force=True)
+
+
+    def GetLabel(self):
+        """Returns the current toggle button label """
+        return self.__label
+
+
+    def GetToggleButton(self):
+        """Returns the toggle button (actually a ``wx.StaticText``). This
+        is for testing purposes.
+        """
+        return self.__toggleButton
 
 
     def Expand(self, expand=True):
