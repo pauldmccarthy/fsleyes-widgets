@@ -19,7 +19,8 @@ contains the :func:`wxversion` function.
 """
 
 
-__version__ = '0.0.5'
+__version__ = '0.0.6.dev'
+
 
 
 WX_PYTHON  = 1

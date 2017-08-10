@@ -15,6 +15,8 @@ import wx
 import wx.lib.newevent      as wxevent
 import wx.lib.scrolledpanel as scrolledpanel
 
+from . import togglepanel
+
 
 class WidgetList(scrolledpanel.ScrolledPanel):
     """A scrollable list of widgets.
@@ -244,14 +246,12 @@ class WidgetList(scrolledpanel.ScrolledPanel):
                              'already exists'.format(groupName))
 
         parentPanel = wx.Panel(self, style=wx.SUNKEN_BORDER)
-        colPanel    = wx.CollapsiblePane(parentPanel,
-                                         label=displayName,
-                                         style=wx.CP_NO_TLW_RESIZE)
+        colPanel    = togglepanel.TogglePanel(parentPanel, label=displayName)
+
         widgPanel   = colPanel.GetPane()
         widgSizer   = wx.BoxSizer(wx.VERTICAL)
 
         widgPanel.SetSizer(widgSizer)
-        parentPanel.SetWindowStyleFlag(wx.SUNKEN_BORDER)
 
         gapSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -267,7 +267,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         parentSizer.Add(colPanel,
                         border=5,
                         flag=wx.EXPAND | wx.BOTTOM,
-                        proportion=1)
+                        proportion=0)
         parentPanel.SetSizer(parentSizer)
 
         group = _Group(groupName,
@@ -287,7 +287,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             parentPanel.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
             colPanel   .Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
 
-        colPanel.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.__onGroupExpand)
+        colPanel.Bind(togglepanel.EVT_TOGGLEPANEL_EVENT, self.__onGroupExpand)
 
 
     def AddWidget(self, widget, displayName, tooltip=None, groupName=None):
