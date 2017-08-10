@@ -204,15 +204,20 @@ class TypeDict(object):
         return key
 
 
-    def get(self, key, default=None, allhits=False, bykey=False):
+    def get(self, key, default=None, allhits=False, bykey=False, exact=False):
         """Retrieve the value associated with the given key. If
         no value is present, return the specified ``default`` value,
         which itself defaults to ``None``.
 
-        If the specified key contains a class or instance, and the
-        ``allhits`` argument evaluates to ``True``, the entire class
-        hierarchy is searched, and all values present for the class,
-        and any base class, are returned as a sequence.
+        If the specified key contains a class or instance, and the ``exact``
+        argument is ``False`` (the default), the entire class hierarchy is
+        searched, and the first value present for the class, or any base
+        class, are returned. If ``exact is True`` and no value exists
+        for the specific class, the ``default`` is returned.
+
+        If ``exact is False`` and the ``allhits`` argument evaluates to
+        ``True``, the entire class hierarchy is searched, and all values
+        present for the class, and any base class, are returned as a sequence.
 
         If ``allhits`` is ``True`` and the ``bykey`` parameter is also
         set to ``True``, a dictionary is returned rather than a sequence,
@@ -221,11 +226,11 @@ class TypeDict(object):
         corresponding values.
         """
 
-        try:             return self.__getitem__(key, allhits, bykey)
+        try:             return self.__getitem__(key, allhits, bykey, exact)
         except KeyError: return default
 
 
-    def __getitem__(self, key, allhits=False, bykey=False):
+    def __getitem__(self, key, allhits=False, bykey=False, exact=False):
 
         origKey = key
         key     = self.tokenifyKey(key)
@@ -253,6 +258,9 @@ class TypeDict(object):
             else:
                 newKey.append(elem)
                 bases .append(None)
+
+        if exact:
+            bases = []
 
         key  = newKey
 
