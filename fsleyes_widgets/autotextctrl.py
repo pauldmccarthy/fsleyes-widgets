@@ -286,7 +286,11 @@ class AutoCompletePopup(wx.Frame):
                       pattern matching case sensitive.
         """
 
-        wx.Frame.__init__(self, parent, style=wx.NO_BORDER | wx.STAY_ON_TOP)
+        wx.Frame.__init__(self,
+                          parent,
+                          style=(wx.NO_BORDER   |
+                                 wx.STAY_ON_TOP |
+                                 wx.FRAME_FLOAT_ON_PARENT))
 
         self.__caseSensitive = style & ATC_CASE_SENSITIVE
         self.__atc           = atc
@@ -306,13 +310,18 @@ class AutoCompletePopup(wx.Frame):
 
         self.__textCtrl.SetMinSize(parent.GetSize())
 
+        self.__textCtrl.SetFont(parent.GetFont())
+        self.__listBox .SetFont(parent.GetFont())
+
         self.Layout()
         self.Fit()
 
         self.__textCtrl.Bind(wx.EVT_TEXT,           self.__onText)
         self.__textCtrl.Bind(wx.EVT_TEXT_ENTER,     self.__onEnter)
         self.__textCtrl.Bind(wx.EVT_KEY_DOWN,       self.__onKeyDown)
+        self.__textCtrl.Bind(wx.EVT_CHAR_HOOK,      self.__onKeyDown)
         self.__listBox .Bind(wx.EVT_KEY_DOWN,       self.__onListKeyDown)
+        self.__listBox .Bind(wx.EVT_CHAR_HOOK,      self.__onListKeyDown)
         self.__listBox .Bind(wx.EVT_LISTBOX_DCLICK, self.__onListMouseDblClick)
 
         # Under GTK, the SetFocus/KillFocus event
