@@ -235,7 +235,7 @@ class AutoTextCtrl(wx.Panel):
             if self.__takeFocus:
                 self.__textCtrl.SetFocus()
 
-        popup.Bind(wx.EVT_WINDOW_DESTROY, refocus)
+        popup.Bind(EVT_ATC_POPUP_DESTROY, refocus)
 
         # The popup has its own textctrl - we
         # position the popup so that its textctrl
@@ -286,7 +286,7 @@ class AutoCompletePopup(wx.Frame):
                       pattern matching case sensitive.
         """
 
-        wx.Frame.__init__(self, parent, style=wx.NO_BORDER)
+        wx.Frame.__init__(self, parent, style=wx.NO_BORDER | wx.STAY_ON_TOP)
 
         self.__caseSensitive = style & ATC_CASE_SENSITIVE
         self.__atc           = atc
@@ -303,6 +303,8 @@ class AutoCompletePopup(wx.Frame):
         self.__sizer.Add(self.__textCtrl, flag=wx.EXPAND)
         self.__sizer.Add(self.__listBox,  flag=wx.EXPAND, proportion=1)
         self.SetSizer(self.__sizer)
+
+        self.__textCtrl.SetMinSize(parent.GetSize())
 
         self.Layout()
         self.Fit()
@@ -413,6 +415,9 @@ class AutoCompletePopup(wx.Frame):
             except wx.PyDeadObjectError:
                 pass
 
+        ev = ATCPopupDestroyEvent()
+        ev.SetEventObject(self)
+        wx.PostEvent(self, ev)
         wx.CallAfter(destroy)
 
 
@@ -564,3 +569,16 @@ class AutoCompletePopup(wx.Frame):
         self.__textCtrl.ChangeValue(val)
         self.__textCtrl.SetInsertionPointEnd()
         self.__destroy()
+
+
+_ATCPopupDestroyEvent, _EVT_ATC_POPUP_DESTROY = wxevent.NewEvent()
+
+
+EVT_ATC_POPUP_DESTROY = _EVT_ATC_POPUP_DESTROY
+"""Identifier for the :class:`ATCPopupDestroyEvent`. """
+
+
+ATCPopupDestroyEvent = _ATCPopupDestroyEvent
+"""Event emitted when the :class:`AutoCompletePopup` is destroyed. This
+event is emitted because the ``wx.EVT_WINDOW_DESTROY`` is too unreliable.
+"""
