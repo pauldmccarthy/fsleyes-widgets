@@ -52,10 +52,28 @@ class Bounce(wx.ProgressDialog):
         """Runs the given ``task`` in a separate thread, and creates a
         ``Bounce`` dialog which is displayed while the task is running.
 
-        :arg polltime: Must be passed as a keyword argument.
+        :arg dlg:      Must be passed as a keyword argument. A ``Bounce``
+                       dialog to use. If not provided, one is created. If
+                       provided, the caller is responsible for destroying
+                       it.
+
+        :arg polltime: Must be passed as a keyword argument. Amount of time
+                       in seconds to wait while  periodically checking the
+                       task state.
+
+        All other arguments are passed through to :meth:`Bounce.__init__`,
+        unless a ``dlg`` is provided.
+
+        :returns: ``True`` if the task ended, ``False`` if the progress dialog
+                   was cancelled.
         """
 
-        dlg = Bounce(*args, **kwargs)
+        polltime = kwargs.pop('polltime', 0.05)
+        dlg      = kwargs.pop('dlg',      None)
+        owndlg   = dlg is None
+
+        if dlg is None:
+            dlg = Bounce(*args, **kwargs)
 
         thread = threading.Thread(target=task)
         thread.daemon = True
@@ -64,18 +82,23 @@ class Bounce(wx.ProgressDialog):
         dlg.Show()
         dlg.StartBounce()
 
+        finished = False
+
         while True:
             wx.Yield()
-            thread.join(0.05)
+            thread.join(polltime)
             wx.Yield()
 
             if not thread.is_alive():
+                finished = True
                 break
             if dlg.WasCancelled():
                 break
 
-        dlg.Destroy()
-        dlg = None
+        if owndlg:
+            dlg.Destroy()
+
+        return finished
 
 
     def Close(self):
