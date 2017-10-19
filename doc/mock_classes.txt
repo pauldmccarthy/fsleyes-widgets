@@ -1,0 +1,9 @@
+wx.Button
+wx.Dialog
+wx.Frame
+wx.Panel
+wx.ProgressDialog
+wx.ScrolledWindow
+wx.TextCtrl
+wx.ToggleButton
+wx.lib.scrolledpanel.ScrolledPanel

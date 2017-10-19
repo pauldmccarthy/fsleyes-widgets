@@ -66,22 +66,22 @@ class doc(Command):
         except:
             import mock
 
-        mockedModules = [
-            'wx',
-            'wx.lib',
-            'wx.lib.newevent',
-            'wx.lib.stattext',
-            'wx.lib.scrolledpanel',
-            'numpy'
-        ]
-
         mockobj       = mock.MagicMock()
+        mockedModules = open(op.join(docdir, 'mock_modules.txt')).readlines()
+        mockedClasses = open(op.join(docdir, 'mock_classes.txt')).readlines()
+
+        mockedModules = [l.strip()   for l in mockedModules]
+        mockedClasses = [l.strip()   for l in mockedClasses]
         mockedModules = {m : mockobj for m in mockedModules}
 
-        with mock.patch.dict('sys.modules', **mockedModules), \
-             mock.patch('wx.lib.newevent.NewEvent',
-                        return_value=(mockobj, mockobj)):
-            sphinx.main(['sphinx-build', docdir, destdir])
+        patches = [mock.patch.dict('sys.modules', **mockedModules)] + \
+                  [mock.patch('wx.lib.newevent.NewEvent',
+                              return_value=(mockobj, mockobj))] + \
+                  [mock.patch(c, object) for c in mockedClasses]
+
+        [p.start() for p in patches]
+        sphinx.main(['sphinx-build', docdir, destdir])
+        [p.stop() for p in patches]
 
 
 setup(
