@@ -84,7 +84,7 @@ class Bounce(wx.ProgressDialog):
         wx.ProgressDialog.Close(self)
 
 
-    def EndModal(self, code):
+    def EndModal(self, code=wx.ID_OK):
         """Close the ``Bounce`` dialog. """
         self.__finish = True
         wx.ProgressDialog.EndModal(self, code)
