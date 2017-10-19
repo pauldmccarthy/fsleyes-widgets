@@ -25,7 +25,7 @@ contains a handful of utility functions:
 """
 
 
-__version__ = '0.0.7.dev'
+__version__ = '0.1.0'
 
 
 
