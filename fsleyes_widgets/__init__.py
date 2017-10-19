@@ -15,7 +15,13 @@ behaviour in the existing controls.
 
 
 This file is used to store the current ``fsleyes-widgets`` version, and also
-contains the :func:`wxversion` function.
+contains a handful of utility functions:
+
+.. autosummary::
+   :nosignature::
+
+   wxversion
+   isalive
 """
 
 
@@ -51,3 +57,30 @@ def wxversion():
 
     if isPhoenix: return WX_PHOENIX
     else:         return WX_PYTHON
+
+
+def isalive(widget):
+    """Returns ``True`` if the given ``wx.Window`` object is "alive" (i.e.  has
+    not been destroyed), ``False`` otherwise. Works in both wxPython and
+    wxPython/Phoenix.
+
+    .. warning:: Don't try to test whether a ``wx.MenuItem`` has been
+                 destroyed, as it will probably result in segmentation
+                 faults. Check the parent ``wx.Menu`` instead.
+    """
+
+    import wx
+
+    wxver = wxversion()
+
+    if wxver == WX_PHOENIX:
+        excType = RuntimeError
+    elif wxver == WX_PYTHON:
+        excType = wx.PyDeadObjectError
+
+    try:
+        widget.GetParent()
+        return True
+
+    except excType:
+        return False
