@@ -93,7 +93,7 @@ def run_with_wx(func, *args, **kwargs):
 # yield just doesn't cut it
 def realYield(centis=10):
     for i in range(int(centis)):
-        wx.Yield()
+        wx.YieldIfNeeded()
         time.sleep(0.01)
 
 
