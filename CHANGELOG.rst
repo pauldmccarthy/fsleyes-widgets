@@ -2,6 +2,18 @@
 ====================================
 
 
+0.1.0 (Thursday October 19th 2017)
+----------------------------------
+
+
+* Fixes to the ``AutoTextCtrl`` and ``AutoCompletePopup`` so they work correctly
+  in floating dialogs.
+* New ``fsleyes_widgets.utils.progress`` module, which contains convenience
+  classes and functions based on the ``wx.ProgressDialog``.
+* New package-level function ``isalive`` to test whether a widget is alive or
+  not.
+
+
 0.0.6 (Thursday August 10th 2017)
 ---------------------------------
 
