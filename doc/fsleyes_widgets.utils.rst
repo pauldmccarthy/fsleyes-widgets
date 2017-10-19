@@ -6,6 +6,7 @@ fsleyes_widgets.utils package
 
    fsleyes_widgets.utils.colourbarbitmap
    fsleyes_widgets.utils.layout
+   fsleyes_widgets.utils.progress
    fsleyes_widgets.utils.runwindow
    fsleyes_widgets.utils.status
    fsleyes_widgets.utils.textbitmap

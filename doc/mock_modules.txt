@@ -1,0 +1,7 @@
+wx
+wx.lib
+wx.lib.newevent
+wx.lib.stattext
+wx.lib.scrolledpanel
+numpy
+matplotlib

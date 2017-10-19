@@ -91,9 +91,9 @@ def run_with_wx(func, *args, **kwargs):
 
 # Under GTK, a single call to
 # yield just doesn't cut it
-def realYield():
-    for i in range(10):
-        wx.Yield()
+def realYield(centis=10):
+    for i in range(int(centis)):
+        wx.YieldIfNeeded()
         time.sleep(0.01)
 
 

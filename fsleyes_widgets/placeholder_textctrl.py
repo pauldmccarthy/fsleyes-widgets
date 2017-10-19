@@ -97,6 +97,12 @@ class PlaceholderTextCtrl(wx.TextCtrl):
         else:                           return value
 
 
+    def SetValue(self, value):
+        """Set the value in this ``PlaceholderTextCtrl``. """
+        wx.TextCtrl.SetValue(self, value)
+        self.SetForegroundColour(self.__fgColour)
+
+
     def __onSetFocus(self, ev):
         """Called when this ``PlaceholderTextCtrl`` gains focus.
 
