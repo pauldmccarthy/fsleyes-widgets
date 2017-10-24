@@ -242,8 +242,10 @@ variables:
     - pip install sphinx sphinx-rtd-theme
     - pip install pytest pytest-cov pytest-html pytest-runner mock coverage
 
-    # Run the tests
-    - xvfb-run python setup.py test
+    # Run the tests. No idea why, but test_TextTagPanel_nostyle
+    # fails if run alongside the test_StaticTextTag_Close test.
+    - xvfb-run python setup.py test --addopts="-k not test_TextTagPanel_nostyle"
+    - xvfb-run python setup.py test --addopts="-k     test_TextTagPanel_nostyle"
     - python -m coverage report
 
 
