@@ -41,6 +41,7 @@ class AutoTextCtrl(wx.Panel):
 
         wx.Panel.__init__(self, parent)
 
+        self.__popup    = None
         self.__textCtrl = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.__sizer    = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -88,6 +89,14 @@ class AutoTextCtrl(wx.Panel):
     def textCtrl(self):
         """Returns a reference to the internal ``wx.TextCtrl``. """
         return self.__textCtrl
+
+
+    @property
+    def popup(self):
+        """Returns a reference to the ``AutoCompletePopup`` or ``None``
+        if it is not currently shown.
+        """
+        return self.__popup
 
 
     def AutoComplete(self, options):
@@ -226,6 +235,8 @@ class AutoTextCtrl(wx.Panel):
         # when the popup is destroyed
         def refocus(ev):
 
+            self.__popup = None
+
             # A call to Raise is required under
             # GTK, as otherwise the main window
             # won't be given focus.
@@ -242,6 +253,8 @@ class AutoTextCtrl(wx.Panel):
         # is displayed on top of our textctrl,
         # with the option list underneath.
         posx, posy = self.__textCtrl.GetScreenPosition().Get()
+
+        self.__popup = popup
 
         popup.SetSize((-1, -1))
         popup.SetPosition((posx,  posy))
@@ -349,6 +362,18 @@ class AutoCompletePopup(wx.Frame):
         """Returns the number of auto-completion options currently available.
         """
         return self.__listBox.GetCount()
+
+
+    @property
+    def textCtrl(self):
+        """Returns a reference to the ``wx.TextCtrl``."""
+        return self.__textCtrl
+
+
+    @property
+    def listBox(self):
+        """Returns a reference to the ``wx.ListBox``."""
+        return self.__listBox
 
 
     def __onSetFocus(self, ev):
