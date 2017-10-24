@@ -7,7 +7,7 @@
 
 import wx
 
-from . import run_with_wx, simclick, simtext, simkey, realYield
+from . import run_with_wx, simclick, simtext, simkey, addall, realYield
 
 import fsleyes_widgets.texttag as tt
 
@@ -45,10 +45,8 @@ def _test_StaticTextTag_Close():
     sim   = wx.UIActionSimulator()
     frame = wx.GetApp().GetTopWindow()
     tag   = tt.StaticTextTag(frame)
-    sizer = wx.BoxSizer(wx.HORIZONTAL)
-    sizer.Add(tag,   flag=wx.EXPAND)
-    frame.SetSizer(sizer)
-    frame.Layout()
+
+    addall(frame, [tag])
 
     closeBtn = tag.closeButton
 
@@ -146,6 +144,8 @@ def _test_TextTagPanel_nostyle():
     frame = wx.GetApp().GetTopWindow()
     panel = tt.TextTagPanel(frame, style=0)
 
+    addall(frame, [panel])
+
     result = [None]
 
     def handler(ev):
@@ -159,28 +159,28 @@ def _test_TextTagPanel_nostyle():
 
     # Add an existing tag
     realYield()
-    simtext(sim, panel.newTagCtrl, tags[0])
+    simtext(sim, panel.newTagCtrl.textCtrl, tags[0])
     assert panel.GetTags() == [tags[0]]
     assert result[0] == tags[0]
 
-    simtext(sim, panel.newTagCtrl, tags[2])
+    simtext(sim, panel.newTagCtrl.textCtrl, tags[2])
     assert panel.GetTags() == [tags[0], tags[2]]
     assert result[0] == tags[2]
 
     # Duplicate
     result[0] = None
-    simtext(sim, panel.newTagCtrl, tags[2])
+    simtext(sim, panel.newTagCtrl.textCtrl, tags[2])
     assert panel.GetTags() == [tags[0], tags[2], tags[2]]
     assert result[0] == tags[2]
 
     # Case insensitive
-    simtext(sim, panel.newTagCtrl, tags[1].lower())
+    simtext(sim, panel.newTagCtrl.textCtrl, tags[1].lower())
     assert panel.GetTags() == [tags[0], tags[2], tags[2], tags[1]]
     assert result[0] == tags[1]
 
     # Not in known tags
     result[0] = None
-    simtext(sim, panel.newTagCtrl, 'notag')
+    simtext(sim, panel.newTagCtrl.textCtrl, 'notag')
     assert panel.GetTags() == [tags[0], tags[2], tags[2], tags[1]]
     assert result[0] is None
 
@@ -230,7 +230,7 @@ def _test_TextTagPanel_allow_new_tags():
     frame.Layout()
 
     realYield()
-    simtext(sim, panel.newTagCtrl, 'MyNewTag')
+    simtext(sim, panel.newTagCtrl.textCtrl, 'MyNewTag')
 
     assert panel.GetTags()    == ['MyNewTag']
     assert panel.GetOptions() == []
@@ -250,7 +250,7 @@ def _test_TextTagPanel_add_new_tags():
     frame.Layout()
 
     realYield()
-    simtext(sim, panel.newTagCtrl, 'MyNewTag')
+    simtext(sim, panel.newTagCtrl.textCtrl, 'MyNewTag')
 
     assert panel.GetTags()    == ['MyNewTag']
     assert panel.GetOptions() == ['MyNewTag']
@@ -271,14 +271,14 @@ def _test_TextTagPanel_no_duplicates():
     tags = ['Tag1', 'Tag2']
     panel.SetOptions(tags)
     realYield()
-    simtext(sim, panel.newTagCtrl, tags[0])
+    simtext(sim, panel.newTagCtrl.textCtrl, tags[0])
     assert panel.GetTags() == [tags[0]]
 
     # Duplicate should not be added
-    simtext(sim, panel.newTagCtrl, tags[0])
+    simtext(sim, panel.newTagCtrl.textCtrl, tags[0])
     assert panel.GetTags() == [tags[0]]
 
-    simtext(sim, panel.newTagCtrl, tags[1])
+    simtext(sim, panel.newTagCtrl.textCtrl, tags[1])
     assert panel.GetTags() == [tags[0], tags[1]]
 
 
@@ -302,7 +302,7 @@ def _test_TextTagPanel_case_sensitive():
 
     realYield()
     for i in range(len(tags)):
-        simtext(sim, panel.newTagCtrl, tags[i])
+        simtext(sim, panel.newTagCtrl.textCtrl, tags[i])
         assert panel.GetTags() == tags[:i + 1]
         assert panel.HasTag(tags[i])
 
@@ -322,24 +322,22 @@ def _test_TextTagPanel_mouse_focus():
 
     sim   = wx.UIActionSimulator()
     frame = wx.GetApp().GetTopWindow()
-    sizer = wx.BoxSizer(wx.HORIZONTAL)
     panel = tt.TextTagPanel(frame, style=tt.TTP_KEYBOARD_NAV)
-    sizer.Add(panel, flag=wx.EXPAND)
-    frame.SetSizer(sizer)
-    frame.Layout()
+
+    addall(frame, [panel])
 
     result = [None]
 
     def handler(ev):
+        print('Gaaaargh')
         result[0] = ev.tag
 
     panel.Bind(tt.EVT_TTP_TAG_SELECT, handler)
 
     panel.SetOptions(['tag1', 'tag2'])
     panel.AddTag('tag1')
-    realYield()
 
-    simclick(sim, panel.tags[0].text)
+    simclick(sim, panel.tags[0], stype=2)
     assert result[0] == 'tag1'
 
 
@@ -378,20 +376,20 @@ def _test_TextTagPanel_keyboard_nav():
     simkey(sim, panel.newTagCtrl, wx.WXK_RIGHT)
     assert result[0] == tags[0]
 
-    simkey(sim, None, wx.WXK_RIGHT)
+    simkey(sim, panel.tags[0], wx.WXK_RIGHT)
     assert result[0] == tags[1]
-    simkey(sim, None, wx.WXK_RIGHT)
+    simkey(sim, panel.tags[1], wx.WXK_RIGHT)
     assert result[0] == tags[2]
     result[0] = None
-    simkey(sim, None, wx.WXK_RIGHT)
+    simkey(sim, panel.tags[2], wx.WXK_RIGHT)
     assert result[0] is None
 
-    simkey(sim, None, wx.WXK_LEFT)
+    simkey(sim, panel.tags[2], wx.WXK_LEFT)
     assert result[0] == tags[1]
-    simkey(sim, None, wx.WXK_LEFT)
+    simkey(sim, panel.tags[1], wx.WXK_LEFT)
     assert result[0] == tags[0]
     result[0] = None
-    simkey(sim, None, wx.WXK_LEFT)
+    simkey(sim, panel.tags[0], wx.WXK_LEFT)
     assert result[0] is None
     assert panel.newTagCtrl.textCtrl.HasFocus()
 
@@ -426,11 +424,11 @@ def _test_TextTagPanel_keyboard_close():
     simclick(sim, panel.tags[0], stype=2)
 
     # Hit the delete key
-    simkey(sim, None, wx.WXK_DELETE)
+    simkey(sim, panel.tags[0], wx.WXK_DELETE)
     assert result[0] == tags[0]
 
     # Give another tag focus
     simclick(sim, panel.tags[0], stype=2)
     # Hit the backspace key
-    simkey(sim, None, wx.WXK_BACK)
+    simkey(sim, panel.tags[0], wx.WXK_BACK)
     assert result[0] == tags[1]

@@ -12,7 +12,7 @@ import wx
 import mock
 import pytest
 
-from . import run_with_wx, simclick, simkey, realYield
+from . import run_with_wx, simtext, simclick, simkey, realYield
 
 import fsleyes_widgets.floatslider as floatslider
 
@@ -356,8 +356,7 @@ def _test_SliderSpinPanel_events():
 
     called[0] = None
     ncalls[0] = 0
-    panel.spinCtrl.textCtrl.ChangeValue('75')
-    simkey(sim, panel.spinCtrl.textCtrl, wx.WXK_RETURN)
+    simtext(sim, panel.spinCtrl.textCtrl, '75')
 
     assert np.isclose(panel.spinCtrl.GetValue(), 75)
     assert np.isclose(panel.slider  .GetValue(), 75)

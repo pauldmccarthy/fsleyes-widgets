@@ -16,7 +16,8 @@ from .test_floatslider import (_test_widget_logic,
                                _test_widget_logic_integer,
                                _test_widget_changeRange)
 
-from . import run_with_wx, simclick, simtext, realYield
+from . import run_with_wx, simclick, simtext, simkey, simfocus, realYield
+
 
 
 def test_FloatSpinCtrl_logic():
@@ -246,8 +247,7 @@ def _test_FloatSpinCtrl_KeyDownUp():
         result[0] = None
 
         spin.SetValue(value)
-        sim.KeyDown(key)
-        realYield()
+        simkey(sim, spin.textCtrl, key)
 
         assert spin.GetValue() == expected
 
@@ -259,6 +259,7 @@ def test_FloatSpinCtrl_TextLoseFocus():
     run_with_wx(_test_FloatSpinCtrl_TextLoseFocus)
 def _test_FloatSpinCtrl_TextLoseFocus():
     frame = wx.GetApp().GetTopWindow()
+    sim   = wx.UIActionSimulator()
     spin  = floatspin.FloatSpinCtrl(frame)
     dummy = wx.TextCtrl(frame)
 
@@ -290,9 +291,8 @@ def _test_FloatSpinCtrl_TextLoseFocus():
 
         result[0] = None
         spin.textCtrl.SetFocus()
-        spin.textCtrl.ChangeValue(text)
-        dummy.SetFocus()
-        wx.Yield()
+        simtext(sim, spin.textCtrl, text, enter=False)
+        simfocus(spin, dummy)
 
         assert spin.GetValue() == expected
 

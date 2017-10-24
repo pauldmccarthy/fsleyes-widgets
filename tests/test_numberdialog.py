@@ -40,6 +40,7 @@ def _test_NumberDialog_create():
 
         dlg.Show()
         realYield()
+
         simclick(sim, target)
         assert dlg.GetValue() == expected
 
@@ -90,10 +91,7 @@ def _test_NumberDialog_limit():
 
         dlg.Show()
 
-        dlg.floatSpinCtrl.SetFocus()
-        dlg.floatSpinCtrl.textCtrl.ChangeValue(text)
-        realYield()
-        simkey(sim, dlg.floatSpinCtrl, wx.WXK_RETURN)
+        simtext(sim, dlg.floatSpinCtrl.textCtrl, text)
         if needClick:
             assert dlg.GetValue() is None
             simclick(sim, dlg.okButton)

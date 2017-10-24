@@ -14,7 +14,7 @@ import pytest
 
 import fsleyes_widgets.rangeslider as rangeslider
 
-from . import run_with_wx, simclick, simtext, simkey, realYield
+from . import run_with_wx, simclick, simtext, simkey, realYield, addall
 
 
 def _test_RangePanel_logic(panel):
@@ -199,31 +199,25 @@ def _test_RangePanel_events_spin():
 
     realYield()
 
-    panel.lowWidget.textCtrl.ChangeValue('25')
-    simkey(sim, panel.lowWidget, wx.WXK_RETURN)
+    simtext(sim, panel.lowWidget.textCtrl, '25')
     assert np.all(np.isclose(panel.GetRange(), (25, 100)))
 
-    panel.highWidget.textCtrl.ChangeValue('75')
-    simkey(sim, panel.highWidget, wx.WXK_RETURN)
+    simtext(sim, panel.highWidget.textCtrl, '75')
     assert np.all(np.isclose(panel.GetRange(), (25, 75)))
 
-    panel.highWidget.textCtrl.ChangeValue('25')
-    simkey(sim, panel.highWidget, wx.WXK_RETURN)
+    simtext(sim, panel.highWidget.textCtrl, '25')
     assert np.all(np.isclose(panel.GetRange(), (22.5, 27.5)))
 
     panel.SetRange(25, 75)
-    panel.lowWidget.textCtrl.ChangeValue('75')
-    simkey(sim, panel.lowWidget, wx.WXK_RETURN)
+    simtext(sim, panel.lowWidget.textCtrl, '75')
     assert np.all(np.isclose(panel.GetRange(), (72.5, 77.5)))
 
     panel.SetRange(25, 75)
-    panel.lowWidget.textCtrl.ChangeValue('90')
-    simkey(sim, panel.lowWidget, wx.WXK_RETURN)
+    simtext(sim, panel.lowWidget.textCtrl, '90')
     assert np.all(np.isclose(panel.GetRange(), (90, 95)))
 
     panel.SetRange(25, 75)
-    panel.highWidget.textCtrl.ChangeValue('10')
-    simkey(sim, panel.highWidget, wx.WXK_RETURN)
+    simtext(sim, panel.highWidget.textCtrl, '10')
     assert np.all(np.isclose(panel.GetRange(), (5, 10)))
 
 
@@ -245,16 +239,16 @@ def _test_RangeSliderSpinPanel_logic():
 def test_RangeSliderSpinPanel_onchange():
     run_with_wx(_test_RangeSliderSpinPanel_onchange)
 def _test_RangeSliderSpinPanel_onchange():
+
     sim   = wx.UIActionSimulator()
     frame = wx.GetApp().GetTopWindow()
+    frame.SetSize((600, 600))
     panel = rangeslider.RangeSliderSpinPanel(frame,
                                              lowLabel='Low',
                                              highLabel='High',
                                              style=0)
-    sizer = wx.BoxSizer(wx.HORIZONTAL)
-    sizer.Add(panel, flag=wx.EXPAND, proportion=1)
-    frame.SetSizer(sizer)
-    frame.Layout()
+
+    addall(frame, [panel])
 
     called = [False]
 
@@ -270,16 +264,14 @@ def _test_RangeSliderSpinPanel_onchange():
 
     realYield()
 
-    panel.lowSpin.textCtrl.ChangeValue('75')
-    simkey(sim, panel.lowSpin.textCtrl, wx.WXK_RETURN)
+    simtext(sim, panel.lowSpin.textCtrl, '75')
     assert np.all(np.isclose(panel.GetRange(), (75, 100)))
     assert np.isclose(panel.lowSpin.GetValue(),   75)
     assert np.isclose(panel.lowSlider.GetValue(), 75)
     assert called[0]
 
     called[0] = False
-    panel.highSpin.textCtrl.ChangeValue('60')
-    simkey(sim, panel.highSpin.textCtrl, wx.WXK_RETURN)
+    simtext(sim, panel.highSpin.textCtrl, '60')
     assert np.all(np.isclose(panel.GetRange(), (55, 60)))
     assert np.isclose(panel.highSpin.GetValue(),   60)
     assert np.isclose(panel.highSlider.GetValue(), 60)

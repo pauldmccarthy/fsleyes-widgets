@@ -8,6 +8,8 @@
 import time
 import wx
 
+import mock
+
 from . import run_with_wx, simclick, simtext, simkey, realYield
 
 from fsleyes_widgets import isalive
@@ -77,12 +79,7 @@ def _test_runWithBounce_cancel():
         for i in range(10):
             time.sleep(1)
 
-    sim = wx.UIActionSimulator()
     dlg = progress.Bounce('Title', 'message', style=wx.PD_CAN_ABORT)
 
-    def cancel():
-        simkey(sim, dlg, ord(' '))
-
-    wx.CallLater(1000, cancel)
-
-    assert not progress.Bounce.runWithBounce(func, dlg=dlg)
+    with mock.patch('wx.ProgressDialog.WasCancelled', return_value=True):
+        assert not progress.Bounce.runWithBounce(func, dlg=dlg)
