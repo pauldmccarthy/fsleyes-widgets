@@ -11,6 +11,8 @@ of the content.
 """
 
 
+import deprecation
+
 import wx
 import wx.lib.newevent as wxevent
 
@@ -110,6 +112,14 @@ class TogglePanel(wx.Panel):
         self.Expand(initialState)
 
 
+    @property
+    def button(self):
+        """Returns the toggle button (actually a ``wx.StaticText``). This
+        is for testing purposes.
+        """
+        return self.__toggleButton
+
+
     def __refresh(self):
         """Refreshes the layout. """
         self.Layout()
@@ -155,6 +165,9 @@ class TogglePanel(wx.Panel):
         return self.__label
 
 
+    @deprecation.deprecated(deprecated_in='0.1.1',
+                            removed_in='1.0.0',
+                            details='Use button instead')
     def GetToggleButton(self):
         """Returns the toggle button (actually a ``wx.StaticText``). This
         is for testing purposes.
