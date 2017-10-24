@@ -13,6 +13,8 @@ import numpy as np
 
 import wx
 
+from  fsl.utils.platform import platform as fslplatform
+
 def compare_images(img1, img2, threshold):
     """Compares two images using the euclidean distance in RGB space
     between pixels. Returns a tuple containing:
@@ -89,6 +91,16 @@ def run_with_wx(func, *args, **kwargs):
     return result[0]
 
 
+def addall(parent, widgets):
+
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    for w in widgets:
+        sizer.Add(w, flag=wx.EXPAND, proportion=1)
+    parent.Layout()
+    parent.Refresh()
+    realYield()
+
+
 # Under GTK, a single call to
 # yield just doesn't cut it
 def realYield(centis=10):
@@ -125,12 +137,52 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
 def simtext(sim, target, text, enter=True):
     target.SetFocus()
     target.SetValue(text)
-    if enter: sim.KeyDown(wx.WXK_RETURN)
+
+    # KeyDown doesn't seem to work
+    # under docker/GTK so we have
+    # to hack
+    if enter and fslplatform.wxPlatform == fslplatform.WX_GTK:
+        parent = target.GetParent()
+        if type(parent).__name__ == 'FloatSpinCtrl':
+            parent._FloatSpinCtrl__onText(None)
+        elif type(parent).__name__ == 'AutoTextCtrl':
+            parent._AutoTextCtrl__onEnter(None)
+        else:
+            sim.KeyDown(wx.WXK_RETURN)
+    elif enter:
+        sim.KeyDown(wx.WXK_RETURN)
     realYield()
 
 
 def simkey(sim, target, key, down=True, up=False):
-    if target is not None: target.SetFocus()
-    if down:               sim.KeyDown(key)
-    if up:                 sim.KeyUp(key)
+
+    class FakeEv(object):
+        def __init__(self, key):
+            self.key = key
+        def GetKeyCode(self):
+            return self.key
+        def Skip(self):
+            pass
+        def ResumePropagation(self, *a):
+            pass
+
+
+    parent = None
+    if target is not None:
+        target.SetFocus()
+        parent = target.GetParent()
+
+    if down and type(parent).__name__ == 'AutoTextCtrl':
+        parent._AutoTextCtrl__onKeyDown(FakeEv(key))
+
+    elif down and type(parent).__name__ == 'AutoCompletePopup':
+        if type(target).__name__ == 'TextCtrl':
+            parent._AutoCompletePopup__onKeyDown(FakeEv(key))
+        elif type(target).__name__ == 'ListBox':
+            parent._AutoCompletePopup__onListKeyDown(FakeEv(key))
+    elif down:
+        sim.KeyDown(key)
+
+    if up:
+        sim.KeyUp(key)
     realYield()
