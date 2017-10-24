@@ -244,8 +244,8 @@ variables:
 
     # Run the tests. No idea why, but test_TextTagPanel_nostyle
     # fails if run alongside the test_StaticTextTag_Close test.
-    - xvfb-run python setup.py test --addopts="-k not test_TextTagPanel_nostyle"
-    - xvfb-run python setup.py test --addopts="-k     test_TextTagPanel_nostyle"
+    - xvfb-run python setup.py test --addopts=" -k \"not test_TextTagPanel_nostyle\""
+    - xvfb-run python setup.py test --addopts=" -k       test_TextTagPanel_nostyle"
     - python -m coverage report
 
 
