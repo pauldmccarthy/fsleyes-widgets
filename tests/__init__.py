@@ -14,8 +14,8 @@ import numpy as np
 
 import wx
 
-from  fsl.utils.platform import platform as fslplatform
 
+GTK = any(['gtk' in p.lower() for p in wx.PlatformInfo])
 
 
 def compare_images(img1, img2, threshold):
@@ -129,7 +129,7 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
             return self.evo
 
     parent = target.GetParent()
-    if fslplatform.wxPlatform == fslplatform.WX_GTK:
+    if GTK:
 
         if type(target).__name__ == 'StaticTextTag' and \
            type(parent).__name__ == 'TextTagPanel':
@@ -169,7 +169,7 @@ def simtext(sim, target, text, enter=True):
     # KeyDown doesn't seem to work
     # under docker/GTK so we have
     # to hack
-    if enter and fslplatform.wxPlatform == fslplatform.WX_GTK:
+    if enter and GTK:
         parent = target.GetParent()
         if type(parent).__name__ == 'FloatSpinCtrl':
             parent._FloatSpinCtrl__onText(None)
@@ -203,7 +203,7 @@ def simkey(sim, target, key, down=True, up=False):
         target.SetFocus()
         parent = target.GetParent()
 
-    if fslplatform.wxPlatform == fslplatform.WX_GTK:
+    if GTK:
 
         if down and type(parent).__name__ == 'AutoTextCtrl':
             parent._AutoTextCtrl__onKeyDown(FakeEv(target, key))
@@ -240,7 +240,7 @@ def simfocus(from_, to):
         def Skip(self):
             pass
 
-    if fslplatform.wxPlatform == fslplatform.WX_GTK:
+    if GTK:
         if type(from_).__name__ == 'FloatSpinCtrl':
             from_._FloatSpinCtrl__onKillFocus(FakeEv())
 
