@@ -26,8 +26,8 @@ import logging
 import subprocess as sp
 import threading
 
-try:    import queue
-except: import Queue as queue
+try:                import queue
+except ImportError: import Queue as queue
 
 import wx
 
@@ -148,8 +148,8 @@ class ProcessManager(threading.Thread):
 
         # ignore errors - the user may have closed the
         # runPanel window before the process has completed
-        try:    self.runPanel.text.WriteText(output)
-        except: pass
+        try:              self.runPanel.text.WriteText(output)
+        except Exception: pass
 
 
     def run(self):
@@ -196,8 +196,8 @@ class ProcessManager(threading.Thread):
         def updateKillButton():
 
             # ignore errors - see __writeToPanel
-            try:    self.runPanel.killButton.Enable(False)
-            except: pass
+            try:              self.runPanel.killButton.Enable(False)
+            except Exception: pass
 
         wx.CallAfter(updateKillButton)
 

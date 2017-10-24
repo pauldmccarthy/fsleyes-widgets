@@ -95,8 +95,8 @@ class Notebook(wx.Panel):
         """Returns the index of the given page, or :data:`wx.NOT_FOUND`
         if the page is not in this notebook.
         """
-        try:    return self.__pages.index(page)
-        except: return wx.NOT_FOUND
+        try:               return self.__pages.index(page)
+        except ValueError: return wx.NOT_FOUND
 
 
     def InsertPage(self, index, page, text):

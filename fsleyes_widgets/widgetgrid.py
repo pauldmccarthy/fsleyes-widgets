@@ -315,10 +315,10 @@ class WidgetGrid(wx.ScrolledWindow):
         oddColour    = self.__oddColour
         evenColour   = self.__evenColour
 
-        if borderColour is None: WidgetGrid._defaultBorderColour
-        if labelColour  is None: WidgetGrid._defaultLabelColour
-        if oddColour    is None: WidgetGrid._defaultOddColour
-        if evenColour   is None: WidgetGrid._defaultEvenColour
+        if borderColour is None: borderColour = WidgetGrid._defaultBorderColour
+        if labelColour  is None: labelColour  = WidgetGrid._defaultLabelColour
+        if oddColour    is None: oddColour    = WidgetGrid._defaultOddColour
+        if evenColour   is None: evenColour   = WidgetGrid._defaultEvenColour
 
         if self.__gridSizer is None:
             self.FitInside()
@@ -495,16 +495,16 @@ class WidgetGrid(wx.ScrolledWindow):
         """Returns the index of the row in which the given ``widget`` is
         located, or ``-1`` if it is not in the ``WidgetGrid``.
         """
-        try:    return widget._wg_row
-        except: return -1
+        try:                   return widget._wg_row
+        except AttributeError: return -1
 
 
     def GetColumn(self, widget):
         """Returns the index of the column in which the given ``widget`` is
         located, or ``-1`` if it is not in the ``WidgetGrid``.
         """
-        try:    return widget._wg_row
-        except: return -1
+        try:                   return widget._wg_row
+        except AttributeError: return -1
 
 
     def DeleteRow(self, row):
