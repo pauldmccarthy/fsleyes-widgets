@@ -9,6 +9,7 @@ from __future__ import print_function
 
 import gc
 import time
+import traceback
 
 import numpy as np
 
@@ -75,7 +76,7 @@ def run_with_wx(func, *args, **kwargs):
                 result[0] = func(*args, **kwargs)
 
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             raised[0] = e
 
         finally:
