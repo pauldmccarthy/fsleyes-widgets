@@ -5,7 +5,11 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
+
+import sys
+
 import six
+
 
 # python 3
 if six.PY3:
@@ -26,8 +30,8 @@ def test_fileToUrl():
         ('../file.html',         'file:///../file.html'),
     ]
 
-    # urljoin has changed in python3 to make paths absolute
-    if six.PY3:
+    # urljoin has changed in python3.5 to make paths absolute
+    if six.PY3 and sys.version_info.minor >= 5:
         testcases[-1] = ('../file.html', 'file:///file.html')
 
     for fname, expected in testcases:

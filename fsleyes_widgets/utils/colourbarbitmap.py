@@ -100,7 +100,7 @@ def colourBarBitmap(cmap,
 
     if labelside not in ['top', 'bottom', 'left', 'right']:
         raise ValueError('labelside must be top, bottom, left '
-                         'or right ({})'.formt(labelside))
+                         'or right ({})'.format(labelside))
 
     # vertical plots are rendered horizontally,
     # and then simply rotated at the end

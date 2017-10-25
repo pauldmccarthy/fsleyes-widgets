@@ -10,7 +10,7 @@ import fsleyes_widgets.togglepanel as togglepanel
 
 import wx
 
-from . import run_with_wx, simclick
+from . import run_with_wx, simclick, realYield
 
 
 def test_usage():
@@ -75,7 +75,6 @@ def _test_event():
     panel   = tp.GetPane()
     tpsizer = wx.BoxSizer(wx.VERTICAL)
     content = wx.Button(panel, label='Hey')
-    button  = tp.GetToggleButton()
 
     tpsizer.Add(content, flag=wx.EXPAND)
     panel.SetSizer(tpsizer)
@@ -84,13 +83,15 @@ def _test_event():
     frame.SetSizer(fsizer)
     frame.Layout()
 
+    realYield()
+
     tp.Bind(togglepanel.EVT_TOGGLEPANEL_EVENT, ontog)
 
     sim = wx.UIActionSimulator()
 
     assert tp.IsExpanded()
 
-    simclick(sim, button)
+    simclick(sim, tp.button)
 
     assert not tp.IsExpanded()
 
@@ -99,7 +100,7 @@ def _test_event():
     assert not event[0][1]
 
     event[0] = None
-    simclick(sim, button)
+    simclick(sim, tp.button)
 
     assert tp.IsExpanded()
 

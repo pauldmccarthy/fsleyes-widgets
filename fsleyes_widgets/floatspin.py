@@ -386,7 +386,7 @@ class FloatSpinCtrl(FloatSpinBase):
         try:
             if self.__integer: val = int(  val)
             else:              val = float(val)
-        except:
+        except ValueError:
             self.SetValue(self.__value)
             return
 

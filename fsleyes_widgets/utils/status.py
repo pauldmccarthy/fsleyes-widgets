@@ -138,7 +138,7 @@ def reportError(title, msg, err):
         import wx
         wx.MessageBox(msg, title, wx.ICON_ERROR | wx.OK)
 
-    except:
+    except ImportError:
         log.error('{}: {}'.format(title, msg))
 
 

@@ -7,11 +7,17 @@
 
 from __future__ import print_function
 
+import gc
 import time
+import traceback
 
 import numpy as np
 
 import wx
+
+
+GTK = any(['gtk' in p.lower() for p in wx.PlatformInfo])
+
 
 def compare_images(img1, img2, threshold):
     """Compares two images using the euclidean distance in RGB space
@@ -47,6 +53,8 @@ def compare_images(img1, img2, threshold):
 
 def run_with_wx(func, *args, **kwargs):
 
+    gc.collect()
+
     propagateRaise = kwargs.pop('propagateRaise', True)
     startingDelay  = kwargs.pop('startingDelay',  500)
     finishingDelay = kwargs.pop('finishingDelay', 500)
@@ -68,7 +76,7 @@ def run_with_wx(func, *args, **kwargs):
                 result[0] = func(*args, **kwargs)
 
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             raised[0] = e
 
         finally:
@@ -89,6 +97,18 @@ def run_with_wx(func, *args, **kwargs):
     return result[0]
 
 
+def addall(parent, widgets):
+
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    for w in widgets:
+        sizer.Add(w, flag=wx.EXPAND, proportion=1)
+    parent.SetSizer(sizer)
+    parent.Layout()
+    parent.Refresh()
+    parent.Update()
+    realYield()
+
+
 # Under GTK, a single call to
 # yield just doesn't cut it
 def realYield(centis=10):
@@ -103,6 +123,27 @@ def realYield(centis=10):
 #   2 for separatemouse down/up events
 def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
 
+    class FakeEv(object):
+        def __init__(self, evo):
+            self.evo = evo
+        def GetEventObject(self):
+            return self.evo
+
+    parent = target.GetParent()
+    if GTK:
+
+        if type(target).__name__ == 'StaticTextTag' and \
+           type(parent).__name__ == 'TextTagPanel':
+            parent._TextTagPanel__onTagLeftDown(FakeEv(target))
+            realYield()
+            return
+
+        if type(target).__name__ == 'StaticText' and \
+           type(parent).__name__ == 'TogglePanel':
+            parent.Toggle(FakeEv(target))
+            realYield()
+            return
+
     w, h = target.GetClientSize().Get()
     x, y = target.GetScreenPosition()
 
@@ -113,7 +154,7 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
     y += h * pos[1]
 
     sim.MouseMove(x, y)
-    wx.Yield()
+    realYield()
     if   stype == 0: sim.MouseClick(btn)
     elif stype == 1: sim.MouseDblClick(btn)
     else:
@@ -125,12 +166,84 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
 def simtext(sim, target, text, enter=True):
     target.SetFocus()
     target.SetValue(text)
-    if enter: sim.KeyDown(wx.WXK_RETURN)
+
+    # KeyDown doesn't seem to work
+    # under docker/GTK so we have
+    # to hack
+    if enter and GTK:
+        parent = target.GetParent()
+        if type(parent).__name__ == 'FloatSpinCtrl':
+            parent._FloatSpinCtrl__onText(None)
+        elif type(parent).__name__ == 'AutoTextCtrl':
+            parent._AutoTextCtrl__onEnter(None)
+        else:
+            sim.KeyDown(wx.WXK_RETURN)
+    elif enter:
+        sim.KeyDown(wx.WXK_RETURN)
     realYield()
 
 
 def simkey(sim, target, key, down=True, up=False):
-    if target is not None: target.SetFocus()
-    if down:               sim.KeyDown(key)
-    if up:                 sim.KeyUp(key)
+
+    class FakeEv(object):
+        def __init__(self, obj, key):
+            self.obj = obj
+            self.key = key
+        def GetKeyCode(self):
+            return self.key
+        def Skip(self):
+            pass
+        def GetEventObject(self):
+            return self.obj
+        def ResumePropagation(self, *a):
+            pass
+
+
+    parent = None
+    if target is not None:
+        target.SetFocus()
+        parent = target.GetParent()
+
+    if GTK:
+
+        if down and type(parent).__name__ == 'AutoTextCtrl':
+            parent._AutoTextCtrl__onKeyDown(FakeEv(target, key))
+
+        elif down and type(parent).__name__ == 'FloatSpinCtrl':
+            parent._FloatSpinCtrl__onKeyDown(FakeEv(target, key))
+        elif down and type(parent).__name__ == 'TextTagPanel':
+            if type(target).__name__ == 'AutoTextCtrl':
+                parent._TextTagPanel__onNewTagKeyDown(FakeEv(target, key))
+            elif type(target).__name__ == 'StaticTextTag':
+                parent._TextTagPanel__onTagKeyDown(FakeEv(target, key))
+
+        elif down and type(parent).__name__ == 'AutoCompletePopup':
+            if type(target).__name__ == 'TextCtrl':
+                parent._AutoCompletePopup__onKeyDown(FakeEv(target, key))
+            elif type(target).__name__ == 'ListBox':
+                parent._AutoCompletePopup__onListKeyDown(FakeEv(target, key))
+        elif down:
+            sim.KeyDown(key)
+
+    elif down:
+        sim.KeyDown(key)
+
+    if up:
+        sim.KeyUp(key)
+    realYield()
+
+
+def simfocus(from_, to):
+
+    class FakeEv(object):
+        def __init__(self):
+            pass
+        def Skip(self):
+            pass
+
+    if GTK:
+        if type(from_).__name__ == 'FloatSpinCtrl':
+            from_._FloatSpinCtrl__onKillFocus(FakeEv())
+
+    to.SetFocus()
     realYield()

@@ -67,9 +67,10 @@ class NumberDialog(wx.Dialog):
 
         wx.Dialog.__init__(self, parent, title=title)
 
-        self.__value = None
-        self.__panel = wx.Panel(self)
-        self.__sizer = wx.BoxSizer(wx.VERTICAL)
+        self.__value     = None
+        self.__cancelled = False
+        self.__panel     = wx.Panel(self)
+        self.__sizer     = wx.BoxSizer(wx.VERTICAL)
         self.__panel.SetSizer(self.__sizer)
 
         self.__buttonPanel = wx.Panel(self.__panel)
@@ -151,7 +152,8 @@ class NumberDialog(wx.Dialog):
         enter pressed), this method may be used to retrieve the value.
         Returns ``None`` in all other situations.
         """
-        return self.__value
+        if self.__cancelled: return None
+        else:                return self.__value
 
 
     def __onEnter(self, ev):
@@ -173,10 +175,22 @@ class NumberDialog(wx.Dialog):
         """
 
         self.__value = self.__spinCtrl.GetValue()
-        self.EndModal(wx.ID_OK)
+
+        if self.IsModal():
+            self.EndModal(wx.ID_OK)
+        else:
+            self.SetReturnCode(wx.ID_OK)
+            self.Close()
 
 
     def __onCancel(self, ev):
         """Called when the Cancel button is pushed. Closes the dialog."""
-        self.__value = None
-        self.EndModal(wx.ID_CANCEL)
+
+        self.__value     = None
+        self.__cancelled = True
+
+        if self.IsModal():
+            self.EndModal(wx.ID_CANCEL)
+        else:
+            self.SetReturnCode(wx.ID_CANCEL)
+            self.Close()

@@ -6,7 +6,7 @@
 #
 
 
-from . import run_with_wx, simclick, realYield
+from . import run_with_wx, simclick, simtext, simkey, realYield, addall
 
 import wx
 import fsleyes_widgets.autotextctrl as autott
@@ -50,13 +50,10 @@ def _test_event():
     atc    = autott.AutoTextCtrl(parent)
 
     atc.Bind(autott.EVT_ATC_TEXT_ENTER, handler)
-    atc.SetFocus()
-    realYield()
-    sim.Char(ord('a'))
-    sim.Char(ord('b'))
-    sim.Char(ord('c'))
-    sim.KeyDown(wx.WXK_RETURN)
-    realYield()
+
+    addall(parent, [atc])
+
+    simtext(sim, atc.textCtrl, 'abc')
 
     assert atc.GetValue() == 'abc'
     assert called[0]      == 'abc'
@@ -94,14 +91,14 @@ def _test_popup_select1():
     parent = wx.GetApp().GetTopWindow()
     atc = autott.AutoTextCtrl(parent)
 
+    addall(parent, [atc])
+
     atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
-    atc.SetFocus()
-    sim.KeyDown(wx.WXK_RETURN)
-    realYield()
-    sim.KeyDown(wx.WXK_DOWN)
-    sim.KeyDown(wx.WXK_DOWN)
-    sim.KeyDown(wx.WXK_RETURN)
-    realYield()
+
+    simkey(sim, atc.textCtrl,       wx.WXK_RETURN)
+    simkey(sim, atc.popup.textCtrl, wx.WXK_DOWN)
+    atc.popup.listBox.SetSelection(1)
+    simkey(sim, atc.popup.listBox,  wx.WXK_RETURN)
 
     assert atc.GetValue() == 'aab'
 
@@ -115,14 +112,12 @@ def _test_popup_select2():
     parent = wx.GetApp().GetTopWindow()
     atc = autott.AutoTextCtrl(parent)
 
-    atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
+    addall(parent, [atc])
 
-    atc.SetFocus()
-    sim.Char(ord('b'))
-    realYield()
-    sim.KeyDown(wx.WXK_DOWN)
-    sim.KeyDown(wx.WXK_RETURN)
-    realYield()
+    atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
+    simtext(sim, atc.textCtrl, 'b', enter=False)
+    simkey( sim, atc.popup.textCtrl, wx.WXK_DOWN)
+    simkey( sim, atc.popup.listBox, wx.WXK_RETURN)
 
     assert atc.GetValue() == 'bcc'
 
@@ -132,19 +127,17 @@ def test_popup_select3():
 def _test_popup_select3():
 
     sim = wx.UIActionSimulator()
-
     parent = wx.GetApp().GetTopWindow()
     atc = autott.AutoTextCtrl(parent)
 
+    addall(parent, [atc])
+
     atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
 
-    atc.SetFocus()
-    sim.Char(ord('a'))
-    sim.Char(ord('b'))
-    realYield()
-    sim.KeyDown(wx.WXK_DOWN)
-    sim.KeyDown(wx.WXK_RETURN)
-    realYield()
+    simtext(sim, atc, 'ab', enter=False)
+
+    simkey(sim, atc.popup.textCtrl, wx.WXK_DOWN)
+    simkey(sim, atc.popup.listBox,  wx.WXK_RETURN)
 
     assert atc.GetValue() == 'aba'
 
@@ -158,14 +151,14 @@ def _test_popup_cancel():
     parent = wx.GetApp().GetTopWindow()
     atc = autott.AutoTextCtrl(parent)
 
+    addall(parent, [atc])
+
     atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
 
-    atc.SetFocus()
-    sim.KeyDown(wx.WXK_RETURN)
-    realYield()
-    sim.KeyDown(wx.WXK_DOWN)
-    sim.KeyDown(wx.WXK_ESCAPE)
-    realYield()
+    simkey(sim, atc.textCtrl,       wx.WXK_RETURN)
+    simkey(sim, atc.popup.textCtrl, wx.WXK_DOWN)
+    simkey(sim, atc.popup.listBox,  wx.WXK_DOWN)
+    simkey(sim, atc.popup.listBox,  wx.WXK_ESCAPE)
 
     assert atc.GetValue() == ''
 
@@ -179,18 +172,14 @@ def _test_popup_focusback():
     parent = wx.GetApp().GetTopWindow()
     atc = autott.AutoTextCtrl(parent)
 
+    addall(parent, [atc])
+
     atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
 
-    atc.SetFocus()
-    sim.KeyDown(wx.WXK_RETURN)
-    realYield()
-    sim.KeyDown(wx.WXK_DOWN)
-    sim.KeyDown(wx.WXK_UP)
-    realYield()
-
-    sim.Text('abc')
-    sim.KeyDown(wx.WXK_RETURN)
-    realYield()
+    simkey(sim,  atc.textCtrl, wx.WXK_RETURN)
+    simkey(sim,  atc.popup.textCtrl, wx.WXK_DOWN)
+    simkey(sim,  atc.popup.listBox,  wx.WXK_UP)
+    simtext(sim, atc.popup.textCtrl, 'abc')
 
     assert atc.GetValue() == 'abc'
 
@@ -204,23 +193,9 @@ def _test_popup_dblclick():
 
     atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
 
-    atc.SetFocus()
-    sim.KeyDown(wx.WXK_RETURN)
-    realYield()
+    addall(parent, [atc])
 
-    # Sneakily get a ref to the listbox
-    # in the AutoCompletePopup
-    realYield()
-    listbox = None
-    for c in atc.GetChildren():
-        if isinstance(c, autott.AutoCompletePopup):
-
-            for pc in c.GetChildren():
-                if isinstance(pc, wx.ListBox):
-                    listbox = pc
-                    break
-
-    simclick(sim, listbox, stype=1, pos=[0.5, 0.05])
-    realYield()
+    simkey(  sim, atc.textCtrl, wx.WXK_RETURN)
+    simclick(sim, atc.popup.listBox, stype=1, pos=[0.5, 0.05])
 
     assert atc.GetValue() == 'aaa'
