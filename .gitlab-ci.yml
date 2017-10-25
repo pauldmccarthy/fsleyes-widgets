@@ -247,9 +247,9 @@ variables:
     # fails if run alongside the test_StaticTextTag_Close test.
     # Also need to give xvfb time to shut-down before restarting
     # it.
-    - xvfb-run python setup.py test --addopts=" -k \"not test_TextTagPanel_nostyle\""
+    - xvfb-run python setup.py test --addopts="$TEST_OPTS -k \"not test_TextTagPanel_nostyle\""
     - sleep 5
-    - xvfb-run python setup.py test --addopts=" -k       test_TextTagPanel_nostyle"
+    - xvfb-run python setup.py test --addopts="$TEST_OPTS -k       test_TextTagPanel_nostyle"
     - python -m coverage report
 
 
