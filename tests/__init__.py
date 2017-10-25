@@ -91,6 +91,12 @@ def run_with_wx(func, *args, **kwargs):
 
     app.MainLoop()
 
+    del sizer
+    del panel
+    del frame
+    del app
+    time.sleep(1)
+
     if raised[0] and propagateRaise:
         raise raised[0]
 
