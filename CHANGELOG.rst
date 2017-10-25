@@ -2,6 +2,22 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.2.0 (under development)
+-------------------------
+
+
+* :class:`.AutoTextCtrl` and :class:`.AutoCompletePopup` have properties to
+  allow access to their internal ``wx`` controls - these are used for unit
+  testing.
+* Fixed issue with :class:`.NumberDialog` returning a value when it has
+  been shown non-modally and cancelled.
+* Fixed python 2/3 compatibility issue with :class:`.TogglePanel`.
+* Fixed issue with :class:`.WidgetGrid` not initialising colours correctly.
+* Deprecated the ::`.TogglePanel.GetToggleButton` method, in favour of a new
+  ``button`` property.
+* Added the  ``deprecation`` library as a new dependency.
+
+
 0.1.0 (Thursday October 19th 2017)
 ----------------------------------
 
