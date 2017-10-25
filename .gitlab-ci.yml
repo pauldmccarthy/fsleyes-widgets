@@ -243,6 +243,13 @@ variables:
     - pip install sphinx sphinx-rtd-theme
     - pip install pytest pytest-cov pytest-html pytest-runner mock coverage
 
+
+    # style stage
+    - if [ "$TEST_STYLE"x != "x" ]; then pip install pylint flake8; fi;
+    - if [ "$TEST_STYLE"x != "x" ]; then flake8                           fsleyes_widgets || true; fi;
+    - if [ "$TEST_STYLE"x != "x" ]; then pylint --output-format=colorized fsleyes_widgets || true; fi;
+    - if [ "$TEST_STYLE"x != "x" ]; then exit 0; fi
+
     # Run the tests. No idea why, but test_TextTagPanel_nostyle
     # fails if run alongside the test_StaticTextTag_Close test.
     # Also need to give xvfb time to shut-down before restarting
