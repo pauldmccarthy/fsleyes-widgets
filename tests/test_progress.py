@@ -22,6 +22,7 @@ def _test_Bounce():
 
     endfuncs = ['Close', 'EndModal', 'Destroy']
     delay    = 200
+    passed   = [True]
 
     for endfunc in endfuncs:
 
@@ -38,7 +39,7 @@ def _test_Bounce():
 
                 newval = dlg.GetValue()
 
-                assert newval != value
+                passed[0] = passed[0] and (newval != value)
                 value = newval
 
             value = dlg.GetValue()
@@ -47,13 +48,18 @@ def _test_Bounce():
             realYield((delay * 2) / 10)
 
             if isalive(dlg):
-                assert dlg.GetValue() == value
+                passed[0] = passed[0] and (dlg.GetValue() == value)
 
         if endfunc == 'EndModal':
             wx.CallAfter(eval)
             dlg.ShowModal()
         else:
+            dlg.Show()
             eval()
+        if endfunc is not 'Destroy':
+            dlg.Destroy()
+        dlg = None
+        assert passed[0]
 
 
 def test_runWithBounce():
