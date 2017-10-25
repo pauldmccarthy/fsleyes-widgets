@@ -78,6 +78,7 @@ stages:
 variables:
   UPSTREAM_PROJECT:     "fsl/fsleyes/widgets"
   UPSTREAM_URL:         "git@git.fmrib.ox.ac.uk"
+  TEST_OPTS:            "--cov-report= --cov-append"
 
 
 ####################################
