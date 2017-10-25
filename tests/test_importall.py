@@ -6,17 +6,26 @@
 #
 
 
+
 import pkgutil
+import importlib
+import fsleyes_widgets
 
 
 def test_importall():
-    import fsleyes_widgets       as fwidgets
-    import fsleyes_widgets.utils as futils
 
-    for _, module, _ in pkgutil.iter_modules(fwidgets.__path__,
-                                             'fsleyes_widgets.'):
-        __import__(module)
 
-    for _, module, _ in pkgutil.iter_modules(futils.__path__,
-                                             'fsleyes_widgets.utils.'):
-        __import__(module)
+    def recurse(module):
+
+        path    = module.__path__
+        name    = module.__name__
+        submods = list(pkgutil.iter_modules(path, '{}.'.format(name)))
+
+        for i, (spath, smodname, ispkg) in enumerate(submods):
+
+            submod = importlib.import_module(smodname)
+
+            if ispkg:
+                recurse(submod)
+
+    recurse(fsleyes_widgets)
