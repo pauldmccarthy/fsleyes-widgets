@@ -252,11 +252,17 @@ variables:
 
     # Run the tests. No idea why, but test_TextTagPanel_nostyle
     # fails if run alongside the test_StaticTextTag_Close test.
+    # And the test_RangeSliderSpinPanel_onlimit test causes a
+    # segfault if run with some other test (have not identified
+    # which). Jeez.
+    #
     # Also need to give xvfb time to shut-down before restarting
     # it.
-    - xvfb-run python setup.py test --addopts="$TEST_OPTS -k \"not test_TextTagPanel_nostyle\""
-    - sleep 5
+    - xvfb-run python setup.py test --addopts="$TEST_OPTS -k \"not test_TextTagPanel_nostyle\" --ignore tests/test_rangeslider.py"
+    - sleep 3
     - xvfb-run python setup.py test --addopts="$TEST_OPTS -k       test_TextTagPanel_nostyle"
+    - sleep 3
+    - xvfb-run python setup.py test --addopts="$TEST_OPTS tests/test_rangeslider.py"
     - python -m coverage report
 
 
