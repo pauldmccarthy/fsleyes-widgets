@@ -5,3 +5,4 @@ wx.lib.stattext
 wx.lib.scrolledpanel
 numpy
 matplotlib
+deprecation
