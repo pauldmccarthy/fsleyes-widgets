@@ -83,7 +83,6 @@ def run_with_wx(func, *args, **kwargs):
             def finish():
                 frame.Destroy()
                 app[0].ExitMainLoop()
-                del app[0]
             wx.CallLater(finishingDelay, finish)
 
     frame.Show()
@@ -96,6 +95,8 @@ def run_with_wx(func, *args, **kwargs):
 
     if raised[0] and propagateRaise:
         raise raised[0]
+
+    del app[0]
 
     return result[0]
 
@@ -167,22 +168,34 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
 
 
 def simtext(sim, target, text, enter=True):
-    target.SetFocus()
-    target.SetValue(text)
 
-    # KeyDown doesn't seem to work
-    # under docker/GTK so we have
-    # to hack
-    if enter and GTK:
-        parent = target.GetParent()
-        if type(parent).__name__ == 'FloatSpinCtrl':
+    target.SetFocus()
+    parent = target.GetParent()
+
+    # The EVT_TEXT_ENTER event
+    # does not seem to occur
+    # under docker/GTK so we
+    # have to hack. EVT_TEXT
+    # does work though.
+    if GTK and type(parent).__name__ == 'FloatSpinCtrl':
+        if enter:
+            target.ChangeValue(text)
             parent._FloatSpinCtrl__onText(None)
-        elif type(parent).__name__ == 'AutoTextCtrl':
+        else:
+            target.SetValue(text)
+
+    elif GTK and type(parent).__name__ == 'AutoTextCtrl':
+        if enter:
+            target.ChangeValue(text)
             parent._AutoTextCtrl__onEnter(None)
         else:
+            target.SetValue(text)
+    else:
+        target.SetValue(text)
+
+        if enter:
             sim.KeyDown(wx.WXK_RETURN)
-    elif enter:
-        sim.KeyDown(wx.WXK_RETURN)
+
     realYield()
 
 
