@@ -666,8 +666,16 @@ class RangeSliderSpinPanel(wx.Panel):
         if dlg.ShowModal() != wx.ID_OK:
             return
 
-        if   source == self.__minButton: self.SetMin(dlg.GetValue())
-        elif source == self.__maxButton: self.SetMax(dlg.GetValue())
+        # The NumberDialog should not return an
+        # invalid value (i.e. a min > the current
+        # max, or vice versa). But just in case,
+        # we absorb value errors raised by the
+        # SetMin/SetMax/SetLimits methods.
+        try:
+            if   source == self.__minButton: self.SetMin(dlg.GetValue())
+            elif source == self.__maxButton: self.SetMax(dlg.GetValue())
+        except ValueError:
+            return
 
         ev = RangeLimitEvent(min=self.GetMin(), max=self.GetMax())
         ev.SetEventObject(self)

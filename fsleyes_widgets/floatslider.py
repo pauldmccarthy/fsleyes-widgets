@@ -500,8 +500,15 @@ class SliderSpinPanel(wx.Panel):
         if dlg.ShowModal() != wx.ID_OK:
             return
 
-        if   source == self.__minButton: self.SetMin(dlg.GetValue())
-        elif source == self.__maxButton: self.SetMax(dlg.GetValue())
+        # The NumberDialog should not return
+        # an invalid value, but just in case,
+        # we absorb any ValueErrors that are
+        # raised.
+        try:
+            if   source == self.__minButton: self.SetMin(dlg.GetValue())
+            elif source == self.__maxButton: self.SetMax(dlg.GetValue())
+        except ValueError:
+            return
 
         wx.PostEvent(self, SliderSpinLimitEvent(
             min=self.GetMin(),
