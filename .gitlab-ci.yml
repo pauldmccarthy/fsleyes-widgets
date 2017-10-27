@@ -76,9 +76,8 @@ stages:
 
 
 variables:
-  UPSTREAM_PROJECT:     "fsl/fsleyes/widgets"
-  UPSTREAM_URL:         "git@git.fmrib.ox.ac.uk"
-  TEST_OPTS:            "--cov-report= --cov-append"
+  UPSTREAM_PROJECT: "fsl/fsleyes/widgets"
+  UPSTREAM_URL:     "git@git.fmrib.ox.ac.uk"
 
 
 ####################################
@@ -250,20 +249,8 @@ variables:
     - if [ "$TEST_STYLE"x != "x" ]; then pylint --output-format=colorized fsleyes_widgets || true; fi;
     - if [ "$TEST_STYLE"x != "x" ]; then exit 0; fi
 
-    # Run the tests. No idea why, but test_TextTagPanel_nostyle
-    # fails if run alongside the test_StaticTextTag_Close test.
-    # And the test_RangeSliderSpinPanel_onlimit test causes a
-    # segfault if run with some other test (have not identified
-    # which). Jeez.
-    #
-    # Also need to give xvfb time to shut-down before restarting
-    # it.
-    - xvfb-run python setup.py test --addopts="$TEST_OPTS -k \"not test_TextTagPanel_nostyle\" --ignore tests/test_rangeslider.py"
-    - sleep 3
-    - xvfb-run python setup.py test --addopts="$TEST_OPTS -k       test_TextTagPanel_nostyle"
-    - sleep 3
-    - xvfb-run python setup.py test --addopts="$TEST_OPTS tests/test_rangeslider.py"
-    - python -m coverage report
+    # Run the tests.
+    - xvfb-run python setup.py test
 
 
 test:2.7:
