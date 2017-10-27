@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.togglepanel module
-==================================
+``fsleyes_widgets.togglepanel``
+===============================
 
 .. automodule:: fsleyes_widgets.togglepanel
     :members:

@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.texttag module
-==============================
+``fsleyes_widgets.texttag``
+===========================
 
 .. automodule:: fsleyes_widgets.texttag
     :members:

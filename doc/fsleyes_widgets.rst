@@ -1,5 +1,5 @@
-fsleyes_widgets package
-=======================
+``fsleyes_widgets``
+===================
 
 .. toctree::
    :hidden:

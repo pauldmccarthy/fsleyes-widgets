@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.elistbox module
-===============================
+``fsleyes_widgets.elistbox``
+============================
 
 .. automodule:: fsleyes_widgets.elistbox
     :members:

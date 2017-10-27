@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.bitmaptoggle module
-===================================
+``fsleyes_widgets.bitmaptoggle``
+================================
 
 .. automodule:: fsleyes_widgets.bitmaptoggle
     :members:

@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.utils.typedict module
-=====================================
+``fsleyes_widgets.utils.typedict``
+==================================
 
 .. automodule:: fsleyes_widgets.utils.typedict
     :members:

@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.floatspin module
-================================
+``fsleyes_widgets.floatspin``
+=============================
 
 .. automodule:: fsleyes_widgets.floatspin
     :members:

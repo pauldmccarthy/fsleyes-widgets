@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.utils.status module
-===================================
+``fsleyes_widgets.utils.status``
+================================
 
 .. automodule:: fsleyes_widgets.utils.status
     :members:

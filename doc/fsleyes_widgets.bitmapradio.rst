@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.bitmapradio module
-==================================
+``fsleyes_widgets.bitmapradio``
+===============================
 
 .. automodule:: fsleyes_widgets.bitmapradio
     :members:

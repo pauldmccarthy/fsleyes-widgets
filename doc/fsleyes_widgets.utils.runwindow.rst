@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.utils.runwindow module
-======================================
+``fsleyes_widgets.utils.runwindow``
+===================================
 
 .. automodule:: fsleyes_widgets.utils.runwindow
     :members:

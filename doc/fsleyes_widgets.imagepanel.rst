@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.imagepanel module
-=================================
+``fsleyes_widgets.imagepanel``
+==============================
 
 .. automodule:: fsleyes_widgets.imagepanel
     :members:

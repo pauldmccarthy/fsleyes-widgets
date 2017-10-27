@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.utils.layout module
-===================================
+``fsleyes_widgets.utils.layout``
+================================
 
 .. automodule:: fsleyes_widgets.utils.layout
     :members:

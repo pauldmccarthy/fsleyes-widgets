@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.widgetlist module
-=================================
+``fsleyes_widgets.widgetlist``
+==============================
 
 .. automodule:: fsleyes_widgets.widgetlist
     :members:

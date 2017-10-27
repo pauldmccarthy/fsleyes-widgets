@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.textpanel module
-================================
+``fsleyes_widgets.textpanel``
+=============================
 
 .. automodule:: fsleyes_widgets.textpanel
     :members:

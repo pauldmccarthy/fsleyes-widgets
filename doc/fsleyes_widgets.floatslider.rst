@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.floatslider module
-==================================
+``fsleyes_widgets.floatslider``
+===============================
 
 .. automodule:: fsleyes_widgets.floatslider
     :members:

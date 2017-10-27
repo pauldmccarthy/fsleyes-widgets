@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.utils.webpage module
-====================================
+``fsleyes_widgets.utils.webpage``
+=================================
 
 .. automodule:: fsleyes_widgets.utils.webpage
     :members:

@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.notebook module
-===============================
+``fsleyes_widgets.notebook``
+============================
 
 .. automodule:: fsleyes_widgets.notebook
     :members:

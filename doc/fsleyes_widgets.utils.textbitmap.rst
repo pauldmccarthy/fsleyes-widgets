@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.utils.textbitmap module
-=======================================
+``fsleyes_widgets.utils.textbitmap``
+====================================
 
 .. automodule:: fsleyes_widgets.utils.textbitmap
     :members:

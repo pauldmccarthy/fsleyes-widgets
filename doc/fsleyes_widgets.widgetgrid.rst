@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.widgetgrid module
-=================================
+``fsleyes_widgets.widgetgrid``
+==============================
 
 .. automodule:: fsleyes_widgets.widgetgrid
     :members:

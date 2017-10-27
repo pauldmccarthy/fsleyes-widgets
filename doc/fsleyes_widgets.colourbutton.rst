@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.colourbutton module
-===================================
+``fsleyes_widgets.colourbutton``
+================================
 
 .. automodule:: fsleyes_widgets.colourbutton
     :members:

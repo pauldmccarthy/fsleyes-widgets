@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.utils.colourbarbitmap module
-============================================
+``fsleyes_widgets.utils.colourbarbitmap``
+=========================================
 
 .. automodule:: fsleyes_widgets.utils.colourbarbitmap
     :members:

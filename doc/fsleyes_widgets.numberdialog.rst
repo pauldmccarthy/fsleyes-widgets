@@ -1,7 +1,5 @@
-:orphan:
-   
-fsleyes_widgets.numberdialog module
-===================================
+``fsleyes_widgets.numberdialog``
+================================
 
 .. automodule:: fsleyes_widgets.numberdialog
     :members:

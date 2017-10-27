@@ -1,7 +1,5 @@
-:orphan:
-  
-fsleyes_widgets.rangeslider module
-==================================
+``fsleyes_widgets.rangeslider``
+===============================
 
 .. automodule:: fsleyes_widgets.rangeslider
     :members:

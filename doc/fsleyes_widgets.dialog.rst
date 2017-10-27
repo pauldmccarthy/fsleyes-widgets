@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.dialog module
-=============================
+``fsleyes_widgets.dialog``
+==========================
 
 .. automodule:: fsleyes_widgets.dialog
     :members:

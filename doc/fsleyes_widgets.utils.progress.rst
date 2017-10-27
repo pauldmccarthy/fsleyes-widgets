@@ -1,7 +1,5 @@
-:orphan:
-
-fsleyes_widgets.utils.progress module
-=====================================
+``fsleyes_widgets.utils.progress``
+==================================
 
 .. automodule:: fsleyes_widgets.utils.progress
     :members:
