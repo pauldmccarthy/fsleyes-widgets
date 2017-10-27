@@ -8,6 +8,8 @@
 import time
 import wx
 
+import numpy as np
+
 import mock
 
 from . import run_with_wx, simclick, simtext, simkey, realYield
@@ -21,12 +23,14 @@ def test_Bounce():
 def _test_Bounce():
 
     endfuncs = ['Close', 'EndModal', 'Destroy']
-    delay    = 200
+    delay    = 200  # msecs
+    centis   = delay / 10
+    values   = list(np.arange(50))
     passed   = [True]
 
     for endfunc in endfuncs:
 
-        dlg = progress.Bounce('Title', 'Message', delay=delay)
+        dlg = progress.Bounce('Title', 'Message', delay=delay, values=values)
 
         dlg.StartBounce()
 
@@ -35,12 +39,11 @@ def _test_Bounce():
 
             for i in range(10):
 
-                realYield((delay + 10) / 10)
-
+                realYield(centis + 0.5 * centis)
                 newval = dlg.GetValue()
 
                 passed[0] = passed[0] and (newval != value)
-                value = newval
+                value     = newval
 
             value = dlg.GetValue()
             getattr(dlg, endfunc)()
