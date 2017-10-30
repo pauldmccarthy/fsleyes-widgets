@@ -2,8 +2,8 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.2.0 (under development)
--------------------------
+0.2.0 (Monday 30th October 2017)
+--------------------------------
 
 
 * :class:`.AutoTextCtrl` and :class:`.AutoCompletePopup` have properties to
