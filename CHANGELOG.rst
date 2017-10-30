@@ -9,6 +9,8 @@ chronological order.
 * :class:`.AutoTextCtrl` and :class:`.AutoCompletePopup` have properties to
   allow access to their internal ``wx`` controls - these are used for unit
   testing.
+* The :class:`.AutoCompletePopup` runs its own ``wx`` event loop while it is
+  displayed, so that events are not caught by other active modal dialogs.
 * Fixed issue with :class:`.NumberDialog` returning a value when it has
   been shown non-modally and cancelled.
 * Fixed python 2/3 compatibility issue with :class:`.TogglePanel`.
