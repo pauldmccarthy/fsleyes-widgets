@@ -27,7 +27,7 @@ def test_getSet():
 def _test_getSet():
 
     parent = wx.GetApp().GetTopWindow()
-    atc = autott.AutoTextCtrl(parent)
+    atc = autott.AutoTextCtrl(parent, ownloop=False)
 
     atc.ChangeValue('a')
     assert atc.GetValue() == 'a'
@@ -47,7 +47,7 @@ def _test_event():
 
     sim    = wx.UIActionSimulator()
     parent = wx.GetApp().GetTopWindow()
-    atc    = autott.AutoTextCtrl(parent)
+    atc    = autott.AutoTextCtrl(parent, ownloop=False)
 
     atc.Bind(autott.EVT_ATC_TEXT_ENTER, handler)
 
@@ -66,7 +66,7 @@ def test_onFocus():
 def _test_onFocus():
 
     parent = wx.GetApp().GetTopWindow()
-    atc = autott.AutoTextCtrl(parent)
+    atc = autott.AutoTextCtrl(parent, ownloop=False)
 
     atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
 
@@ -89,7 +89,7 @@ def _test_popup_select1():
     sim = wx.UIActionSimulator()
 
     parent = wx.GetApp().GetTopWindow()
-    atc = autott.AutoTextCtrl(parent)
+    atc = autott.AutoTextCtrl(parent, ownloop=False)
 
     addall(parent, [atc])
 
@@ -110,7 +110,7 @@ def _test_popup_select2():
     sim = wx.UIActionSimulator()
 
     parent = wx.GetApp().GetTopWindow()
-    atc = autott.AutoTextCtrl(parent)
+    atc = autott.AutoTextCtrl(parent, ownloop=False)
 
     addall(parent, [atc])
 
@@ -128,7 +128,7 @@ def _test_popup_select3():
 
     sim = wx.UIActionSimulator()
     parent = wx.GetApp().GetTopWindow()
-    atc = autott.AutoTextCtrl(parent)
+    atc = autott.AutoTextCtrl(parent, ownloop=False)
 
     addall(parent, [atc])
 
@@ -149,7 +149,7 @@ def _test_popup_cancel():
     sim = wx.UIActionSimulator()
 
     parent = wx.GetApp().GetTopWindow()
-    atc = autott.AutoTextCtrl(parent)
+    atc = autott.AutoTextCtrl(parent, ownloop=False)
 
     addall(parent, [atc])
 
@@ -170,7 +170,7 @@ def _test_popup_focusback():
     sim = wx.UIActionSimulator()
 
     parent = wx.GetApp().GetTopWindow()
-    atc = autott.AutoTextCtrl(parent)
+    atc = autott.AutoTextCtrl(parent, ownloop=False)
 
     addall(parent, [atc])
 
@@ -189,7 +189,7 @@ def test_popup_dblclick():
 def _test_popup_dblclick():
     sim    = wx.UIActionSimulator()
     parent = wx.GetApp().GetTopWindow()
-    atc    = autott.AutoTextCtrl(parent)
+    atc    = autott.AutoTextCtrl(parent, ownloop=False)
 
     atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
 
