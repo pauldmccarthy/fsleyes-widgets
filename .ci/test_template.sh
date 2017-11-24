@@ -3,7 +3,7 @@
 # Install $PY_VERSION, xvfb, and all
 # of the wxpython dependencies.
 apt-get update -y || true
-apt-get install -y software-properties-common python-software-properties xvfb libgtk2.0-0 libnotify4 freeglut3 libsdl1.2debian
+apt-get install -y software-properties-common python-software-properties xvfb libgtk2.0-0 libnotify4 freeglut3 libsdl1.2debian bzip2 wget
 add-apt-repository -y ppa:deadsnakes/ppa
 apt-get update -y || true
 apt-get install -y $PY_VERSION "$PY_VERSION"-dev $PY_PACKAGES
