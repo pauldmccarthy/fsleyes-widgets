@@ -46,6 +46,7 @@ def _test_Bounce():
                 value     = newval
 
             value = dlg.GetValue()
+            dlg.StopBounce()
             getattr(dlg, endfunc)()
 
             realYield((delay * 2) / 10)
@@ -63,6 +64,62 @@ def _test_Bounce():
             dlg.Destroy()
         dlg = None
         assert passed[0]
+
+
+def test_Bounce_manual():
+    run_with_wx(_test_Bounce_manual)
+def _test_Bounce_manual():
+
+    dlg = progress.Bounce('Title', 'Message', delay=150)
+
+    # make sure it's not bouncing
+    val = dlg.GetValue()
+    realYield(20)
+    assert dlg.GetValue() == val
+
+    # Make sure a bounce changes the value
+    dlg.DoBounce()
+    assert dlg.GetValue() != val
+
+    # Make sure we can change the message
+    val = dlg.GetValue()
+    dlg.DoBounce('New message')
+    assert dlg.GetValue()   != val
+    assert dlg.GetMessage() == 'New message'
+
+    dlg.Destroy()
+
+def test_Bounce_auto_start_stop():
+    run_with_wx(_test_Bounce_auto_start_stop)
+def _test_Bounce_auto_start_stop():
+
+    dlg = progress.Bounce('Title', 'Message', delay=100)
+
+    dlg.StartBounce()
+    val = dlg.GetValue()
+    realYield(20)
+    assert dlg.GetValue() != val
+    val = dlg.GetValue()
+    realYield(20)
+    assert dlg.GetValue() != val
+    val = dlg.GetValue()
+    dlg.StopBounce()
+
+    realYield(20)
+    assert dlg.GetValue() == val
+    realYield(20)
+    assert dlg.GetValue() == val
+
+    dlg.StartBounce()
+    val = dlg.GetValue()
+    realYield(20)
+    assert dlg.GetValue() != val
+    val = dlg.GetValue()
+    realYield(20)
+    assert dlg.GetValue() != val
+    val = dlg.GetValue()
+    dlg.StopBounce()
+    dlg.Destroy()
 
 
 def test_runWithBounce():
