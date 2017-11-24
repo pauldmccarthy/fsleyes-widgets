@@ -13,6 +13,8 @@ import threading
 
 import wx
 
+from fsleyes_widgets import isalive
+
 
 class Bounce(wx.ProgressDialog):
     """Display a 'bouncing' progress bar.
@@ -21,8 +23,10 @@ class Bounce(wx.ProgressDialog):
     unknown duration. The progress bar 'bounces' back and forth until the
     dialog is destroyed or cancelled.
 
-    Once a ``Bounce`` dialog has been created, the :meth:`StartBounce``
-    method can be used to start bouncing.
+    A ``Bounce`` dialog can either be controlled manually via the
+    :meth:`DoBounce` method, , or allowed to run automatically via the
+    :meth:`StartBounce`. Automatic bouncing can be stopped via
+    :meth:`StopBounce`.
     """
 
 
@@ -42,7 +46,7 @@ class Bounce(wx.ProgressDialog):
         self.__values    = kwargs.pop('values', [1, 25, 50, 75, 99])
         self.__direction = 1
         self.__index     = 0
-        self.__finish    = False
+        self.__bouncing  = False
 
         wx.ProgressDialog.__init__(self, *args, **kwargs)
 
@@ -103,36 +107,64 @@ class Bounce(wx.ProgressDialog):
 
     def Close(self):
         """Close the ``Bounce`` dialog. """
-        self.__finish = True
+        self.__bouncing = False
         wx.ProgressDialog.Close(self)
 
 
     def EndModal(self, code=wx.ID_OK):
         """Close the ``Bounce`` dialog. """
-        self.__finish = True
+        self.__bouncing = False
         wx.ProgressDialog.EndModal(self, code)
 
 
     def Destroy(self):
         """Destroy the ``Bounce`` dialog. """
-        self.__finish = True
+        self.__bouncing = False
         wx.ProgressDialog.Destroy(self)
 
 
     def StartBounce(self):
-        """Start bouncing. """
-        self.__doBounce()
+        """Start automatic bouncing. """
+        self.__bouncing = True
+        self.__autoBounce()
 
 
-    def __doBounce(self):
-        """Update the progress bar. """
+    def StopBounce(self):
+        """Stop automatic bouncing. """
+        self.__bouncing = False
+
+
+    def Update(self, value, message=None):
+        """Overrides ``wx.ProgressDialog.Update``.
+
+        The ``Update`` method in wxPython 3.0.2.0 will raise an error if a
+        ``message`` of ``None`` gets passed in. This implementation accepts a
+        ``message`` of ``None``.
+        """
+
+        if message is None: return super(Bounce, self).Update(value)
+        else:               return super(Bounce, self).Update(value, message)
+
+
+    def UpdateMessage(self, message):
+        """Updates the message displayed on the dialog. """
+        self.Update(self.__values[self.__index], message)
+
+
+    def DoBounce(self, message=None):
+        """Perform a single bounce update to the progress bar.
+
+        :arg message: New message to show.
+
+        :returns:     ``False`` if the dialog gets cancelled, ``True``
+                      otherwise.
+        """
 
         newval = self.__values[self.__index]
 
-        if self.__finish or \
-           self.WasCancelled() or \
-           not self.Update(newval):
-            return
+        if self.WasCancelled() or \
+           not self.Update(newval, message):
+            return False
 
         self.__index += self.__direction
 
@@ -143,4 +175,32 @@ class Bounce(wx.ProgressDialog):
             self.__index     = 0
             self.__direction = -self.__direction
 
-        wx.CallLater(self.__delay, self.__doBounce)
+        return True
+
+
+    def __autoBounce(self):
+        """Automatic bouncing.
+
+        If a call to :meth:`StopBounce` has been made, this method does
+        nothing.
+
+        Otherwise, calls :meth:`DoBounce` and, if that call returns ``True``,
+        schedules a future call to this method.
+        """
+
+        # We use a closure, as if this dialog
+        # gets destroyed while a call is
+        # scheduled, wx segfaults when it tries
+        # to call the instance method.
+        def realAutoBounce():
+
+            if not isalive(self):
+                return
+
+            if not self.__bouncing:
+                return
+
+            if self.DoBounce():
+                wx.CallLater(self.__delay, realAutoBounce)
+
+        realAutoBounce()
