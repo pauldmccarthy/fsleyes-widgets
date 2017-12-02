@@ -466,7 +466,8 @@ class EditableListBox(wx.Panel):
         # Yep, I'm assuming that all
         # items are the same size
         if nitems > 0:
-            itemHeight = self.__listItems[0].container.GetSize().GetHeight()
+            sizer      = self.__listItems[0].container.GetSizer()
+            itemHeight = sizer.CalcMin().GetHeight()
         else:
             itemHeight = 0
 
@@ -886,22 +887,20 @@ class EditableListBox(wx.Panel):
         with the item is destroyed.
         """
 
-        item = self.__listItems[self.__fixIndex(n)]
-
-        if widget is None and item.extraWidget is None:
-            return
-
+        item  = self.__listItems[self.__fixIndex(n)]
         sizer = item.container.GetSizer()
 
         if item.extraWidget is not None:
             sizer.Detach(item.extraWidget)
             item.extraWidget.Destroy()
-
-        item.extraWidget = widget
+            item.extraWidget = None
 
         if widget is not None:
+            item.extraWidget = widget
             widget.Reparent(item.container)
             sizer.Insert(0, widget)
+
+        self.__updateScrollbar()
 
 
     def GetItemWidget(self, i):
