@@ -180,13 +180,8 @@ test:3.4:
 
 test:3.5:
   stage: test
-  image: ubuntu:16.04
+  image: pauldmccarthy/fsleyes-py35-wxpy4-gtk2
   <<: *test_template
-  variables:
-    PY_VERSION:  "python3.5"
-    PY_PACKAGES: "python3-pip python3-venv"
-    PY_VENV:     "python3.5 -m venv"
-    INSTALL_WX:  "pip install --only-binary wxpython -f $WXPYTHON_UBUNTU1604_URL wxpython"
 
 
 test:3.6:
