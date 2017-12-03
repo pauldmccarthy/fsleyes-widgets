@@ -149,3 +149,5 @@ def _test_runWithBounce_cancel():
 
     with mock.patch('wx.ProgressDialog.WasCancelled', return_value=True):
         assert not progress.Bounce.runWithBounce(func, dlg=dlg)
+
+    dlg.Destroy()
