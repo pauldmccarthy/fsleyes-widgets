@@ -97,25 +97,25 @@ def _test_Bounce_auto_start_stop():
 
     dlg.StartBounce()
     val = dlg.GetValue()
-    realYield(20)
+    realYield(15)
     assert dlg.GetValue() != val
     val = dlg.GetValue()
-    realYield(20)
+    realYield(15)
     assert dlg.GetValue() != val
     val = dlg.GetValue()
     dlg.StopBounce()
 
-    realYield(20)
+    realYield(15)
     assert dlg.GetValue() == val
-    realYield(20)
+    realYield(15)
     assert dlg.GetValue() == val
 
     dlg.StartBounce()
     val = dlg.GetValue()
-    realYield(20)
+    realYield(15)
     assert dlg.GetValue() != val
     val = dlg.GetValue()
-    realYield(20)
+    realYield(15)
     assert dlg.GetValue() != val
     val = dlg.GetValue()
     dlg.StopBounce()
