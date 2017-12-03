@@ -7,6 +7,8 @@ chronological order.
 
 
 * :class:`.Bounce` class can now be manually or automatically controlled.
+* Some adjustments to the :class:`.EditableListBox` - it was potentially
+  calculating item heights incorrectly.
 * Unit tests are now run against wxPython 3.0.2.0.
 
 
