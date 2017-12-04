@@ -2,8 +2,8 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.2.1 (Under development)
--------------------------
+0.2.1 (Monday December 5th 2017)
+--------------------------------
 
 
 * :class:`.Bounce` class can now be manually or automatically controlled.
