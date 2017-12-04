@@ -460,8 +460,11 @@ class EditableListBox(wx.Panel):
             return
 
         nitems     = self.VisibleItemCount()
-        pageHeight = self.__listSizerSizer.GetItem(self.__listSizer) \
-                                          .GetSize().GetHeight()
+        pageHeight = self.GetSize().GetHeight() - 5
+        if self.__scrollUp is not None:
+            pageHeight -= self.__scrollUp.GetSize().GetHeight()
+        if self.__scrollDown is not None:
+            pageHeight -= self.__scrollDown.GetSize().GetHeight()
 
         # Yep, I'm assuming that all
         # items are the same size
@@ -703,7 +706,6 @@ class EditableListBox(wx.Panel):
         self.__updateMoveButtons()
         if self.__tooltipDown: self.__configTooltipDown(item)
         else:                  self.__configTooltip(    item)
-        self.__updateScrollbar()
 
         # Make sure the enabled state of the
         # new label/widget is consistent with
