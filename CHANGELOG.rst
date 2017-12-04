@@ -2,7 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.2.0 (Monday 30th October 2017)
+0.2.1 (Monday December 5th 2017)
+--------------------------------
+
+
+* :class:`.Bounce` class can now be manually or automatically controlled.
+* Some adjustments to the :class:`.EditableListBox` - it was potentially
+  calculating item heights incorrectly.
+* Unit tests are now run against wxPython 3.0.2.0.
+
+
+0.2.0 (Monday October 30th 2017)
 --------------------------------
 
 
@@ -15,8 +25,8 @@ chronological order.
   been shown non-modally and cancelled.
 * Fixed python 2/3 compatibility issue with :class:`.TogglePanel`.
 * Fixed issue with :class:`.WidgetGrid` not initialising colours correctly.
-* Deprecated the ::`.TogglePanel.GetToggleButton` method, in favour of a new
-  ``button`` property.
+* Deprecated the :meth:`.TogglePanel.GetToggleButton` method, in favour of a
+  new ``button`` property.
 * Added the  ``deprecation`` library as a new dependency.
 
 

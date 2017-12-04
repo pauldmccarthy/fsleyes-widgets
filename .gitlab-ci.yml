@@ -19,6 +19,11 @@
 #    5. deploy: Uploading the build outputs to pypi, and the documentation
 #               to a hosting server.
 #
+# Custom docker images are used for several jobs - these images are
+# available at:
+#
+#    https://hub.docker.com/u/pauldmccarthy/
+#
 # The test and style stages are executed on all branches of upstream and
 # fork repositories.
 #
@@ -66,12 +71,6 @@ stages:
 #   - TWINE_PASSWORD:                - Password to use when uploading to pypi
 #
 #   - TWINE_REPOSITORY_URL:          - Pypi repository to upload to
-#
-#   - WXPYTHON_UBUNTU1404_URL:       - Url to a location containg binary wheels
-#                                      for wxPython/ubuntu 14.04
-#
-#   - WXPYTHON_UBUNTU1604_URL:       - Url to a location containg binary wheels
-#                                      for wxPython/ubuntu 16.04
 ###############################################################################
 
 
@@ -106,74 +105,9 @@ variables:
     - tags
 
 
-##########################################################
-# The setup_ssh anchor contains a before_script section
-# which does the following:
-#
-#  - Sets up key-based SSH login, and
-#    installs the private keys, so
-#    we can connect to servers.
-#
-#  - Configures git, and adds the
-#    upstream repo as a remote
-#
-# (see https://docs.gitlab.com/ce/ci/ssh_keys/README.html)
-#
-# NOTE: It is assumed that non-docker
-#       executors are already configured
-#       (or don't need any configuration).
-##########################################################
-
-
 .setup_ssh: &setup_ssh
   before_script:
-
-    - if [[ -f /.dockerenv ]]; then
-
-        apt-get update -y                           || yum -y check-update                     || true;
-        apt-get install -y git rsync openssh-client || yum install -y git rsync openssh-client || true;
-
-        eval $(ssh-agent -s);
-        mkdir -p $HOME/.ssh;
-
-        echo "$SSH_PRIVATE_KEY_GIT" > $HOME/.ssh/id_git;
-
-        if [[ "$CI_PROJECT_PATH" == "$UPSTREAM_PROJECT" ]]; then
-          echo "$SSH_PRIVATE_KEY_DOC_DEPLOY" > $HOME/.ssh/id_doc_deploy;
-        fi;
-
-        chmod go-rwx $HOME/.ssh/id_*;
-
-        ssh-add $HOME/.ssh/id_git;
-
-        if [[ "$CI_PROJECT_PATH" == "$UPSTREAM_PROJECT" ]]; then
-          ssh-add $HOME/.ssh/id_doc_deploy;
-        fi
-
-        echo "$SSH_SERVER_HOSTKEYS" > $HOME/.ssh/known_hosts;
-
-        touch $HOME/.ssh/config;
-
-        echo "Host ${UPSTREAM_URL##*@}"                    >> $HOME/.ssh/config;
-        echo "    User ${UPSTREAM_URL%@*}"                 >> $HOME/.ssh/config;
-        echo "    IdentityFile $HOME/.ssh/id_git"          >> $HOME/.ssh/config;
-
-        echo "Host docdeploy"                              >> $HOME/.ssh/config;
-        echo "    HostName ${DOC_HOST##*@}"                >> $HOME/.ssh/config;
-        echo "    User ${DOC_HOST%@*}"                     >> $HOME/.ssh/config;
-        echo "    IdentityFile $HOME/.ssh/id_doc_deploy"   >> $HOME/.ssh/config;
-
-        echo "Host *"                                      >> $HOME/.ssh/config;
-        echo "    IdentitiesOnly yes"                      >> $HOME/.ssh/config;
-
-        git config --global user.name  "Gitlab CI";
-        git config --global user.email "gitlabci@localhost";
-
-        if [[ `git remote -v` == *"upstream"* ]]; then
-            git remote remove upstream;
-        fi;
-        git remote add upstream "$UPSTREAM_URL:$UPSTREAM_PROJECT";
-      fi
+    - bash ./.ci/setup_ssh.sh
 
 
 ###################################################
@@ -186,11 +120,7 @@ variables:
 
 .patch_version: &patch_version
   before_script:
-
-    - if [[ "x$CI_COMMIT_TAG" != "x" ]]; then
-        echo "Release detected - patching version - $CI_COMMIT_REF_NAME";
-        sed -ie "s/^__version__ = .*$/__version__ = '$CI_COMMIT_REF_NAME'/g" fsleyes_widgets/__init__.py;
-      fi
+    - bash ./.ci/patch_version.sh
 
 
 ############
@@ -209,94 +139,33 @@ variables:
     - docker
 
   script:
-
-    # Install $PY_VERSION, xvfb, and all
-    # of the wxpython dependencies.
-    - apt-get update -y || true
-    - apt-get install -y software-properties-common python-software-properties xvfb libgtk2.0-0 libnotify4 freeglut3 libsdl1.2debian
-    - add-apt-repository -y ppa:deadsnakes/ppa
-    - apt-get update -y || true
-    - apt-get install -y $PY_VERSION "$PY_VERSION"-dev $PY_PACKAGES
-    - $PY_VENV test.venv
-    - source test.venv/bin/activate
-    - pip install --upgrade pip setuptools
-
-    # If running on a fork repository, we merge in the
-    # upstream/master branch. This is done so that merge
-    # requests from fork to the parent repository will
-    # have unit tests run on the merged code, something
-    # which gitlab CE does not currently do for us.
-    - if [[ "$CI_PROJECT_PATH" != "$UPSTREAM_PROJECT" ]]; then
-        git fetch upstream;
-        git merge --no-commit --no-ff upstream/master;
-      fi;
-
-    - $INSTALL_WX
-
-    # All other deps can be installed as normal.
-    # We install test dependenciesd through pip,
-    # because if we let setuptools do it, it
-    # will build/install everything from source,
-    # rather than using wheels.
-    - pip install -r requirements.txt
-    - pip install sphinx sphinx-rtd-theme
-    - pip install pytest pytest-cov pytest-html pytest-runner mock coverage
+    - bash ./.ci/test_template.sh
 
 
-    # style stage
-    - if [ "$TEST_STYLE"x != "x" ]; then pip install pylint flake8; fi;
-    - if [ "$TEST_STYLE"x != "x" ]; then flake8                           fsleyes_widgets || true; fi;
-    - if [ "$TEST_STYLE"x != "x" ]; then pylint --output-format=colorized fsleyes_widgets || true; fi;
-    - if [ "$TEST_STYLE"x != "x" ]; then exit 0; fi
-
-    # Run the tests.
-    - xvfb-run python setup.py test
-
+test:wxpython3:
+  stage: test
+  image: pauldmccarthy/fsleyes-py27-wxpy3-gtk2
+  <<: *test_template
 
 test:2.7:
   stage: test
-  image: ubuntu:16.04
+  image: pauldmccarthy/fsleyes-py27-wxpy4-gtk2
   <<: *test_template
-  variables:
-    PY_VERSION:  "python2.7"
-    PY_PACKAGES: "python-pip python-virtualenv"
-    PY_VENV:     "virtualenv"
-    INSTALL_WX:  "pip install --only-binary wxpython -f $WXPYTHON_UBUNTU1604_URL wxpython"
 
-
-# we use ubuntu:14.04 for python 3.4, because
-# wxpython is not available for 16.04/3.4
 test:3.4:
   stage: test
-  image: ubuntu:14.04
+  image: pauldmccarthy/fsleyes-py34-wxpy4-gtk2
   <<: *test_template
-  variables:
-    PY_VERSION:  "python3.4"
-    PY_PACKAGES: "python3-pip python3.4-venv"
-    PY_VENV:     "python3.4 -m venv"
-    INSTALL_WX:  "pip install --pre -f $WXPYTHON_UBUNTU1404_URL wxpython"
-
 
 test:3.5:
   stage: test
-  image: ubuntu:16.04
+  image: pauldmccarthy/fsleyes-py35-wxpy4-gtk2
   <<: *test_template
-  variables:
-    PY_VERSION:  "python3.5"
-    PY_PACKAGES: "python3-pip python3-venv"
-    PY_VENV:     "python3.5 -m venv"
-    INSTALL_WX:  "pip install --only-binary wxpython -f $WXPYTHON_UBUNTU1604_URL wxpython"
-
 
 test:3.6:
   stage: test
-  image: ubuntu:16.04
+  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk2
   <<: *test_template
-  variables:
-    PY_VERSION:  "python3.6"
-    PY_PACKAGES: "python3-pip python3.6-venv"
-    PY_VENV:     "python3.6 -m venv"
-    INSTALL_WX:  "pip install --only-binary wxpython -f $WXPYTHON_UBUNTU1604_URL wxpython"
 
 
 #############
@@ -306,13 +175,9 @@ test:3.6:
 
 style:
   stage: style
-  image: ubuntu:16.04
+  image: pauldmccarthy/fsleyes-py35-wxpy4-gtk2
   <<: *test_template
   variables:
-    PY_VERSION:  "python3.5"
-    PY_PACKAGES: "python3-pip python3-venv"
-    PY_VENV:     "python3.5 -m venv"
-    INSTALL_WX:  "pip install --only-binary wxpython -f $WXPYTHON_UBUNTU1604_URL wxpython"
     TEST_STYLE:  "true"
 
 
@@ -331,8 +196,7 @@ build-doc:
   image: python:3.5
 
   script:
-    - python setup.py doc
-    - mv doc/html doc/"$CI_COMMIT_REF_NAME"
+    - bash ./.ci/build_doc.sh
   artifacts:
     expire_in: 1 day
     paths:
@@ -356,9 +220,7 @@ build-dist:
     - docker
 
   script:
-   - pip install wheel
-   - python setup.py sdist
-   - python setup.py bdist_wheel
+   - bash ./.ci/build_dist.sh
 
   artifacts:
     expire_in: 1 day
@@ -385,7 +247,7 @@ deploy-doc:
     - build-doc
 
   script:
-    - rsync -rv doc/"$CI_COMMIT_REF_NAME" "docdeploy:"
+    - bash ./.ci/deploy_doc.sh
 
 
 deploy-pypi:
@@ -402,5 +264,4 @@ deploy-pypi:
     - build-dist
 
   script:
-    - pip install setuptools wheel twine
-    - twine upload dist/*
+    - bash ./.ci/deploy_pypi.sh
