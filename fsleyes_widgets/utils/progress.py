@@ -21,17 +21,18 @@ from fsleyes_widgets import isalive
 
 @contextlib.contextmanager
 def bounce(*args, **kwargs):
-    """Context manager which starts a :class:`Bounce` dialog, and closes
-    it on exit.
+    """Context manager which creates, starts and yields a :class:`Bounce`
+    dialog, and destroys it on exit.
     """
 
     dlg = Bounce(*args, **kwargs)
     dlg.StartBounce()
 
     try:
-        yield
+        yield dlg
     finally:
-        dlg.Close()
+        dlg.StopBounce()
+        dlg.Destroy()
 
 
 def runWithBounce(task, *args, **kwargs):
@@ -101,17 +102,27 @@ class Bounce(wx.ProgressDialog):
     """
 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, title=None, message=None, *args, **kwargs):
         """Create a ``Bounce`` dialog.
 
-        :arg delay:  Must be passed as a keyword argument. Delay in
-                     milliseconds between progress bar updates. Defaults to 200
-                     milliseconds.
+        :arg title:   Dialog title.
 
-        :arg values: Must be passed as a keyword argument. A sequence of values
-                     from 1 to 99 specifying the locations of the progress bar
-                     on each update. Deafults to ``[1, 25, 50, 75, 99]``.
+        :arg message: Dialog message.
+
+        :arg delay:   Must be passed as a keyword argument. Delay in
+                      milliseconds between progress bar updates. Defaults to
+                      200 milliseconds.
+
+        :arg values:  Must be passed as a keyword argument. A sequence of
+                      values from 1 to 99 specifying the locations of the
+                      progress bar on each update. Deafults to ``[1, 25, 50,
+                      75, 99]``.
+
+        All other arguments are passed through to ``wx.ProgressDialog``.
         """
+
+        if title   is None: title   = 'Title'
+        if message is None: message = 'Message'
 
         self.__delay     = kwargs.pop('delay',  200)
         self.__values    = kwargs.pop('values', [1, 25, 50, 75, 99])
@@ -119,13 +130,13 @@ class Bounce(wx.ProgressDialog):
         self.__index     = 0
         self.__bouncing  = False
 
-        wx.ProgressDialog.__init__(self, *args, **kwargs)
+        wx.ProgressDialog.__init__(self, title, message, *args, **kwargs)
 
 
+    @classmethod
     @deprecation.deprecated(deprecated_in='0.3.0',
                             removed_in='1.0.0',
                             details='Use the runWithBounce function instead')
-    @classmethod
     def runWithBounce(cls, task, *args, **kwargs):
         """Deprecated - use the standalone :func:`runWithBounce` function
         instead.
