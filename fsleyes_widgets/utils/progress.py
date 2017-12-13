@@ -10,10 +10,81 @@
 
 
 import threading
+import contextlib
+
+import deprecation
 
 import wx
 
 from fsleyes_widgets import isalive
+
+
+@contextlib.contextmanager
+def bounce(*args, **kwargs):
+    """Context manager which starts a :class:`Bounce` dialog, and closes
+    it on exit.
+    """
+
+    dlg = Bounce(*args, **kwargs)
+    dlg.StartBounce()
+
+    try:
+        yield
+    finally:
+        dlg.Close()
+
+
+def runWithBounce(task, *args, **kwargs):
+    """Runs the given ``task`` in a separate thread, and creates a
+    ``Bounce`` dialog which is displayed while the task is running.
+
+    :arg dlg:      Must be passed as a keyword argument. A ``Bounce``
+                   dialog to use. If not provided, one is created. If
+                   provided, the caller is responsible for destroying
+                   it.
+
+    :arg polltime: Must be passed as a keyword argument. Amount of time
+                   in seconds to wait while  periodically checking the
+                   task state.
+
+    All other arguments are passed through to :meth:`Bounce.__init__`,
+    unless a ``dlg`` is provided.
+
+    :returns: ``True`` if the task ended, ``False`` if the progress dialog
+               was cancelled.
+    """
+
+    polltime = kwargs.pop('polltime', 0.05)
+    dlg      = kwargs.pop('dlg',      None)
+    owndlg   = dlg is None
+
+    if dlg is None:
+        dlg = Bounce(*args, **kwargs)
+
+    thread = threading.Thread(target=task)
+    thread.daemon = True
+    thread.start()
+
+    dlg.Show()
+    dlg.StartBounce()
+
+    finished = False
+
+    while True:
+        wx.Yield()
+        thread.join(polltime)
+        wx.Yield()
+
+        if not thread.is_alive():
+            finished = True
+            break
+        if dlg.WasCancelled():
+            break
+
+    if owndlg:
+        dlg.Destroy()
+
+    return finished
 
 
 class Bounce(wx.ProgressDialog):
@@ -51,58 +122,15 @@ class Bounce(wx.ProgressDialog):
         wx.ProgressDialog.__init__(self, *args, **kwargs)
 
 
+    @deprecation.deprecated(deprecated_in='0.3.0',
+                            removed_in='1.0.0',
+                            details='Use the runWithBounce function instead')
     @classmethod
     def runWithBounce(cls, task, *args, **kwargs):
-        """Runs the given ``task`` in a separate thread, and creates a
-        ``Bounce`` dialog which is displayed while the task is running.
-
-        :arg dlg:      Must be passed as a keyword argument. A ``Bounce``
-                       dialog to use. If not provided, one is created. If
-                       provided, the caller is responsible for destroying
-                       it.
-
-        :arg polltime: Must be passed as a keyword argument. Amount of time
-                       in seconds to wait while  periodically checking the
-                       task state.
-
-        All other arguments are passed through to :meth:`Bounce.__init__`,
-        unless a ``dlg`` is provided.
-
-        :returns: ``True`` if the task ended, ``False`` if the progress dialog
-                   was cancelled.
+        """Deprecated - use the standalone :func:`runWithBounce` function
+        instead.
         """
-
-        polltime = kwargs.pop('polltime', 0.05)
-        dlg      = kwargs.pop('dlg',      None)
-        owndlg   = dlg is None
-
-        if dlg is None:
-            dlg = Bounce(*args, **kwargs)
-
-        thread = threading.Thread(target=task)
-        thread.daemon = True
-        thread.start()
-
-        dlg.Show()
-        dlg.StartBounce()
-
-        finished = False
-
-        while True:
-            wx.Yield()
-            thread.join(polltime)
-            wx.Yield()
-
-            if not thread.is_alive():
-                finished = True
-                break
-            if dlg.WasCancelled():
-                break
-
-        if owndlg:
-            dlg.Destroy()
-
-        return finished
+        return runWithBounce(task, *args, **kwargs)
 
 
     def Close(self):
