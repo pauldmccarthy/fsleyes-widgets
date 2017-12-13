@@ -21,7 +21,7 @@ def test_create():
 def _test_create():
     frame = wx.GetApp().GetTopWindow()
 
-    items    = [random.randint(1, 100) for i in range(5)]
+    items    = random.sample(range(100), 5)
     labels   = [str(i)                 for i in items]
     tooltips = ['tip: {}'.format(i)    for i in items]
     listbox  = elistbox.EditableListBox(
