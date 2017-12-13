@@ -133,8 +133,21 @@ def _test_runWithBounce():
             time.sleep(0.5)
         finished[0] = True
 
-    assert progress.Bounce.runWithBounce(func, 'Title', 'Message', delay=100)
+    assert progress.runWithBounce(func, 'Title', 'Message', delay=100)
     assert finished[0]
+
+
+def test_bounce_ctx():
+    run_with_wx(_test_bounce_ctx)
+def _test_bounce_ctx():
+
+    with progress.bounce(delay=100) as dlg:
+        val = dlg.GetValue()
+        realYield(15)
+        assert dlg.GetValue() != val
+        val = dlg.GetValue()
+        realYield(15)
+        assert dlg.GetValue() != val
 
 
 def test_runWithBounce_cancel():
