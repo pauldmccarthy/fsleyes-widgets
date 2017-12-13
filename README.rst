@@ -9,13 +9,14 @@ fsleyes-widgets
    :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets/commits/master/
 
 .. image:: https://img.shields.io/pypi/v/fsleyes-widgets.svg
-   :target: https://pypi.python.org/pypi/fsleyes-widgets/)
+   :target: https://pypi.python.org/pypi/fsleyes-widgets/
 
 
 
 The ``fsleyes-widgets`` package contains a collection of GUI widgets and
 utilities, based on `wxPython <http://www.wxpython.org>`_. These widgets are
-used by ``fsleyes-props`` and ``fsleyes``.
+used by `fsleyes-props <https://git.fmrib.ox.ac.uk/fsl/fsleyes/props>`_ and
+`FSLeyes <https://git.fmrib.ox.ac.uk/fsl/fsleyes/fsleyes>`_,
 
 
 All of the dependencies of ``fsleyes-widgets`` are listed in the
