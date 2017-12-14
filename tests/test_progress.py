@@ -126,15 +126,27 @@ def test_runWithBounce():
     run_with_wx(_test_runWithBounce)
 def _test_runWithBounce():
 
-    finished = [False]
+
+    finished  = [False]
+    completed = [False]
 
     def func():
         for i in range(5):
             time.sleep(0.5)
         finished[0] = True
 
-    assert progress.runWithBounce(func, 'Title', 'Message', delay=100)
-    assert finished[0]
+    def callback(comp):
+        completed[0] = comp
+
+    progress.runWithBounce(func,
+                           'Title',
+                           'Message',
+                           delay=100,
+                           callback=callback)
+
+    realYield(350)
+
+    assert finished[0] and completed[0]
 
 
 def test_bounce_ctx():
@@ -154,13 +166,33 @@ def test_runWithBounce_cancel():
     run_with_wx(_test_runWithBounce_cancel)
 def _test_runWithBounce_cancel():
 
+    finished       = [False]
+    completed      = [True]
+    cancelledcalls = [0]
+
     def func():
         for i in range(10):
             time.sleep(1)
 
+        finished[0] = True
+
+    def callback(comp):
+        completed[0] = comp
+
+    def WasCancelled(s):
+        if cancelledcalls[0] > 10:
+            return True
+        else:
+            cancelledcalls[0] += 1
+            return False
+
     dlg = progress.Bounce('Title', 'message', style=wx.PD_CAN_ABORT)
 
-    with mock.patch('wx.ProgressDialog.WasCancelled', return_value=True):
-        assert not progress.Bounce.runWithBounce(func, dlg=dlg)
+    with mock.patch('wx.ProgressDialog.WasCancelled',
+                    WasCancelled):
+        progress.runWithBounce(func, dlg=dlg, callback=callback)
+        realYield(200)
 
     dlg.Destroy()
+
+    assert not finished[0] and not completed[0]
