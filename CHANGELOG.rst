@@ -2,14 +2,16 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.3.0 (Under development)
--------------------------
+0.3.0 (Thursday December 14th 2017)
+-----------------------------------
 
 
 * New :func:`.progress.bounce` function which allows a :class:`.Bounce`
   dialog to be used within a context manager.
 * Deprecated the :meth:`.Bounce.runWithBounce` method, in favour of a
-  new standalone function :func:`.progress.runWithBounce`.
+  new standalone :func:`.progress.runWithBounce` function.
+* :func:`.progress.runWithBounce` modified to be non-blocking, as
+  ``wx.Yield`` loops are very unreliable.
 
 
 0.2.1 (Monday December 5th 2017)
