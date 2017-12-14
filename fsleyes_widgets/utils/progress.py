@@ -68,29 +68,30 @@ def runWithBounce(task, *args, **kwargs):
     if dlg is None:
         dlg = Bounce(*args, **kwargs)
 
-    thread = threading.Thread(target=task)
+    timer         = wx.Timer(dlg)
+    thread        = threading.Thread(target=task)
     thread.daemon = True
-    thread.start()
-
-    dlg.Show()
-    dlg.StartBounce()
 
     def realCallback(completed):
         dlg.StopBounce()
+        timer.Stop()
         if callback is not None:
             callback(completed)
         if owndlg:
             dlg.Destroy()
 
-    def poll():
+    def poll(ev):
         if not thread.is_alive():
             realCallback(True)
         elif dlg.WasCancelled():
             realCallback(False)
         else:
-            wx.CallLater(polltime * 1000, poll)
+            dlg.DoBounce()
 
-    wx.CallLater(polltime * 1000, poll)
+    thread.start()
+    timer.Start(polltime * 1000, wx.TIMER_CONTINUOUS)
+    dlg.Bind(wx.EVT_TIMER, poll)
+    dlg.Show()
 
 
 class Bounce(wx.ProgressDialog):
