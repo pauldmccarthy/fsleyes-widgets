@@ -39,24 +39,30 @@ def runWithBounce(task, *args, **kwargs):
     """Runs the given ``task`` in a separate thread, and creates a
     ``Bounce`` dialog which is displayed while the task is running.
 
-    :arg dlg:      Must be passed as a keyword argument. A ``Bounce``
-                   dialog to use. If not provided, one is created. If
-                   provided, the caller is responsible for destroying
-                   it.
+    :arg callback: Must be passed as a keyword argument. A function to call
+                   when the ``task`` has finished. Must accept one boolean
+                   parameter which is ``True`` if the task ended, or ``False``
+                   if the progress dialog was cancelled.
 
-    :arg polltime: Must be passed as a keyword argument. Amount of time
-                   in seconds to wait while  periodically checking the
-                   task state.
+    :arg dlg: Must be passed as a keyword argument. A ``Bounce`` dialog to
+                   use. If not provided, one is created. If provided, the
+                   caller is responsible for destroying it.
+
+    :arg polltime: Must be passed as a keyword argument. Amount of time in
+                   seconds to wait while periodically checking the task
+                   state. Defaults to 0.1 seconds.
 
     All other arguments are passed through to :meth:`Bounce.__init__`,
     unless a ``dlg`` is provided.
 
-    :returns: ``True`` if the task ended, ``False`` if the progress dialog
-               was cancelled.
+    .. note:: This function is non-blocking - it returns immediately. Use
+              the ``callback`` function to be notified when the ``task``
+              has completed.
     """
 
-    polltime = kwargs.pop('polltime', 0.05)
     dlg      = kwargs.pop('dlg',      None)
+    polltime = kwargs.pop('pollTime', 0.1)
+    callback = kwargs.pop('callback', None)
     owndlg   = dlg is None
 
     if dlg is None:
@@ -69,23 +75,22 @@ def runWithBounce(task, *args, **kwargs):
     dlg.Show()
     dlg.StartBounce()
 
-    finished = False
+    def realCallback(completed):
+        dlg.StopBounce()
+        if callback is not None:
+            callback(completed)
+        if owndlg:
+            dlg.Destroy()
 
-    while True:
-        wx.Yield()
-        thread.join(polltime)
-        wx.Yield()
-
+    def poll():
         if not thread.is_alive():
-            finished = True
-            break
-        if dlg.WasCancelled():
-            break
+            realCallback(True)
+        elif dlg.WasCancelled():
+            realCallback(False)
+        else:
+            wx.CallLater(polltime * 1000, poll)
 
-    if owndlg:
-        dlg.Destroy()
-
-    return finished
+    wx.CallLater(polltime * 1000, poll)
 
 
 class Bounce(wx.ProgressDialog):
