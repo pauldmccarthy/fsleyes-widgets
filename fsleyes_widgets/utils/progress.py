@@ -75,10 +75,10 @@ def runWithBounce(task, *args, **kwargs):
     def realCallback(completed):
         dlg.StopBounce()
         timer.Stop()
-        if callback is not None:
-            callback(completed)
         if owndlg:
             dlg.Destroy()
+        if callback is not None:
+            callback(completed)
 
     def poll(ev):
         if not thread.is_alive():
