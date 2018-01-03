@@ -2,6 +2,13 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.3.3 (Under development)
+-------------------------
+
+
+* The :class:`.Notebook` class allows its style and border to be customised.
+
+
 0.3.2 (Tuesday January 2nd 2018)
 --------------------------------
 
