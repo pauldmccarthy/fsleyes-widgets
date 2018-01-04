@@ -2,7 +2,7 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.3.3 (Under development)
+0.4.0 (Under development)
 -------------------------
 
 
