@@ -11,7 +11,7 @@ similar to the :class:`wx.Notebook`.
 
 
 import wx
-import wx.lib.stattext as statictext
+import fsleyes_widgets.textpanel as textpanel
 
 
 class Notebook(wx.Panel):
@@ -28,8 +28,12 @@ class Notebook(wx.Panel):
         """Create a :class:`Notebook` object.
 
         The side on which the notebook page buttons will be displayed can be
-        controlled by setting one of ``wx.TOP``, ``wx.BOTTOM``, ``wx.LEFT``,
-        or ``wx.RIGHT`` on the style flags.
+        controlled by setting one of ``wx.TOP`` (the default), ``wx.BOTTOM``,
+        ``wx.LEFT``, or ``wx.RIGHT`` on the ``style`` flags.
+
+        The orientation of the page buttons can be set to either horizontal
+        (the default) or vertical by setting one of ``wx.HORIZONTAL`` or
+        ``wx.VERTICAL`` on the ``style`` flags.
 
         :arg parent: The :mod:`wx` parent object.
 
@@ -63,15 +67,17 @@ class Notebook(wx.Panel):
 
         wx.Panel.__init__(self, parent, style=style)
 
-        self.__border       = border
-        self.__borderflags  = borderflags
-        self.__btnside      = btnside
-        self.__btnorient    = btnorient
-        self.__invbtnorient = invbtnorient
-        self.__textorient   = textorient
-        self.__buttonPanel  = wx.Panel(self)
-        self.__sizer        = wx.BoxSizer(invbtnorient)
-        self.__buttonSizer  = wx.BoxSizer(btnorient)
+        self.__border        = border
+        self.__borderflags   = borderflags
+        self.__btnside       = btnside
+        self.__btnorient     = btnorient
+        self.__invbtnorient  = invbtnorient
+        self.__textorient    = textorient
+        self.__defaultColour = None
+        self.__selectColour  = '#ffffff'
+        self.__buttonPanel   = wx.Panel(self)
+        self.__sizer         = wx.BoxSizer(invbtnorient)
+        self.__buttonSizer   = wx.BoxSizer(btnorient)
 
         self.              SetSizer(self.__sizer)
         self.__buttonPanel.SetSizer(self.__buttonSizer)
@@ -137,6 +143,17 @@ class Notebook(wx.Panel):
         self.SetMinSize((myWidth, myHeight))
 
 
+    def SetButtonColours(self, default, selected):
+        """Set the colours used for the notebook page buttons. Set either
+        colour to ``None`` to use the default colours.
+        """
+        if selected is None:
+            selected = '#ffffff'
+
+        self.__defaultColour = default
+        self.__selectColour  = selected
+
+
     def FindPage(self, page):
         """Returns the index of the given page, or :data:`wx.NOT_FOUND`
         if the page is not in this notebook.
@@ -157,8 +174,10 @@ class Notebook(wx.Panel):
         # index * 2 because we add a vertical
         # line after every button (and + 1 for
         # the line at the start of the button row)
-        button    = statictext.GenStaticText(self.__buttonPanel, label=text)
         buttonIdx = index * 2 + 1
+        button    = textpanel.TextPanel(self.__buttonPanel,
+                                        text,
+                                        orient=self.__textorient)
 
         self.__pages.  insert(index, page)
         self.__buttons.insert(index, button)
@@ -267,10 +286,10 @@ class Notebook(wx.Panel):
             showThis = i == self.__selected
 
             if showThis:
-                button.SetBackgroundColour('#ffffff')
+                button.SetBackgroundColour(self.__selectColour)
                 page.Show()
             else:
-                button.SetBackgroundColour(None)
+                button.SetBackgroundColour(self.__defaultColour)
                 page.Hide()
 
         button.Layout()
