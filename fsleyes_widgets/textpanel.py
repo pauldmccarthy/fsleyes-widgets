@@ -104,6 +104,9 @@ class TextPanel(TextPanelBase):
     def Draw(self, ev=None):
         """Draws this ``TextPanel``. """
 
+        bg = self.GetBackgroundColour()
+        fg = self.GetForegroundColour()
+
         self.ClearBackground()
 
         if self.__text is None or self.__text == '':
@@ -114,6 +117,10 @@ class TextPanel(TextPanelBase):
 
         if not dc.IsOk():
             return
+
+        dc.SetBackground(wx.Brush(bg))
+        dc.SetTextForeground(fg)
+        dc.Clear()
 
         paneW, paneH = dc.GetSize().Get()
         textW, textH = self.__size
