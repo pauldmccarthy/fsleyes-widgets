@@ -17,7 +17,7 @@ import wx.lib.stattext as statictext
 class Notebook(wx.Panel):
     """A :class:`wx.Panel` which provides :class:`wx.Notebook`-like
     functionality. Manages the display of multiple child windows. A row of
-    buttons along the top allows the user to select which child window to
+    buttons along one side allows the user to select which child window to
     display.
 
     This :class:`Notebook` implementation supports page enabling/disabling, and
@@ -27,45 +27,78 @@ class Notebook(wx.Panel):
     def __init__(self, parent, style=None, border=5):
         """Create a :class:`Notebook` object.
 
+        The side on which the notebook page buttons will be displayed can be
+        controlled by setting one of ``wx.TOP``, ``wx.BOTTOM``, ``wx.LEFT``,
+        or ``wx.RIGHT`` on the style flags.
+
         :arg parent: The :mod:`wx` parent object.
+
         :arg style:  Passed to ``wx.Panel.__init__``. If not provided,
-                     defaults to ``wx.SUNKEN_BORDER``.
+                     defaults to ``wx.TOP | wx.HORIZONTAL | wx.SUNKEN_BORDER``.
+
         :arg border: Border (in pixels) around pages. Defaults to 5.
         """
 
         if style is None:
-            style = wx.SUNKEN_BORDER
+            style = wx.TOP | wx.HORIZONTAL | wx.SUNKEN_BORDER
+
+        if   style & wx.LEFT:   btnside = wx.LEFT
+        elif style & wx.RIGHT:  btnside = wx.RIGHT
+        elif style & wx.BOTTOM: btnside = wx.BOTTOM
+        else:                   btnside = wx.TOP
+
+        if style & wx.VERTICAL: textorient = wx.VERTICAL
+        else:                   textorient = wx.HORIZONTAL
+
+        if btnside in (wx.TOP, wx.BOTTOM):
+            btnorient    = wx.HORIZONTAL
+            invbtnorient = wx.VERTICAL
+            borderflags  = btnside | wx.LEFT | wx.RIGHT
+        else:
+            btnorient    = wx.VERTICAL
+            invbtnorient = wx.HORIZONTAL
+            borderflags  = btnside | wx.TOP | wx.BOTTOM
+
+        style &= (~textorient & ~btnside)
 
         wx.Panel.__init__(self, parent, style=style)
 
-        self.__border      = border
-        self.__buttonPanel = wx.Panel(self)
-        self.__sizer       = wx.BoxSizer(wx.VERTICAL)
-        self.__buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.__border       = border
+        self.__borderflags  = borderflags
+        self.__btnside      = btnside
+        self.__btnorient    = btnorient
+        self.__invbtnorient = invbtnorient
+        self.__textorient   = textorient
+        self.__buttonPanel  = wx.Panel(self)
+        self.__sizer        = wx.BoxSizer(invbtnorient)
+        self.__buttonSizer  = wx.BoxSizer(btnorient)
 
         self.              SetSizer(self.__sizer)
         self.__buttonPanel.SetSizer(self.__buttonSizer)
 
-        self.__dividerLine = wx.StaticLine(self, style=wx.LI_HORIZONTAL)
-
-        # a row of buttons along the top
-        self.__sizer.Add(
-            self.__buttonPanel,
-            border=self.__border,
-            flag=wx.EXPAND | wx.ALIGN_CENTER | wx.TOP | wx.RIGHT | wx.LEFT)
+        self.__dividerLine = wx.StaticLine(self, style=btnorient)
 
         # a horizontal line separating the buttons from the pages
         self.__sizer.Add(
             self.__dividerLine,
             border=self.__border,
-            flag=wx.EXPAND | wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT)
+            flag=wx.EXPAND | wx.ALIGN_CENTER | borderflags & ~btnside)
+
+        # a row of buttons for each page
+        if btnside in (wx.TOP, wx.LEFT): idx = 0
+        else:                            idx = 1
+        self.__sizer.Insert(
+            idx,
+            self.__buttonPanel,
+            border=self.__border,
+            flag=wx.EXPAND | wx.ALIGN_CENTER | self.__borderflags)
 
         # a vertical line at the start of the button row
         self.__buttonSizer.Insert(
             0,
-            wx.StaticLine(self.__buttonPanel, style=wx.VERTICAL),
+            wx.StaticLine(self.__buttonPanel, style=invbtnorient),
             border=3,
-            flag=wx.EXPAND | wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT | wx.TOP)
+            flag=wx.EXPAND | wx.ALIGN_CENTER | borderflags)
 
         self.__pages    = []
         self.__buttons  = []
@@ -80,19 +113,26 @@ class Notebook(wx.Panel):
         size of the button panel.
         """
 
+        btnside = self.__btnside
+        border  = self.__border
+
         buttonSize = self.__buttonPanel.GetBestSize()
         pageSizes  = [p.GetBestSize() for p in self.__pages]
 
         buttonWidth  = buttonSize[0]
         buttonHeight = buttonSize[1]
 
-        divLineHeight = self.__dividerLine.GetMinSize()[0]
+        divLineWidth, divLineHeight = self.__dividerLine.GetMinSize()
 
         pageWidths  = [ps[0] for ps in pageSizes]
         pageHeights = [ps[1] for ps in pageSizes]
 
-        myWidth  = max([buttonWidth] + pageWidths)                 + 20
-        myHeight = max(pageHeights) + buttonHeight + divLineHeight + 20
+        if btnside in (wx.TOP, wx.BOTTOM):
+            myWidth  = max([buttonWidth] + pageWidths)                 + border
+            myHeight = max(pageHeights) + buttonHeight + divLineHeight + border
+        else:
+            myWidth  = max(pageWidths) + buttonWidth + divLineWidth + border
+            myHeight = max([buttonHeight] + pageHeights)            + border
 
         self.SetMinSize((myWidth, myHeight))
 
@@ -125,8 +165,10 @@ class Notebook(wx.Panel):
 
         # index + 2 to account for the button panel and
         # the horizontal divider line (see __init__)
+        if self.__btnside in (wx.TOP, wx.LEFT):
+            index = index + 2
         self.__sizer.Insert(
-            index + 2,
+            index,
             page,
             border=self.__border,
             flag=wx.EXPAND | wx.ALL, proportion=1)
@@ -139,9 +181,9 @@ class Notebook(wx.Panel):
         # A vertical line at the end of every button
         self.__buttonSizer.Insert(
             buttonIdx + 1,
-            wx.StaticLine(self.__buttonPanel, style=wx.VERTICAL),
+            wx.StaticLine(self.__buttonPanel, style=self.__invbtnorient),
             border=3,
-            flag=wx.EXPAND | wx.ALIGN_CENTER | wx.LEFT | wx.RIGHT | wx.TOP)
+            flag=wx.EXPAND | wx.ALIGN_CENTER | self.__borderflags)
 
         # When the button is pushed, show the page
         # (unless the button has been disabled)
