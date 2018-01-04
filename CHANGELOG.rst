@@ -6,7 +6,9 @@ chronological order.
 -------------------------
 
 
-* The :class:`.Notebook` class allows its style and border to be customised.
+* The :class:`.TextPanel` class now honours background and foreground colours.
+* The :class:`.Notebook` class now allows customisation of its style, border,
+  and button side, orientation and colours.
 
 
 0.3.2 (Tuesday January 2nd 2018)
