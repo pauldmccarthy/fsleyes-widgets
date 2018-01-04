@@ -1231,6 +1231,7 @@ class EditableListBox(wx.Panel):
                 editCtrl.Destroy()
                 sizer.Show(listItem.labelWidget, True)
                 sizer.Layout()
+                self.Refresh()
 
             wx.CallAfter(_onFinish)
 
