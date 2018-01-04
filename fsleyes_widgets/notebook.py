@@ -73,6 +73,7 @@ class Notebook(wx.Panel):
         self.__btnorient     = btnorient
         self.__invbtnorient  = invbtnorient
         self.__textorient    = textorient
+        self.__textColour    = None
         self.__defaultColour = None
         self.__selectColour  = '#ffffff'
         self.__buttonPanel   = wx.Panel(self)
@@ -143,15 +144,30 @@ class Notebook(wx.Panel):
         self.SetMinSize((myWidth, myHeight))
 
 
-    def SetButtonColours(self, default, selected):
-        """Set the colours used for the notebook page buttons. Set either
-        colour to ``None`` to use the default colours.
-        """
-        if selected is None:
-            selected = '#ffffff'
+    def SetButtonColours(self, **kwargs):
+        """Set the colours used for the notebook page buttons. Set any colour
+        to ``None`` to use the default colours.  All arguments must be passed
+        as keyword arguments.
 
+        :arg text:     Text colour
+        :arg default:  Default (unselected) background colour.
+        :arg selected: Selected background colour.
+        """
+
+        text     = kwargs.pop('text',     None)
+        default  = kwargs.pop('default',  None)
+        selected = kwargs.pop('selected', '#ffffff')
+
+        self.__textColour    = text
         self.__defaultColour = default
         self.__selectColour  = selected
+
+        self.SetSelection(self.GetSelection())
+
+
+    def PageCount(self):
+        """Returns the number of pages in this ``Notebook``. """
+        return len(self.__pages)
 
 
     def FindPage(self, page):
@@ -274,6 +290,9 @@ class Notebook(wx.Panel):
     def SetSelection(self, index):
         """Sets the displayed page to the one at the specified index."""
 
+        if self.PageCount() == 0:
+            return
+
         if index < 0 or index >= len(self.__pages):
             raise IndexError('Index out of range: {}'.format(index))
 
@@ -284,6 +303,8 @@ class Notebook(wx.Panel):
             page     = self.__pages[  i]
             button   = self.__buttons[i]
             showThis = i == self.__selected
+
+            button.SetForegroundColour(self.__textColour)
 
             if showThis:
                 button.SetBackgroundColour(self.__selectColour)
