@@ -2,8 +2,8 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.4.0 (Under development)
--------------------------
+0.4.0 (Monday January 8th 2017)
+-------------------------------
 
 
 * The :class:`.TextPanel` class now honours background and foreground colours.
