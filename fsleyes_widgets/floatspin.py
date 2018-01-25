@@ -151,10 +151,10 @@ class FloatSpinCtrl(FloatSpinBase):
 
         if self.__integer:
             self.__format      = '{:d}'
-            self.__textPattern = re.compile('^-?[0-9]*$')
+            self.__textPattern = re.compile(r'^-?[0-9]*$')
         else:
             self.__format      = '{:.7G}'
-            self.__textPattern = re.compile('^-?[0-9]*\.?[0-9]*$')
+            self.__textPattern = re.compile(r'^-?[0-9]*\.?[0-9]*$')
 
         # Events on key down, enter, focus
         # lost, and on the spin control
