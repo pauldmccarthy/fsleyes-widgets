@@ -2,6 +2,13 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.4.1 (Thursday 25th January 2017)
+----------------------------------
+
+
+* Minor internal adjustment to the :class:`.FloatSpin` class.
+
+
 0.4.0 (Monday January 8th 2017)
 -------------------------------
 
