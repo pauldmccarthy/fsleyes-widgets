@@ -2,23 +2,25 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.5.0 (Under development)
--------------------------
+0.5.0 (Monday February 26th 2018)
+---------------------------------
 
 
 * The :class:`.Notebook` class now emits an :data:`.EVT_PAGE_CHANGED` event
   when the selected page is changed.
-*
+* Various bug-fixes to the :class:`.Notebook` class.
+* :class:`.FloatSpinCtrl` widgets should now accept numbers in scientific
+  notation.
 
 
-0.4.1 (Thursday January 25th 2017)
+0.4.1 (Thursday January 25th 2018)
 ----------------------------------
 
 
 * Minor internal adjustment to the :class:`.FloatSpin` class.
 
 
-0.4.0 (Monday January 8th 2017)
+0.4.0 (Monday January 8th 2018)
 -------------------------------
 
 
