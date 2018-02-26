@@ -64,7 +64,7 @@ def run_with_wx(func, *args, **kwargs):
     raised = [None]
 
     app    = [wx.App()]
-    frame  = wx.Frame(None)
+    frame  = [wx.Frame(None)]
 
     if callAfterApp is not None:
         callAfterApp()
@@ -81,11 +81,11 @@ def run_with_wx(func, *args, **kwargs):
 
         finally:
             def finish():
-                frame.Destroy()
+                frame[0].Destroy()
                 app[0].ExitMainLoop()
             wx.CallLater(finishingDelay, finish)
 
-    frame.Show()
+    frame[0].Show()
 
     wx.CallLater(startingDelay, wrap)
 
@@ -97,6 +97,7 @@ def run_with_wx(func, *args, **kwargs):
         raise raised[0]
 
     del app[0]
+    del frame[0]
 
     return result[0]
 
