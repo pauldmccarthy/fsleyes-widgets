@@ -10,7 +10,6 @@ modifying a floating point value.
 """
 
 
-import re
 import time
 import logging
 
@@ -149,12 +148,8 @@ class FloatSpinCtrl(FloatSpinBase):
             self.__text.SetMinSize((width + 10, -1))
             self.__text.SetMaxSize((width + 10, -1))
 
-        if self.__integer:
-            self.__format      = '{:d}'
-            self.__textPattern = re.compile(r'^-?[0-9]*$')
-        else:
-            self.__format      = '{:.7G}'
-            self.__textPattern = re.compile(r'^-?[0-9]*\.?[0-9]*$')
+        if self.__integer: self.__format = '{:d}'
+        else:              self.__format = '{:.7G}'
 
         # Events on key down, enter, focus
         # lost, and on the spin control
@@ -375,10 +370,6 @@ class FloatSpinCtrl(FloatSpinBase):
         """
 
         val = self.__text.GetValue().strip()
-
-        if self.__textPattern.match(val) is None:
-            self.SetValue(self.__value)
-            return
 
         log.debug('Spin text - attempting to change value '
                   'from {} to {}'.format(self.__value, val))
