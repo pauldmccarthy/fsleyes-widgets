@@ -21,9 +21,16 @@ import fsleyes_widgets.notebook as nb
 
 
 def nb_run_with_wx(func):
-    for side, ornt in it.product((wx.HORIZONTAL, wx.VERTICAL),
-                                 (wx.LEFT, wx.RIGHT, wx.TOP, wx.BOTTOM)):
-        run_with_wx(func, side, ornt)
+    def wrapper():
+
+        frame = wx.GetApp().GetTopWindow()
+
+        for side, ornt in it.product((wx.HORIZONTAL, wx.VERTICAL),
+                                     (wx.LEFT, wx.RIGHT, wx.TOP, wx.BOTTOM)):
+            func(side, ornt)
+            frame.DestroyChildren()
+
+    run_with_wx(wrapper)
 
 
 def test_setColours():
@@ -45,7 +52,12 @@ def test_add_remove():
 def _test_add_remove(side, ornt):
 
     frame    = wx.GetApp().GetTopWindow()
+    sizer    = wx.BoxSizer(wx.VERTICAL)
     notebook = nb.Notebook(frame, style=side | ornt)
+
+    sizer.Add(notebook)
+    frame.SetSizer(sizer)
+    frame.Layout()
 
     # the notebook should reset the page parent
     page1 = wx.Panel(frame)
@@ -64,6 +76,8 @@ def _test_add_remove(side, ornt):
     assert notebook.PageCount() == 2
     notebook.InsertPage(1, page2, 'page2')
     assert notebook.PageCount() == 3
+
+    realYield()
 
     with pytest.raises(IndexError):
         notebook.RemovePage(-1)
@@ -93,9 +107,12 @@ def _test_add_remove(side, ornt):
     assert notebook.FindPage(page2) == wx.NOT_FOUND
     assert notebook.FindPage(page3) == wx.NOT_FOUND
 
+    realYield()
+
     assert     isalive(page1)
     assert     isalive(page2)
     assert not isalive(page3)
+    return None
 
 
 def test_selection():
