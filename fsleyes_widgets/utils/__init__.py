@@ -62,7 +62,7 @@ def isalive(widget):
     wxver = wxversion()
 
     if wxver == WX_PHOENIX:
-        excTypes = (ValueError,)
+        excTypes = (RuntimeError,)
     else:
         excTypes = (wx.PyDeadObjectError,)
 
