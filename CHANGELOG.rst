@@ -2,6 +2,14 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+
+0.5.1 (Monday February 26th 2018)
+---------------------------------
+
+
+* Small adjustment to the :class:`.Notebook` minimum size calculation.
+
+
 0.5.0 (Monday February 26th 2018)
 ---------------------------------
 
