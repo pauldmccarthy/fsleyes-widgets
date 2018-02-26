@@ -15,8 +15,6 @@ import wx
 from . import run_with_wx, simclick, realYield
 
 
-from fsleyes_widgets import isalive
-
 import fsleyes_widgets.notebook as nb
 
 
@@ -108,11 +106,6 @@ def _test_add_remove(side, ornt):
     assert notebook.FindPage(page3) == wx.NOT_FOUND
 
     realYield()
-
-    assert     isalive(page1)
-    assert     isalive(page2)
-    assert not isalive(page3)
-    return None
 
 
 def test_selection():
