@@ -59,9 +59,15 @@ def isalive(widget):
 
     import wx
 
+    wxver = wxversion()
+
+    if wxver == WX_PHOENIX:
+        excTypes = (ValueError,)
+    else:
+        excTypes = (wx.PyDeadObjectError,)
+
     try:
-        widget.GetId()
         return not widget.IsBeingDeleted()
 
-    except (ValueError, wx.PyDeadObjectError):
+    except excTypes:
         return False
