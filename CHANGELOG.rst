@@ -2,7 +2,16 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.4.1 (Thursday 25th January 2017)
+0.5.0 (Under development)
+-------------------------
+
+
+* The :class:`.Notebook` class now emits an :data:`.EVT_PAGE_CHANGED` event
+  when the selected page is changed.
+*
+
+
+0.4.1 (Thursday January 25th 2017)
 ----------------------------------
 
 
