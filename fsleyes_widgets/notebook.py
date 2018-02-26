@@ -10,7 +10,8 @@ similar to the :class:`wx.Notebook`.
 """
 
 
-import wx
+import                              wx
+import wx.lib.newevent           as wxevent
 import fsleyes_widgets.textpanel as textpanel
 
 
@@ -112,6 +113,22 @@ class Notebook(wx.Panel):
         self.__selected = None
 
 
+    @property
+    def pages(self):
+        """Returns a list containing references to all of the pages in this
+        ``Notebook``.
+        """
+        return list(self.__pages)
+
+
+    @property
+    def buttons(self):
+        """Returns a list containing references to all of the page buttons in
+        this ``Notebook``.
+        """
+        return list(self.__buttons)
+
+
     def __updateMinSize(self):
         """Calculate and return the best (minimum) size for this
         :class:`Notebook` instance.
@@ -131,17 +148,21 @@ class Notebook(wx.Panel):
 
         divLineWidth, divLineHeight = self.__dividerLine.GetMinSize()
 
-        pageWidths  = [ps[0] for ps in pageSizes]
-        pageHeights = [ps[1] for ps in pageSizes]
+        if len(pageSizes) > 0:
+            pageWidths  = [ps[0] for ps in pageSizes]
+            pageHeights = [ps[1] for ps in pageSizes]
+        else:
+            pageWidths  = [0]
+            pageHeights = [0]
 
         if btnside in (wx.TOP, wx.BOTTOM):
-            myWidth  = max([buttonWidth] + pageWidths)                 + border
-            myHeight = max(pageHeights) + buttonHeight + divLineHeight + border
+            myWidth  = max([buttonWidth] + pageWidths)
+            myHeight = max(pageHeights) + buttonHeight + divLineHeight
         else:
-            myWidth  = max(pageWidths) + buttonWidth + divLineWidth + border
-            myHeight = max([buttonHeight] + pageHeights)            + border
+            myWidth  = max(pageWidths) + buttonWidth + divLineWidth
+            myHeight = max([buttonHeight] + pageHeights)
 
-        self.SetMinSize((myWidth, myHeight))
+        self.SetMinSize((myWidth + border, myHeight + border))
 
 
     def SetButtonColours(self, **kwargs):
@@ -162,7 +183,8 @@ class Notebook(wx.Panel):
         self.__defaultColour = default
         self.__selectColour  = selected
 
-        self.SetSelection(self.GetSelection())
+        if self.PageCount() > 0:
+            self.SetSelection(self.GetSelection())
 
 
     def PageCount(self):
@@ -187,13 +209,19 @@ class Notebook(wx.Panel):
         if (index > len(self.__pages)) or (index < 0):
             raise IndexError('Index out of range: {}'.format(index))
 
+        page.Reparent(self)
+
         # index * 2 because we add a vertical
         # line after every button (and + 1 for
-        # the line at the start of the button row)
+        # the line at the start of the button
+        # row). We set the button ID to be its
+        # index, so the event handler can look
+        # up the corresponding notebook page.
         buttonIdx = index * 2 + 1
         button    = textpanel.TextPanel(self.__buttonPanel,
                                         text,
-                                        orient=self.__textorient)
+                                        orient=self.__textorient,
+                                        id=index)
 
         self.__pages.  insert(index, page)
         self.__buttons.insert(index, button)
@@ -220,13 +248,7 @@ class Notebook(wx.Panel):
             border=3,
             flag=wx.EXPAND | wx.ALIGN_CENTER | self.__borderflags)
 
-        # When the button is pushed, show the page
-        # (unless the button has been disabled)
-        def _showPage(ev):
-            if not button.IsEnabled(): return
-            self.SetSelection(self.FindPage(page))
-
-        button.Bind(wx.EVT_LEFT_DOWN, _showPage)
+        button.Bind(wx.EVT_LEFT_DOWN, self.__onButton)
 
         if self.__selected is None:
             self.__selected = 0
@@ -254,7 +276,11 @@ class Notebook(wx.Panel):
             raise IndexError('Index out of range: {}'.format(index))
 
         buttonIdx = index * 2 + 1
-        pageIdx   = index + 2
+
+        if self.__btnside in (wx.TOP, wx.LEFT):
+            pageIdx = index + 2
+        else:
+            pageIdx = index
 
         self.__buttons.pop(index)
         self.__pages  .pop(index)
@@ -262,14 +288,20 @@ class Notebook(wx.Panel):
         # Destroy the button for this page (and the
         # vertical line that comes after the button)
         self.__buttonSizer.Remove(buttonIdx)
-        self.__buttonSizer.Remove(buttonIdx + 1)
+        self.__buttonSizer.Remove(buttonIdx)
 
         # Remove the page but do not destroy it
-        self.__pagePanel.Detach(pageIdx)
+        self.__sizer.Detach(pageIdx)
 
-        if len(self.__pages) == 0:
-            self.__selected = None
+        npages = self.PageCount()
+        newsel = self.__selected
 
+        if npages == 0:
+            newsel = None
+        elif newsel >= npages:
+            newsel = npages - 1
+
+        self.SetSelection(newsel)
         self.__updateMinSize()
 
 
@@ -283,7 +315,9 @@ class Notebook(wx.Panel):
 
 
     def GetSelection(self):
-        """Returns the index of the currently selected page."""
+        """Returns the index of the currently selected page, or ``None`` if
+        there are no pages.
+        """
         return self.__selected
 
 
@@ -291,6 +325,7 @@ class Notebook(wx.Panel):
         """Sets the displayed page to the one at the specified index."""
 
         if self.PageCount() == 0:
+            self.__selected = None
             return
 
         if index < 0 or index >= len(self.__pages):
@@ -334,7 +369,7 @@ class Notebook(wx.Panel):
             if self.__buttons[newSelection].IsEnabled():
                 break
 
-            newSelection = (self.__selected + offset) % len(self.__pages)
+            newSelection = (newSelection + offset) % len(self.__pages)
 
         self.SetSelection(newSelection)
 
@@ -377,3 +412,34 @@ class Notebook(wx.Panel):
 
         self.__buttonPanel.Layout()
         self.__buttonPanel.Refresh()
+
+
+    def __onButton(self, ev):
+        """Called when a page button is pushed. Selects the respective page,
+        and emits a :data:`PageChangeEvent`.
+        """
+
+        button  = ev.GetEventObject()
+        pageIdx = button.GetId()
+
+        if not button.IsEnabled():             return
+        if     self.GetSelection() == pageIdx: return
+
+        self.SetSelection(pageIdx)
+
+        wx.PostEvent(self, PageChangeEvent(index=pageIdx))
+
+
+_PageChangeEvent, _EVT_PAGE_CHANGE = wxevent.NewEvent()
+
+
+EVT_PAGE_CHANGE = _EVT_PAGE_CHANGE
+"""Identifier for the :data:`PageChangeEvent` event. """
+
+
+PageChangeEvent = _PageChangeEvent
+"""Event emitted when the page is changed by the user. A ``PageChangeEvent``
+has the following attributes:
+
+  - ``index`` The index of the page that was selected.
+"""

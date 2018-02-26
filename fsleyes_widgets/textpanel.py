@@ -23,7 +23,7 @@ class TextPanel(TextPanelBase):
     text, oriented either horizotnally or vertically.
     """
 
-    def __init__(self, parent, text=None, orient=wx.HORIZONTAL):
+    def __init__(self, parent, text=None, orient=wx.HORIZONTAL, **kwargs):
         """Create a ``TextPanel``.
 
         :arg parent: The :mod:`wx` parent object.
@@ -34,8 +34,10 @@ class TextPanel(TextPanelBase):
         :arg orient: Text orientation - either ``wx.HORIZONTAL`` (the
                      default) or ``wx.VERTICAL``. This can be changed
                      later via :meth:`SetOrient`.
+
+        All other arguments are passed through to ``wx.Panel.__init__`` .
         """
-        TextPanelBase.__init__(self, parent)
+        TextPanelBase.__init__(self, parent, **kwargs)
 
         self.Bind(wx.EVT_PAINT, self.Draw)
         self.Bind(wx.EVT_SIZE,  self.__onSize)
