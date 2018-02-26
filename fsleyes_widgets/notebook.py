@@ -162,7 +162,11 @@ class Notebook(wx.Panel):
             myWidth  = max(pageWidths) + buttonWidth + divLineWidth
             myHeight = max([buttonHeight] + pageHeights)
 
-        self.SetMinSize((myWidth + border, myHeight + border))
+        # The border is applied once to
+        # the button panel, and on both
+        # sides of the page. And we add
+        # two 2 for good luck.
+        self.SetMinSize((myWidth + border, myHeight + border * 3 + 2))
 
 
     def SetButtonColours(self, **kwargs):
