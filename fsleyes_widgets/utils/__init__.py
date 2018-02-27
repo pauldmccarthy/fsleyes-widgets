@@ -67,7 +67,11 @@ def isalive(widget):
         excTypes = (wx.PyDeadObjectError,)
 
     try:
-        return not widget.IsBeingDeleted()
+        if hasattr(widget, 'IsBeingDeleted'):
+            return not widget.IsBeingDeleted()
+        else:
+            widget.GetParent()
+            return True
 
     except excTypes:
         return False
