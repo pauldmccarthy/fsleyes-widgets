@@ -2,6 +2,13 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.5.2 (Tuesday February 27th 2018)
+----------------------------------
+
+
+* Fixed a regression in the :func:`.isalive` function.
+
+
 
 0.5.1 (Monday February 26th 2018)
 ---------------------------------
