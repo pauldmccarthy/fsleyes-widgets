@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 name=$1
 version=$2
@@ -35,6 +35,6 @@ cd ..
 for pyver in 2.7 3.4 3.5 3.6; do
     conda create -y --name "test$pyver" python=$pyver
     source activate test$pyver
-    conda install -y -c file://`pwd`/dist fsleyes-widgets
+    conda install -y -c file://`pwd`/dist $name
     source deactivate
 done
