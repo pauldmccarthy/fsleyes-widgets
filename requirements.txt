@@ -1,5 +1,5 @@
 six==1.*
-deprecation==1.*
+deprecation>=1.*,<=2.*
 numpy==1.*
 matplotlib>=1.5,<3
 wxPython>=3.0.2.0,<4.1
