@@ -2,6 +2,13 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.5.3 (Monday March 6th 2018)
+-----------------------------
+
+
+* Added CI infrastructure for building conda packages.
+
+
 0.5.2 (Tuesday February 27th 2018)
 ----------------------------------
 
