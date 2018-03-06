@@ -2,7 +2,14 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.5.3 (Monday March 6th 2018)
+0.5.4 (Tuesday March 6th 2018)
+------------------------------
+
+
+* Small adjustment to conda build and deployment process.
+
+
+0.5.3 (Monday March 5th 2018)
 -----------------------------
 
 
