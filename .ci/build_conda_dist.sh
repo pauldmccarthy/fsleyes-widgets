@@ -22,19 +22,14 @@ cat vars.txt .conda/meta.yaml > tempfile
 mv tempfile .conda/meta.yaml
 rm vars.txt
 
-mkdir -p dist
+mkdir -p dist/conda-bld
 
-conda build --output-folder=dist .conda
-
-# tar it up
-cd dist
-tar czf "$name"-"$version"-conda.tar.gz *
-cd ..
+conda build --output-folder=dist/conda-bld .conda
 
 # Make sure package is installable
 for pyver in 2.7 3.4 3.5 3.6; do
     conda create -y --name "test$pyver" python=$pyver
     source activate test$pyver
-    conda install -y -c file://`pwd`/dist $name
+    conda install -y -c file://`pwd`/dist/conda-bld $name
     source deactivate
 done
