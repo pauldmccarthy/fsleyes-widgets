@@ -253,7 +253,7 @@ build-conda-dist:
   artifacts:
     expire_in: 1 day
     paths:
-      - dist/*conda.tar.gz
+      - dist/conda-bld
 
 
 ##############
@@ -293,7 +293,6 @@ deploy-pypi:
 
   script:
     - bash ./.ci/deploy_pypi.sh
-
 
 deploy-conda:
   <<: *only_releases
