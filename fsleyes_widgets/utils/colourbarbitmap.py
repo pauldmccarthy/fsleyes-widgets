@@ -17,6 +17,7 @@ def colourBarBitmap(cmap,
                     cmapResolution=256,
                     negCmap=None,
                     invert=False,
+                    gamma=1,
                     ticks=None,
                     ticklabels=None,
                     tickalign=None,
@@ -51,6 +52,9 @@ def colourBarBitmap(cmap,
     :arg negCmap:      If provided, two colour maps are drawn, centered at 0.
 
     :arg invert:       If ``True``, the colour map is inverted.
+
+    :arg gamma:        Gamma correction factor - exponentially weights the
+                       colour map scale towards one end.
 
     :arg ticks:        Locations of tick labels. Ignored if
                        ``ticklabels is None``.
@@ -111,10 +115,10 @@ def colourBarBitmap(cmap,
 
     dpi   = 96.0
     ncols = cmapResolution
-    data  = genColours(cmap, ncols, invert, alpha)
+    data  = genColours(cmap, ncols, invert, alpha, gamma)
 
     if negCmap is not None:
-        ndata  = genColours(negCmap, ncols, not invert, alpha)
+        ndata  = genColours(negCmap, ncols, not invert, alpha, gamma)
         data   = np.concatenate((ndata, data), axis=1)
         ncols *= 2
 
@@ -223,7 +227,7 @@ def colourBarBitmap(cmap,
     return bitmap
 
 
-def genColours(cmap, cmapResolution, invert, alpha):
+def genColours(cmap, cmapResolution, invert, alpha, gamma=1):
     """Generate an array containing ``cmapResolution`` colours from the given
     colour map object/function.
     """
@@ -231,16 +235,17 @@ def genColours(cmap, cmapResolution, invert, alpha):
     import numpy         as np
     import matplotlib.cm as cm
 
-    ncols         = cmapResolution
-    cmap          = cm.get_cmap(cmap)
-    data          = np.linspace(0.0, 1.0, ncols)
+    ncols = cmapResolution
+    cmap  = cm.get_cmap(cmap)
+    idxs  = np.linspace(0.0, 1.0, ncols)
+
+    if gamma != 1:
+        idxs = idxs ** gamma
 
     if invert:
-        data = data[::-1]
+        idxs = idxs[::-1]
 
-    data          = np.repeat(data.reshape(ncols, 1), 2, axis=1)
-    data          = data.transpose()
-    data          = cmap(data)
-    data[:, :, 3] = alpha
+    cmap       = cmap(idxs)
+    cmap[:, 3] = alpha
 
-    return data
+    return np.dstack((cmap, cmap)).transpose((2, 0, 1))
