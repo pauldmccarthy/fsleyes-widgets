@@ -2,6 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.6.0 (Under development)
+-------------------------
+
+
+Added
+^^^^^
+
+* New ``gamma`` option to the :func:`.colourbarbitmap` function, allowing
+  an exponential weighting to be applied to colour bars.
+
+
 0.5.4 (Tuesday March 6th 2018)
 ------------------------------
 
