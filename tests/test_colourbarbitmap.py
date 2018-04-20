@@ -110,6 +110,37 @@ def test_negCmap_invert():
         assert _compare(bmp, fname)
 
 
+def test_gamma():
+
+    gammas        = [0.5, 1.0, 2.0, 3.0]
+    inverts       = [False, True]
+    negCmaps      = [False, True]
+    cmaps         = [('Greys', 'Greys'), ('Reds', 'Blues')]
+    width, height = 100, 25
+
+    testcases = it.product(gammas, inverts, negCmaps, cmaps)
+
+    for gamma, invert, useNegCmap, cmap in testcases:
+
+        cmap, negCmap = cmap
+
+        if not useNegCmap:
+            negCmap = None
+
+        fname = '_'.join(map(str, [gamma, invert, cmap, negCmap]))
+        fname = 'gamma_{}.png'.format(fname)
+
+        bmp = cbarbmp.colourBarBitmap(cmap,
+                                      width,
+                                      height,
+                                      invert=invert,
+                                      orientation='horizontal',
+                                      gamma=gamma,
+                                      negCmap=negCmap)
+
+        assert _compare(bmp, fname)
+
+
 def test_label():
 
     orientations = ['horizontal', 'vertical']
