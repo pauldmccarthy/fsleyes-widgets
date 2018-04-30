@@ -9,8 +9,19 @@ chronological order.
 Added
 ^^^^^
 
+
 * New ``gamma`` option to the :func:`.colourbarbitmap` function, allowing
   an exponential weighting to be applied to colour bars.
+
+
+Changed
+^^^^^^^
+
+
+* :meth:`.BitmapRadioBox.Enable` and :meth:`.BitmapRadioBox.Disable` renamed
+  to :meth:`.BitmapRadioBox.EnableChoice` and
+  :meth:`.BitmapRadioBox.DisableChoice`. The former methods were masking,
+  and had different semantics to, ``wx.Panel.Enable`` and ``wx.Panel.Disable``.
 
 
 0.5.4 (Tuesday March 6th 2018)
