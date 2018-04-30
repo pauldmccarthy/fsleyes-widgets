@@ -99,14 +99,14 @@ class BitmapRadioBox(wx.Panel):
         self.__clientData = []
 
 
-    def Enable(self, index, enable=True):
+    def EnableChoice(self, index, enable=True):
         """Enable or disable the button at the specified index. """
         self.__buttons[index].Enable(enable)
 
 
-    def Disable(self, index):
+    def DisableChoice(self, index=None):
         """Disable the button at the specified index. """
-        self.Enable(index, False)
+        self.EnableChoice(index, False)
 
 
     def Set(self, bitmaps, clientData=None):
