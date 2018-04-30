@@ -211,7 +211,7 @@ def colourBarBitmap(cmap,
     buf = canvas.tostring_argb()
     ncols, nrows = canvas.get_width_height()
 
-    bitmap = np.fromstring(buf, dtype=np.uint8)
+    bitmap = np.frombuffer(buf, dtype=np.uint8)
     bitmap = bitmap.reshape(nrows, ncols, 4).transpose([1, 0, 2])
 
     # the bitmap is in argb order,
