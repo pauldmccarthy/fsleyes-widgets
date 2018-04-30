@@ -46,12 +46,12 @@ def _test_Create():
         btn.SetSelection(1)
         assert btn.GetSelection() == 1
 
-        btn.Enable(0)
-        btn.Enable(0, False)
-        btn.Disable(0)
+        btn.EnableChoice(0)
+        btn.EnableChoice(0, False)
+        btn.DisableChoice(0)
 
         with pytest.raises(IndexError):
-            btn.Enable(2)
+            btn.EnableChoice(2)
 
         with pytest.raises(IndexError):
             btn.SetSelection(2)
