@@ -113,12 +113,6 @@ setup(
     packages=packages,
     install_requires=install_requires,
     setup_requires=dev_requires,
-    tests_require=['mock',
-                   'coverage',
-                   'pytest-cov',
-                   'pytest-html',
-                   'pytest-runner',
-                   'pytest'],
     test_suite='tests',
 
     cmdclass={
