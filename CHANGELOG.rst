@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.6.1 (Friday May 11th 2018)
+----------------------------
+
+
+Added
+^^^^^
+
+
+* The :func:`.colourBarBitmap` function accepts a new ``scale`` parameter,
+  to allow scaling for high-DPI displays.
+
+
 0.6.0 (Wednesday May 2nd 2018)
 ------------------------------
 
