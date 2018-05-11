@@ -283,6 +283,40 @@ def test_label_and_ticks():
         assert _compare(bmp, fname)
 
 
+def test_scale():
+    scales       = [0.5, 1.0, 2.0, 3.0]
+    orientations = ['horizontal', 'vertical']
+    labelsides   = ['top', 'bottom']
+
+    testcases = it.product(scales,
+                           orientations,
+                           labelsides)
+
+    ticks      = [0.1, 0.9]
+    ticklabels = [str(t) for t in ticks]
+    label      = 'Label'
+
+    for scale, orient, side in testcases:
+
+        if orient[0] == 'v': width, height = 100, 300
+        else:                width, height = 300, 100
+
+        bmp = cbarbmp.colourBarBitmap('Reds',
+                                      width,
+                                      height,
+                                      ticks=ticks,
+                                      ticklabels=ticklabels,
+                                      label=label,
+                                      orientation=orient,
+                                      labelside=side,
+                                      scale=scale,
+                                      textColour=(0, 0, 0.2, 1))
+
+        fname = '_'.join([str(scale), orient, side])
+        fname = 'scale_{}.png'.format(fname)
+        assert _compare(bmp, fname)
+
+
 def test_badargs():
 
     testcases = [
