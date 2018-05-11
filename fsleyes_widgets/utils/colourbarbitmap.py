@@ -27,7 +27,8 @@ def colourBarBitmap(cmap,
                     alpha=1.0,
                     fontsize=10,
                     bgColour=None,
-                    textColour='#ffffff'):
+                    textColour='#ffffff',
+                    scale=1.0):
     """Plots a colour bar using :mod:`matplotlib`.
 
 
@@ -83,6 +84,8 @@ def colourBarBitmap(cmap,
 
     :arg textColour:   Label colour - can be any colour specification that
                        is accepted by :mod:`matplotlib`.
+
+    :arg scale:        DPI scaling factor.
     """
 
     # These imports are expensive, so we're
@@ -113,18 +116,21 @@ def colourBarBitmap(cmap,
         if labelside == 'left': labelside = 'top'
         else:                   labelside = 'bottom'
 
-    dpi   = 96.0
-    ncols = cmapResolution
-    data  = genColours(cmap, ncols, invert, alpha, gamma)
+    # Default is 96 dpi to an inch
+    winches   = width  / 96.0
+    hinches   = height / 96.0
+    dpi       = scale  * 96.0
+    ncols     = cmapResolution
+    data      = genColours(cmap, ncols, invert, alpha, gamma)
 
     if negCmap is not None:
         ndata  = genColours(negCmap, ncols, not invert, alpha, gamma)
         data   = np.concatenate((ndata, data), axis=1)
         ncols *= 2
 
-    fig    = mplfig.Figure(figsize=(width / dpi, height / dpi), dpi=dpi)
-    canvas = mplagg.FigureCanvasAgg(fig)
-    ax     = fig.add_subplot(111)
+    fig     = mplfig.Figure(figsize=(winches, hinches), dpi=dpi)
+    canvas  = mplagg.FigureCanvasAgg(fig)
+    ax      = fig.add_subplot(111)
 
     if bgColour is not None:
         fig.patch.set_facecolor(bgColour)
