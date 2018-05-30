@@ -43,10 +43,6 @@ class ImagePanel(wx.Panel):
         """
         self.__image = image
 
-
-        if image is not None: self.SetMinSize(image.GetSize())
-        else:                 self.SetMinSize((0, 0))
-
         self.Refresh()
 
 
@@ -56,14 +52,6 @@ class ImagePanel(wx.Panel):
         """
         self.Refresh()
         ev.Skip()
-
-
-    def DoGetBestSize(self):
-        """Returns the size of the image being displayed.
-        """
-
-        if self.__image is None: return (0, 0)
-        else:                    return self.__image.GetSize()
 
 
     def Draw(self, ev=None):
