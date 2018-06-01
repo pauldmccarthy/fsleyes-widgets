@@ -44,48 +44,50 @@ def colourBarBitmap(cmap,
        :align: center
 
 
-    :arg cmap:         Name of a registered :mod:`matplotlib` colour map.
+    :arg cmap:           Name of a registered :mod:`matplotlib` colour map.
 
-    :arg width:        Colour bar width in pixels.
+    :arg width:          Colour bar width in pixels.
 
-    :arg height:       Colour bar height in pixels.
+    :arg height:         Colour bar height in pixels.
 
-    :arg negCmap:      If provided, two colour maps are drawn, centered at 0.
+    :arg cmapResolution: Colour map resolution (number of distinct colours).
 
-    :arg invert:       If ``True``, the colour map is inverted.
+    :arg negCmap:        If provided, two colour maps are drawn, centered at 0.
 
-    :arg gamma:        Gamma correction factor - exponentially weights the
-                       colour map scale towards one end.
+    :arg invert:         If ``True``, the colour map is inverted.
 
-    :arg ticks:        Locations of tick labels. Ignored if
-                       ``ticklabels is None``.
+    :arg gamma:          Gamma correction factor - exponentially weights the
+                         colour map scale towards one end.
 
-    :arg ticklabels:   Tick labels.
+    :arg ticks:          Locations of tick labels. Ignored if
+                         ``ticklabels is None``.
 
-    :arg tickalign:    Tick alignment (one for each tick, either ``'left'``,
-                       ``'right'``, or ``'center'``).
+    :arg ticklabels:     Tick labels.
 
-    :arg label:        Text label to show next to the colour bar.
+    :arg tickalign:      Tick alignment (one for each tick, either ``'left'``,
+                         ``'right'``, or ``'center'``).
 
-    :arg orientation:  Either ``vertical`` or ``horizontal``.
+    :arg label:          Text label to show next to the colour bar.
 
-    :arg labelside:    Side of the colour bar to put the label - ``top``,
-                       ``bottom``, ``left`` or ``right``. If
-                       ``orientation='vertical'``, then ``top``/``bottom``
-                       are interpreted as ``left``/``right`` (and vice-versa
-                       when ``orientation='horizontal'``).
+    :arg orientation:    Either ``vertical`` or ``horizontal``.
 
-    :arg alpha:        Colour bar transparency, in the range ``[0.0 - 1.0]``.
+    :arg labelside:      Side of the colour bar to put the label - ``top``,
+                         ``bottom``, ``left`` or ``right``. If
+                         ``orientation='vertical'``, then ``top``/``bottom``
+                         are interpreted as ``left``/``right`` (and vice-versa
+                         when ``orientation='horizontal'``).
 
-    :arg fontsize:     Label font size in points.
+    :arg alpha:          Colour bar transparency, in the range ``[0.0 - 1.0]``.
 
-    :arg bgColour:     Background colour - can be any colour specification
-                       that is accepted by :mod:`matplotlib`.
+    :arg fontsize:       Label font size in points.
 
-    :arg textColour:   Label colour - can be any colour specification that
-                       is accepted by :mod:`matplotlib`.
+    :arg bgColour:       Background colour - can be any colour specification
+                         that is accepted by :mod:`matplotlib`.
 
-    :arg scale:        DPI scaling factor.
+    :arg textColour:     Label colour - can be any colour specification that
+                         is accepted by :mod:`matplotlib`.
+
+    :arg scale:          DPI scaling factor.
     """
 
     # These imports are expensive, so we're
@@ -116,6 +118,12 @@ def colourBarBitmap(cmap,
         if labelside == 'left': labelside = 'top'
         else:                   labelside = 'bottom'
 
+    # force tick positions to
+    # the left edge of the
+    # corresponding colour
+    if ticks is not None:
+        ticks = [t - 0.5 / cmapResolution for t in ticks]
+
     # Default is 96 dpi to an inch
     winches   = width  / 96.0
     hinches   = height / 96.0
@@ -142,8 +150,6 @@ def colourBarBitmap(cmap,
               aspect='auto',
               origin='lower',
               interpolation='nearest')
-
-    ax.set_xlim((0, ncols - 1))
 
     ax.set_yticks([])
     ax.tick_params(colors=textColour, labelsize=fontsize, length=0)
@@ -211,6 +217,8 @@ def colourBarBitmap(cmap,
     if ticklabels is not None and tickalign is not None:
         for l, a in zip(ticklabels, tickalign):
             l.set_horizontalalignment(a)
+
+    ax.set_xlim((-0.5, ncols - 0.5))
 
     canvas.draw()
 
