@@ -143,8 +143,6 @@ def colourBarBitmap(cmap,
               origin='lower',
               interpolation='nearest')
 
-    ax.set_xlim((0, ncols - 1))
-
     ax.set_yticks([])
     ax.tick_params(colors=textColour, labelsize=fontsize, length=0)
 
@@ -211,6 +209,8 @@ def colourBarBitmap(cmap,
     if ticklabels is not None and tickalign is not None:
         for l, a in zip(ticklabels, tickalign):
             l.set_horizontalalignment(a)
+
+    ax.set_xlim((0, ncols - 1))
 
     canvas.draw()
 
