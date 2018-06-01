@@ -12,11 +12,14 @@ fi;
 
 source /test.venv/bin/activate
 
-pip install -r requirements-dev.txt
-pip install -r requirements.txt
+
+PIPARGS="--retries 10 --timeout 30"
+
+pip install $PIPARGS -r requirements-dev.txt
+pip install $PIPARGS -r requirements.txt
 
 # style stage
-if [ "$TEST_STYLE"x != "x" ]; then pip install pylint flake8; fi;
+if [ "$TEST_STYLE"x != "x" ]; then pip install $PIPARGS pylint flake8; fi;
 if [ "$TEST_STYLE"x != "x" ]; then flake8                           fsleyes_widgets || true; fi;
 if [ "$TEST_STYLE"x != "x" ]; then pylint --output-format=colorized fsleyes_widgets || true; fi;
 if [ "$TEST_STYLE"x != "x" ]; then exit 0; fi
