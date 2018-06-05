@@ -2,8 +2,8 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.6.2 (Under development)
--------------------------
+0.6.2 (Tuesday June 5th 2018)
+-----------------------------
 
 
 Changed
@@ -12,6 +12,13 @@ Changed
 
 * The :class:`.ImagePanel` does not update its minimum size based on the image
   size - this is left entirely up to application code.
+
+
+Fixed
+^^^^^
+
+
+* Fixed some minor bugs in the :mod:`.colourbarbitmap`.
 
 
 0.6.1 (Friday May 11th 2018)
