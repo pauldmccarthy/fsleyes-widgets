@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.6.3 (Tuesday August 28th 2018)
+--------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* The :func:`.reportIfError` function no longer emits a stack trace when
+  logging errors.
+
+
 0.6.2 (Tuesday June 5th 2018)
 -----------------------------
 
