@@ -158,7 +158,7 @@ def reportIfError(title, msg, raiseError=True, report=True):
 
     except Exception as e:
 
-        log.error('{}: {}'.format(title, msg), exc_info=True)
+        log.error('{}: {}'.format(title, msg))
 
         if report:
             reportError(title, msg, e)
