@@ -23,10 +23,6 @@ basedir = op.dirname(__file__)
 with open(op.join(basedir, 'requirements.txt'), 'rt') as f:
     install_requires = [l.strip() for l in f.readlines()]
 
-# Development/test dependencies are listed in requirements-dev.txt
-with open(op.join(basedir, 'requirements-dev.txt'), 'rt') as f:
-    dev_requires = [l.strip() for l in f.readlines()]
-
 packages = find_packages(
     exclude=('doc', 'tests', 'dist', 'build', 'fsleyes_widgets.egg-info'))
 
@@ -68,7 +64,7 @@ class doc(Command):
 
         try:
             import unittest.mock as mock
-        except:
+        except Exception:
             import mock
 
         mockobj       = mock.MagicMock()
@@ -112,7 +108,6 @@ setup(
 
     packages=packages,
     install_requires=install_requires,
-    setup_requires=dev_requires,
     test_suite='tests',
 
     cmdclass={

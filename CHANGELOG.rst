@@ -2,6 +2,19 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.6.4 (Friday October 5th 2018)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Development (test and documentation dependencies) are no longer listed
+  in ``setup.py`` - they now need to be installed manually.
+* Removed conda build infrastructure.
+
+
 0.6.3 (Tuesday August 28th 2018)
 --------------------------------
 
