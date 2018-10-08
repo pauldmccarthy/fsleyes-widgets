@@ -2,6 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.6.5 (Monday October 8th 2018)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Made some tests more lenient due to tiny cross-platform differences..
+
+
 0.6.4 (Friday October 5th 2018)
 -------------------------------
 
