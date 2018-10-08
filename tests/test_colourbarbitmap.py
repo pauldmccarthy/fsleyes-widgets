@@ -27,7 +27,7 @@ def _compare(bmp, fname):
     fname     = op.join(datadir, fname)
     benchmark = mplimg.imread(fname) * 255
 
-    result = compare_images(bmp, benchmark, 1)
+    result = compare_images(bmp, benchmark, 0.05)
 
     if not result[0]:
         print(result)
