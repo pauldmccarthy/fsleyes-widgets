@@ -19,36 +19,46 @@ import wx
 GTK = any(['gtk' in p.lower() for p in wx.PlatformInfo])
 
 
-def compare_images(img1, img2, threshold):
-    """Compares two images using the euclidean distance in RGB space
-    between pixels. Returns a tuple containing:
+def compare_images(arr1, arr2, threshold):
+    """Compares two images using the normalised difference of arr1 with respect
+    to arr2. Returns a tuple containing:
 
-     - A boolean value indicating whether the test passed (the images
-       were the same).
+     - A boolean value indicating whether the test passed (the difference was
+       less than or equal to the threshold).
 
-     - The sum of the normalised RGB distance between all pixels.
+     - The normalised difference between the two..
     """
-
     # Discard alpha values
-    img1 = img1[:, :, :3]
-    img2 = img2[:, :, :3]
+    arr1 = arr1[:, :, :3]
+    arr2 = arr2[:, :, :3]
 
-    if img1.shape != img2.shape:
+    if arr1.shape != arr2.shape:
         return False, 0
 
+    finite1 = np.isfinite(arr1)
+    finite2 = np.isfinite(arr2)
 
-    flat1   = img1.reshape(-1, 3)
-    flat2   = img2.reshape(-1, 3)
+    if not np.all(finite1 == finite2):
+        return 1
 
-    dist    = np.sqrt(np.sum((flat1 - flat2) ** 2, axis=1))
-    dist    = dist.reshape(img1.shape[:2])
-    dist    = dist / np.sqrt(3 * 255 * 255)
+    a2zero = arr2 == 0
+    nzarr1 = arr1[finite1 & ~a2zero]
+    nzarr2 = arr2[finite1 & ~a2zero]
+    zarr1  = arr1[finite1 &  a2zero]
+    zarr2  = arr2[finite1 &  a2zero]
 
-    ttlDiff = np.sum(dist)
+    if nzarr2.size > 0: zdenom = abs(nzarr2.mean())
+    else:               zdenom = 1
 
-    passed = ttlDiff <= threshold
+    normdiff = np.zeros(arr1.shape)
+    normdiff[finite1 & ~a2zero] = np.abs((nzarr2 - nzarr1) / nzarr2)
+    normdiff[finite1 &  a2zero] = np.abs((zarr2  - zarr1)  / zdenom)
 
-    return passed, ttlDiff
+    if normdiff.size > 0:
+        result = normdiff.mean()
+        return result <= threshold, result
+    else:
+        return True, 0
 
 
 def run_with_wx(func, *args, **kwargs):
