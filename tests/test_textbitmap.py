@@ -40,4 +40,4 @@ def test_textbitmap():
         fname = op.join(datadir, fname)
 
         benchmark = mplimg.imread(fname) * 255
-        assert compare_images(bmp, benchmark, 0.05)[0]
+        assert compare_images(bmp, benchmark, 0.1)[0]
