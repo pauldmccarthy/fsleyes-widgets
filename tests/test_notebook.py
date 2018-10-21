@@ -41,6 +41,7 @@ def _test_setColours():
     notebook.AddPage(page1, 'page1')
 
     notebook.SetButtonColours(text='#ffffff',
+                              disabledText='#d0d0d0',
                               default='#000000',
                               selected='#0000ff')
 
