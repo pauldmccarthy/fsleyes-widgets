@@ -17,15 +17,21 @@ class ImagePanel(wx.Panel):
     :class:`wx.Image`. The image is scaled to the size of the panel.
     """
 
-    def __init__(self, parent, image=None):
+    def __init__(self,
+                 parent,
+                 image=None,
+                 preserveAspect=False):
         """Create an ``ImagePanel``.
 
         If the ``image`` is not passed in here, it can be set later with the
         :meth:`SetImage` method.
 
-        :arg parent: The :mod:`wx` parent object.
+        :arg parent:         The :mod:`wx` parent object.
 
-        :arg image:  The :class:`wx.Image` object to display.
+        :arg image:          The :class:`wx.Image` object to display.
+
+        :arg preserveAspect: Defaults to ``False``. If ``True``, the image
+                             aspect ratio is preserved.
         """
 
         wx.Panel.__init__(self, parent)
@@ -34,6 +40,8 @@ class ImagePanel(wx.Panel):
         self.Bind(wx.EVT_SIZE,  self.__onSize)
 
         self.SetImage(image)
+
+        self.__preserveAspect = preserveAspect
 
 
     def SetImage(self, image):
@@ -70,11 +78,26 @@ class ImagePanel(wx.Panel):
         if not dc.IsOk():
             return
 
-        width, height = dc.GetSize().Get()
+        dwidth, dheight = dc.GetSize().Get()
 
-        if width == 0 or height == 0:
+        if dwidth == 0 or dheight == 0:
             return
 
-        bitmap = self.__image.Scale(width, height).ConvertToBitmap()
+        if self.__preserveAspect:
+            iwidth, iheight = self.__image.GetSize().Get()
+            iratio          = float(iwidth) / iheight
+            dratio          = float(dwidth) / dheight
+
+            # canvas is too wide - reduce
+            # the display image width
+            if dratio > iratio:
+                dwidth = dheight / iratio
+
+            # canvas is too tall - reduce
+            # the display image height
+            elif dratio < iratio:
+                dheight = dwidth * iratio
+
+        bitmap = self.__image.Scale(dwidth, dheight).ConvertToBitmap()
 
         dc.DrawBitmap(bitmap, 0, 0, False)
