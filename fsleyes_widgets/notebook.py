@@ -68,18 +68,19 @@ class Notebook(wx.Panel):
 
         wx.Panel.__init__(self, parent, style=style)
 
-        self.__border        = border
-        self.__borderflags   = borderflags
-        self.__btnside       = btnside
-        self.__btnorient     = btnorient
-        self.__invbtnorient  = invbtnorient
-        self.__textorient    = textorient
-        self.__textColour    = None
-        self.__defaultColour = None
-        self.__selectColour  = '#ffffff'
-        self.__buttonPanel   = wx.Panel(self)
-        self.__sizer         = wx.BoxSizer(invbtnorient)
-        self.__buttonSizer   = wx.BoxSizer(btnorient)
+        self.__border             = border
+        self.__borderflags        = borderflags
+        self.__btnside            = btnside
+        self.__btnorient          = btnorient
+        self.__invbtnorient       = invbtnorient
+        self.__textorient         = textorient
+        self.__textColour         = None
+        self.__defaultColour      = None
+        self.__disabledTextColour = None
+        self.__selectColour       = '#ffffff'
+        self.__buttonPanel        = wx.Panel(self)
+        self.__sizer              = wx.BoxSizer(invbtnorient)
+        self.__buttonSizer        = wx.BoxSizer(btnorient)
 
         self.              SetSizer(self.__sizer)
         self.__buttonPanel.SetSizer(self.__buttonSizer)
@@ -174,18 +175,21 @@ class Notebook(wx.Panel):
         to ``None`` to use the default colours.  All arguments must be passed
         as keyword arguments.
 
-        :arg text:     Text colour
-        :arg default:  Default (unselected) background colour.
-        :arg selected: Selected background colour.
+        :arg text:         Text colour
+        :arg disabledText: Text colour for disabled pages.
+        :arg default:      Default (unselected) background colour.
+        :arg selected:     Selected background colour.
         """
 
-        text     = kwargs.pop('text',     None)
-        default  = kwargs.pop('default',  None)
-        selected = kwargs.pop('selected', '#ffffff')
+        text         = kwargs.pop('text',         None)
+        disabledText = kwargs.pop('disabledText', None)
+        default      = kwargs.pop('default',      None)
+        selected     = kwargs.pop('selected',     '#ffffff')
 
-        self.__textColour    = text
-        self.__defaultColour = default
-        self.__selectColour  = selected
+        self.__textColour         = text
+        self.__disabledTextColour = disabledText
+        self.__defaultColour      = default
+        self.__selectColour       = selected
 
         if self.PageCount() > 0:
             self.SetSelection(self.GetSelection())
@@ -343,7 +347,10 @@ class Notebook(wx.Panel):
             button   = self.__buttons[i]
             showThis = i == self.__selected
 
-            button.SetForegroundColour(self.__textColour)
+            if button.IsEnabled():
+                button.SetForegroundColour(self.__textColour)
+            else:
+                button.SetForegroundColour(self.__disabledTextColour)
 
             if showThis:
                 button.SetBackgroundColour(self.__selectColour)

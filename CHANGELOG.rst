@@ -2,6 +2,19 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.7.0 (Sunday October 21st 2018)
+--------------------------------
+
+
+Added
+^^^^^
+
+
+* The :class:`.Notebook` class allows the text colour of buttons for
+  disabled pages to be changed.
+* The :class:`.ImagePanel` has a new option to preserve the aspect
+  ratio of the displayed image.
+
 
 0.6.6 (Saturday October 13th 2018)
 ----------------------------------
