@@ -2,6 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.7.2 (Friday November 23rd 2018)
+---------------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed a small regression in the :func:`.colourBarBitmap` function.
+
+
 0.7.1 (Friday November 23rd 2018)
 ---------------------------------
 

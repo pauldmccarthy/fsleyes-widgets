@@ -317,6 +317,34 @@ def test_scale():
         assert _compare(bmp, fname)
 
 
+def test_negCmap_ticks():
+    testcases = [
+        ('Reds', 'Blues', [0, 1]),
+        ('Reds', 'Blues', [0, 0.5, 1]),
+        ('Reds', 'Blues', [0, 0.49, 0.51, 1]),
+        ('Reds', 'Blues', [0, 0.25, 0.5, 0.75, 1])
+    ]
+
+    for cmap, negCmap, ticks in testcases:
+
+        fname = '_'.join(map(str, [cmap, negCmap] + ticks))
+        fname = 'negCmap_invert_ticks_{}.png'.format(fname)
+
+        ticklabels = ['{:0.2f}'.format(t) for t in ticks]
+        tickalign = ['left'] + ['center'] * (len(ticks) - 2) + ['right']
+
+        bmp = cbarbmp.colourBarBitmap(cmap,
+                                      800,
+                                      100,
+                                      fontsize=30,
+                                      negCmap=negCmap,
+                                      orientation='horizontal',
+                                      ticks=ticks,
+                                      tickalign=tickalign,
+                                      ticklabels=ticklabels)
+        assert _compare(bmp, fname)
+
+
 def test_badargs():
 
     testcases = [
