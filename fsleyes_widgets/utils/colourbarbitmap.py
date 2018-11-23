@@ -118,12 +118,6 @@ def colourBarBitmap(cmap,
         if labelside == 'left': labelside = 'top'
         else:                   labelside = 'bottom'
 
-    # force tick positions to
-    # the left edge of the
-    # corresponding colour
-    if ticks is not None:
-        ticks = [t - 0.5 / cmapResolution for t in ticks]
-
     # Default is 96 dpi to an inch
     winches   = width  / 96.0
     hinches   = height / 96.0
@@ -135,6 +129,12 @@ def colourBarBitmap(cmap,
         ndata  = genColours(negCmap, ncols, not invert, alpha, gamma)
         data   = np.concatenate((ndata, data), axis=1)
         ncols *= 2
+
+    # force tick positions to
+    # the left edge of the
+    # corresponding colour
+    if ticks is not None:
+        ticks = [t - 0.5 / ncols for t in ticks]
 
     fig     = mplfig.Figure(figsize=(winches, hinches), dpi=dpi)
     canvas  = mplagg.FigureCanvasAgg(fig)
