@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.7.1 (Friday November 23rd 2018)
+---------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Refactored the :func:`.colourBarBitmap` function to better handle larger
+  font sizes.
+
+
 0.7.0 (Sunday October 21st 2018)
 --------------------------------
 
