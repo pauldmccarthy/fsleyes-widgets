@@ -157,17 +157,12 @@ def colourBarBitmap(cmap,
     if labelside == 'top':
         ax.xaxis.tick_top()
         ax.xaxis.set_label_position('top')
-        va = 'top'
     else:
         ax.xaxis.tick_bottom()
         ax.xaxis.set_label_position('bottom')
-        va = 'bottom'
 
     if label is not None:
-        ax.set_xlabel(label,
-                      fontsize=fontsize,
-                      color=textColour,
-                      va=va)
+        ax.set_xlabel(label, fontsize=fontsize, color=textColour)
         label = ax.xaxis.get_label()
 
     if ticks is None or ticklabels is None:
@@ -183,7 +178,11 @@ def colourBarBitmap(cmap,
     wpad        = 5 / float(width)
     hpad        = 5 / float(height)
     totalHeight = 1.0
-    textHeight  = (fontsize + 6) / float(height)
+
+    # Figure out text height in
+    # pixels (with 6 pixel padding)
+    fontpix    = (fontsize / 72.0) * dpi / scale
+    textHeight = (fontpix + 6) / float(height)
 
     if label      is not None: totalHeight -= textHeight
     if ticklabels is not None: totalHeight -= textHeight
