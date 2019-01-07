@@ -2,17 +2,14 @@ fsleyes-widgets
 ===============
 
 
-.. image:: https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets/badges/master/build.svg
-   :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets/commits/master/
-
-.. image:: https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets/badges/master/coverage.svg
-   :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets/commits/master/
-
 .. image:: https://img.shields.io/pypi/v/fsleyes-widgets.svg
    :target: https://pypi.python.org/pypi/fsleyes-widgets/
 
 .. image:: https://anaconda.org/conda-forge/fsleyes-widgets/badges/version.svg
    :target: https://anaconda.org/conda-forge/fsleyes-widgets
+
+.. image:: https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets/badges/master/coverage.svg
+   :target: https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets/commits/master/
 
 
 The ``fsleyes-widgets`` package contains a collection of GUI widgets and

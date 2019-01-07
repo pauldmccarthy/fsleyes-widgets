@@ -2,6 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.7.3 (Monday January 7th 2019)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Removed ``deprecation`` as a dependency.
+
+
 0.7.2 (Friday November 23rd 2018)
 ---------------------------------
 
