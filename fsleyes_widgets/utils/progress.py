@@ -9,10 +9,9 @@
 """
 
 
+import warnings
 import threading
 import contextlib
-
-import deprecation
 
 import wx
 
@@ -140,13 +139,14 @@ class Bounce(wx.ProgressDialog):
 
 
     @classmethod
-    @deprecation.deprecated(deprecated_in='0.3.0',
-                            removed_in='1.0.0',
-                            details='Use the runWithBounce function instead')
     def runWithBounce(cls, task, *args, **kwargs):
         """Deprecated - use the standalone :func:`runWithBounce` function
         instead.
         """
+        warnings.warn('The runWithBounce method is deprecated - use the '
+                      'runWithBounce function instead',
+                      category=DeprecationWarning,
+                      stacklevel=2)
         return runWithBounce(task, *args, **kwargs)
 
 
