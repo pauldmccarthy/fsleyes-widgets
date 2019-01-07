@@ -10,8 +10,9 @@ contains a button and some content. Pushing the button toggles the visibility
 of the content.
 """
 
+
+import warnings
 import six
-import deprecation
 
 import wx
 import wx.lib.newevent as wxevent
@@ -168,13 +169,14 @@ class TogglePanel(wx.Panel):
         return self.__label
 
 
-    @deprecation.deprecated(deprecated_in='0.1.1',
-                            removed_in='1.0.0',
-                            details='Use button instead')
     def GetToggleButton(self):
         """Returns the toggle button (actually a ``wx.StaticText``). This
         is for testing purposes.
         """
+        warnings.warn('GetToggleButton is deprecated - use button instead',
+                      category=DeprecationWarning,
+                      stacklevel=2)
+
         return self.__toggleButton
 
 
