@@ -6,6 +6,14 @@ chronological order.
 -------------------------
 
 
+Added
+^^^^^
+
+
+* New `.EditableListBox.GetWidgets` method.
+* New `.WidgetList.GetWidgets` method.
+
+
 Fixed
 ^^^^^
 
