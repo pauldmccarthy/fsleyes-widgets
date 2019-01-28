@@ -290,6 +290,20 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         colPanel.Bind(togglepanel.EVT_TOGGLEPANEL_EVENT, self.__onGroupExpand)
 
 
+    def GetWidgets(self, groupName=None):
+        """Returns a list containing all of the widgets that have been added
+        to this ``WidgetList``.
+
+        :arg groupName: If provided, only widgets in the specified group will
+                        be returned. Otherwise, ungrouped widgets are returned.
+        """
+        if groupName is None: widgDict = self.__widgets
+        else:                 widgDict = group.widgets
+        widgets = [w.widget for w in widgDict.values()]
+        return widgets
+
+
+
     def AddWidget(self, widget, displayName, tooltip=None, groupName=None):
         """Add an arbitrary widget to the property list.
 
