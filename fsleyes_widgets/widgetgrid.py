@@ -349,6 +349,8 @@ class WidgetGrid(wx.ScrolledWindow):
 
             lblPanel._wg_row = -1
             lblPanel._wg_col = coli
+            colLabel._wg_row = -1
+            colLabel._wg_col = coli
 
             # 1px border between every column
             if coli == self.__ncols - 1: flag = wx.TOP | wx.LEFT | wx.RIGHT
@@ -365,6 +367,8 @@ class WidgetGrid(wx.ScrolledWindow):
 
             lblPanel._wg_row = rowi
             lblPanel._wg_col = -1
+            rowLabel._wg_row = rowi
+            rowLabel._wg_col = -1
 
             if rowi == self.__nrows - 1: flag = wx.TOP | wx.LEFT | wx.BOTTOM
             else:                        flag = wx.TOP | wx.LEFT
@@ -1100,6 +1104,16 @@ class WidgetGrid(wx.ScrolledWindow):
                 col, self.__ncols))
 
         self.__colLabels[col][1].SetLabel(label)
+
+
+    def GetRowLabel(self, row):
+        """Return the label of the specified ``row``. """
+        return self.__rowLabels[row][1].GetLabel()
+
+
+    def GetColLabel(self, col):
+        """Return the label of the specified ``column``. """
+        return self.__colLabels[col][1].GetLabel()
 
 
     def ReorderColumns(self, order):
