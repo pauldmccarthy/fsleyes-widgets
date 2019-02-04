@@ -122,6 +122,10 @@ class WidgetGrid(wx.ScrolledWindow):
     """Background colour for selected cells. """
 
 
+    _defaultDragColour = '#ffcdcd'
+    """Background colour for columns being dragged. """
+
+
     def __init__(self, parent, style=None):
         """Create a ``WidgetGrid``.
 
@@ -183,6 +187,7 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__oddColour      = WidgetGrid._defaultOddColour
         self.__evenColour     = WidgetGrid._defaultEvenColour
         self.__selectedColour = WidgetGrid._defaultSelectedColour
+        self.__dragColour     = WidgetGrid._defaultDragColour
         self.__upKey          = wx.WXK_UP
         self.__downKey        = wx.WXK_DOWN
         self.__leftKey        = wx.WXK_LEFT
@@ -201,6 +206,26 @@ class WidgetGrid(wx.ScrolledWindow):
             # comments.
             self.__ignoreFocus = 0
             self.Bind(wx.EVT_CHILD_FOCUS, self.__onChildFocus)
+
+
+    @property
+    def rowLabels(self):
+        """Returns the ``wx.StaticText`` objects used for the row labels. """
+        return [l[1] for l in self.__rowLabels]
+
+
+    @property
+    def colLabels(self):
+        """Returns the ``wx.StaticText`` objects used for the column labels.
+        """
+        return [l[1] for l in self.__colLabels]
+
+
+    @property
+    def widgets(self):
+        """Returns a list of lists, containing all widgets in the grid.
+        """
+        return [list(row) for row in self.__widgets]
 
 
     def Refresh(self):
@@ -243,6 +268,8 @@ class WidgetGrid(wx.ScrolledWindow):
         :arg even:     Background colour for cells on even rows.
 
         :arg selected: Background colour for selected cells.
+
+        :arg drag:     Background colour for columns being dragged.
         """
 
         border   = kwargs.get('border',   self)
@@ -250,12 +277,14 @@ class WidgetGrid(wx.ScrolledWindow):
         odd      = kwargs.get('odd',      self)
         even     = kwargs.get('even',     self)
         selected = kwargs.get('selected', self)
+        drag     = kwargs.get('drag',     self)
 
         if border   is not self: self.__borderColour   = border
         if label    is not self: self.__labelColour    = label
         if odd      is not self: self.__oddColour      = odd
         if even     is not self: self.__evenColour     = even
         if selected is not self: self.__selectedColour = selected
+        if drag     is not self: self.__dragColour     = drag
 
 
     def SetNavKeys(self, **kwargs):
@@ -486,6 +515,9 @@ class WidgetGrid(wx.ScrolledWindow):
             panel,
             style=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
 
+        # See comment in SetWidget
+        panel._wg_cell = True
+
         panel.SetSizer(sizer)
         sizer.Add(lbl, flag=wx.CENTRE)
 
@@ -504,6 +536,9 @@ class WidgetGrid(wx.ScrolledWindow):
             panel,
             style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ALIGN_CENTRE_VERTICAL)
 
+        # See comment in SetWidget
+        panel._wg_cell = True
+
         panel.SetSizer(sizer)
         sizer.Add(lbl, flag=wx.CENTRE)
 
@@ -515,6 +550,21 @@ class WidgetGrid(wx.ScrolledWindow):
             panel.Bind(wx.EVT_LEFT_DOWN, self.__onColumnLabelMouseDown)
             panel.Bind(wx.EVT_LEFT_UP,   self.__onColumnLabelMouseUp)
             panel.Bind(wx.EVT_MOTION,    self.__onColumnLabelMouseDrag)
+
+
+    def __getCellPanel(self, widget):
+        """Returns the parent ``wx.Panel`` for the given ``widget``, or
+        ``None`` if the widget is not in the grid.
+        """
+
+        while widget is not None:
+
+            if hasattr(widget, '_wg_cell'):
+                break
+
+            widget = widget.GetParent()
+
+        return widget
 
 
     def GetRow(self, widget):
@@ -715,6 +765,13 @@ class WidgetGrid(wx.ScrolledWindow):
         panel = wx.Panel(self.__gridPanel, style=wx.WANTS_CHARS)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         panel.SetSizer(sizer)
+
+        # Put a marker on the cell panel
+        # so the __gelCellPanel method
+        # can identify it - cell panels
+        # are used in certain event
+        # handlers (e.g. __onColumnLabelMouse*)
+        panel._wg_cell = True
 
         self.__reparent(widget, panel)
 
@@ -1148,6 +1205,15 @@ class WidgetGrid(wx.ScrolledWindow):
             return
 
         self.__currentDrag = col
+        self.__colLabels[col][0].SetBackgroundColour(self.__dragColour)
+        self.__colLabels[col][1].SetBackgroundColour(self.__dragColour)
+
+        # on macOS, an explicit refresh is
+        # needed on the backing wx.Panel to
+        # ensure that its background colour
+        # is updated
+        self.__colLabels[col][0].Refresh()
+
 
 
     def __onColumnLabelMouseDrag(self, ev):
@@ -1172,6 +1238,10 @@ class WidgetGrid(wx.ScrolledWindow):
         atpos              = wx.FindWindowAtPointer()[0]
         endcol             = self.GetColumn(atpos)
         self.__currentDrag = None
+
+        self.__colLabels[startcol][0].SetBackgroundColour(self.__labelColour)
+        self.__colLabels[startcol][1].SetBackgroundColour(self.__labelColour)
+        self.__colLabels[startcol][0].Refresh()
 
         if endcol == -1:
             ev.Skip()
