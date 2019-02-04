@@ -1215,37 +1215,20 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__colLabels[col][0].Refresh()
 
 
+    def __getColumnDragPosition(self):
+        """Called during a column drag/drop.
 
-    def __onColumnLabelMouseDrag(self, ev):
+        Returns the current insert index of the dragged column, if it were
+        to be dropped now.
         """
-        """
-        if self.__currentDrag is None:
-            ev.Skip()
-            return
 
+        startcol = self.__currentDrag
+        atpos    = wx.FindWindowAtPointer()[0]
+        atpos    = self.__getCellPanel(atpos)
+        endcol   = self.GetColumn(atpos)
 
-    def __onColumnLabelMouseUp(self, ev):
-        """
-        """
-        if self.__currentDrag is None:
-            ev.Skip()
-            return
-
-        # The start column was saved in the
-        # mousedown handler. Figure out the
-        # column that mouseup occurred in.
-        startcol           = self.__currentDrag
-        atpos              = wx.FindWindowAtPointer()[0]
-        endcol             = self.GetColumn(atpos)
-        self.__currentDrag = None
-
-        self.__colLabels[startcol][0].SetBackgroundColour(self.__labelColour)
-        self.__colLabels[startcol][1].SetBackgroundColour(self.__labelColour)
-        self.__colLabels[startcol][0].Refresh()
-
-        if endcol == -1:
-            ev.Skip()
-            return
+        if endcol == -1 or startcol == endcol:
+            return endcol
 
         # Figure out which side of the drop
         # column to place the dragged column
@@ -1255,12 +1238,55 @@ class WidgetGrid(wx.ScrolledWindow):
         posx = atpos.ScreenToClient(wx.GetMouseState().GetPosition()).x
         posx = posx / lenx
 
-        if posx < 0.5:
-            endcol = max(endcol - 1, 0)
+        endcol = int(round(endcol + posx))
+
+        return endcol
+
+
+    def __onColumnLabelMouseDrag(self, ev):
+        """Called during a column drag.
+        """
+        if self.__currentDrag is None:
+            ev.Skip()
+            return
+
+
+    def __onColumnLabelMouseUp(self, ev):
+        """Called on the mouse up event at the end of a column drag.
+
+        Re-orders the grid columns.
+        """
+
+        if self.__currentDrag is None:
+            ev.Skip()
+            return
+
+        # The start column was saved in the
+        # mousedown handler. Figure out the
+        # column that mouseup occurred in.
+        startcol           = self.__currentDrag
+        endcol             = self.__getColumnDragPosition()
+        self.__currentDrag = None
+
+        self.__colLabels[startcol][0].SetBackgroundColour(self.__labelColour)
+        self.__colLabels[startcol][1].SetBackgroundColour(self.__labelColour)
+        self.__colLabels[startcol][0].Refresh()
+
+        if endcol == -1 or startcol == endcol:
+            ev.Skip()
+            return
+
+        # Offset the insertion index if
+        # the starting column is before
+        # it, as it gets removed before
+        # being re-added
+        if startcol < endcol:
+            endcol = endcol - 1
 
         # Generate a new column ordering
         order = list(range(self.__ncols))
         order.pop(startcol)
+
         order.insert(endcol, startcol)
 
         self.ReorderColumns(order)
