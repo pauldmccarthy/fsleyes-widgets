@@ -1138,18 +1138,65 @@ class WidgetGrid(wx.ScrolledWindow):
             self.__widgetRefs[rowi] = [widgetRefs[i] for i in order]
 
 
-
     def __onColumnLabelMouseDown(self, ev):
-        """
-        """
+        """Called on mouse down events on a column label. """
+        lbl = ev.GetEventObject()
+        col = self.GetColumn(lbl)
+
+        if col == -1:
+            ev.Skip()
+            return
+
+        self.__currentDrag = col
 
 
     def __onColumnLabelMouseDrag(self, ev):
         """
         """
+        if self.__currentDrag is None:
+            ev.Skip()
+            return
+
+
     def __onColumnLabelMouseUp(self, ev):
         """
         """
+        if self.__currentDrag is None:
+            ev.Skip()
+            return
+
+        # The start column was saved in the
+        # mousedown handler. Figure out the
+        # column that mouseup occurred in.
+        startcol           = self.__currentDrag
+        atpos              = wx.FindWindowAtPointer()[0]
+        endcol             = self.GetColumn(atpos)
+        self.__currentDrag = None
+
+        if endcol == -1:
+            ev.Skip()
+            return
+
+        # Figure out which side of the drop
+        # column to place the dragged column
+        # (i.e. on either its left or right
+        # side).
+        lenx = atpos.GetSize().GetWidth()
+        posx = atpos.ScreenToClient(wx.GetMouseState().GetPosition()).x
+        posx = posx / lenx
+
+        if posx < 0.5:
+            endcol = max(endcol - 1, 0)
+
+        # Generate a new column ordering
+        order = list(range(self.__ncols))
+        order.pop(startcol)
+        order.insert(endcol, startcol)
+
+        self.ReorderColumns(order)
+        self.Refresh()
+
+
 WG_SELECTABLE_CELLS = 1
 """If this style is enabled, individual cells can be selected. """
 
