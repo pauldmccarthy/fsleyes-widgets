@@ -320,6 +320,7 @@ class WidgetGrid(wx.ScrolledWindow):
         if oddColour    is None: oddColour    = WidgetGrid._defaultOddColour
         if evenColour   is None: evenColour   = WidgetGrid._defaultEvenColour
 
+        # Grid is empty
         if self.__gridSizer is None:
             self.FitInside()
             self.Layout()
@@ -1078,6 +1079,28 @@ class WidgetGrid(wx.ScrolledWindow):
                 col, self.__ncols))
 
         self.__colLabels[col][1].SetLabel(label)
+
+
+    def ReorderColumns(self, order):
+        """Re-orders the grid columns according to the given sequence
+        of column indices.
+
+        A call to this method must be followed by a call to :meth:`Refresh`.
+
+        :arg order: Sequence of column indices (starting from 0) specifying
+                    the new column ordering.
+        """
+        if list(sorted(order)) != list(range(self.__ncols)):
+            raise ValueError('Invalid column order (ncols: {}): {}'.format(
+                self.__ncols, order))
+
+        self.__colLabels = [self.__colLabels[i] for i in order]
+
+        for rowi in range(self.__nrows):
+            widgets    = self.__widgets[   rowi]
+            widgetRefs = self.__widgetRefs[rowi]
+            self.__widgets[   rowi] = [widgets[i]    for i in order]
+            self.__widgetRefs[rowi] = [widgetRefs[i] for i in order]
 
 
 WG_SELECTABLE_CELLS = 1
