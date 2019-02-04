@@ -178,6 +178,28 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
     realYield()
 
 
+def simmouse(sim, target, btn, ev, pos):
+    w, h = target.GetClientSize().Get()
+    x, y = target.GetScreenPosition()
+
+    if pos is None:
+        pos = [0.5, 0.5]
+
+    x += w * pos[0]
+    y += h * pos[1]
+
+    sim.MouseMove(x, y)
+    realYield()
+
+    if   btn == 'left':  btn = wx.MOUSE_BTN_LEFT
+    elif btn == 'right': btn = wx.MOUSE_BTN_RIGHT
+
+    if   ev == 'down': sim.MouseDown(btn)
+    elif ev == 'up':   sim.MouseUp(  btn)
+
+    realYield()
+
+
 def simtext(sim, target, text, enter=True):
 
     target.SetFocus()
