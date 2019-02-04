@@ -68,15 +68,18 @@ class WidgetGrid(wx.ScrolledWindow):
 
     The ``WidgetGrid`` supports the following styles:
 
-    =============================== ================================
+    =============================== ==================================
     ``wx.HSCROLL``                  Use a horizontal scrollbar.
     ``wx.VSCROLL``                  Use a vertical scrollbar.
     :data:`WG_SELECTABLE_CELLS`     Individual cells are selectable.
     :data:`WG_SELECTABLE_ROWS`      Rows are selectable.
     :data:`WG_SELECTABLE_COLUMN`    Columns are selectable.
     :data:`WG_KEY_NAVIGATION`       The keyboard can be used for
-                                    navigation
-    =============================== ================================
+                                    navigation.
+    :data:`WG_DRAGGABLE_COLUMNS`    Columns can be dragged to re-order
+                                    them (see also the
+                                    :meth:`ReorderColumns` method)
+    =============================== ==================================
 
 
     The ``*_SELECTABLE_*`` styles are mutualliy exclusive; their precedence
@@ -93,6 +96,7 @@ class WidgetGrid(wx.ScrolledWindow):
        :nosignatures:
 
        :data:`WidgetGridSelectEvent`
+       :data:`WidgetGridReorderEvent`
     """
 
 
@@ -124,16 +128,19 @@ class WidgetGrid(wx.ScrolledWindow):
         :arg parent: The :mod:`wx` parent object.
         :arg style:  Style flags  - can be a combination of ``wx.HSCROLL``,
                      ``wx.VSCROLL``, :data:`WG_SELECTABLE_CELLS`,
-                     :data:`WG_SELECTABLE_ROWS`, and
-                     :data:`WG_SELECTABLE_COLUMNS`.
+                     :data:`WG_SELECTABLE_ROWS`,
+                     :data:`WG_SELECTABLE_COLUMNS`, and
+                     :data:`WG_DRAGGABLE_COLUMNS`.
         """
 
         if style is None:
             style = wx.HSCROLL | wx.VSCROLL
 
-        self.__hscroll = style & wx.HSCROLL
-        self.__vscroll = style & wx.VSCROLL
-        self.__keynav  = style & WG_KEY_NAVIGATION
+        self.__hscroll     = style & wx.HSCROLL
+        self.__vscroll     = style & wx.VSCROLL
+        self.__keynav      = style & WG_KEY_NAVIGATION
+        self.__draggable   = style & WG_DRAGGABLE_COLUMNS
+        self.__currentDrag = None
 
         if   style & WG_SELECTABLE_CELLS:   self.__selectable = 'cells'
         elif style & WG_SELECTABLE_ROWS:    self.__selectable = 'rows'
@@ -340,6 +347,9 @@ class WidgetGrid(wx.ScrolledWindow):
         # column labels
         for coli, (lblPanel, colLabel) in enumerate(self.__colLabels):
 
+            lblPanel._wg_row = -1
+            lblPanel._wg_col = coli
+
             # 1px border between every column
             if coli == self.__ncols - 1: flag = wx.TOP | wx.LEFT | wx.RIGHT
             else:                        flag = wx.TOP | wx.LEFT
@@ -351,9 +361,10 @@ class WidgetGrid(wx.ScrolledWindow):
             self.__gridSizer.Show(lblPanel, self.__showColLabels)
 
         # Rows
-        for rowi in range(self.__nrows):
+        for rowi, (lblPanel, rowLabel) in enumerate(self.__rowLabels):
 
-            lblPanel, rowLabel = self.__rowLabels[rowi]
+            lblPanel._wg_row = rowi
+            lblPanel._wg_col = -1
 
             if rowi == self.__nrows - 1: flag = wx.TOP | wx.LEFT | wx.BOTTOM
             else:                        flag = wx.TOP | wx.LEFT
@@ -369,6 +380,11 @@ class WidgetGrid(wx.ScrolledWindow):
 
                 widget    = self.__widgetRefs[rowi][coli]
                 container = self.__widgets[   rowi][coli]
+
+                widget   ._wg_row = rowi
+                widget   ._wg_col = coli
+                container._wg_row = rowi
+                container._wg_col = coli
 
                 flag = wx.TOP | wx.LEFT
 
@@ -491,6 +507,11 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__initWidget(lbl,   -1, col)
         self.__colLabels[col] = (panel, lbl)
 
+        if self.__draggable:
+            panel.Bind(wx.EVT_LEFT_DOWN, self.__onColumnLabelMouseDown)
+            panel.Bind(wx.EVT_LEFT_UP,   self.__onColumnLabelMouseUp)
+            panel.Bind(wx.EVT_MOTION,    self.__onColumnLabelMouseDrag)
+
 
     def GetRow(self, widget):
         """Returns the index of the row in which the given ``widget`` is
@@ -504,7 +525,7 @@ class WidgetGrid(wx.ScrolledWindow):
         """Returns the index of the column in which the given ``widget`` is
         located, or ``-1`` if it is not in the ``WidgetGrid``.
         """
-        try:                   return widget._wg_row
+        try:                   return widget._wg_col
         except AttributeError: return -1
 
 
@@ -1103,6 +1124,18 @@ class WidgetGrid(wx.ScrolledWindow):
             self.__widgetRefs[rowi] = [widgetRefs[i] for i in order]
 
 
+
+    def __onColumnLabelMouseDown(self, ev):
+        """
+        """
+
+
+    def __onColumnLabelMouseDrag(self, ev):
+        """
+        """
+    def __onColumnLabelMouseUp(self, ev):
+        """
+        """
 WG_SELECTABLE_CELLS = 1
 """If this style is enabled, individual cells can be selected. """
 
@@ -1121,11 +1154,22 @@ the user may use the keyboard to navigate between cells, rows, or columns.
 """
 
 
-_WidgetGridSelectEvent, _EVT_WG_SELECT = wxevent.NewEvent()
+WG_DRAGGABLE_COLUMNS = 16
+"""If this style is enabled, column names can be dragged with the mouse to
+re-order them.
+"""
+
+
+_WidgetGridSelectEvent,  _EVT_WG_SELECT  = wxevent.NewEvent()
+_WidgetGridReorderEvent, _EVT_WG_REORDER = wxevent.NewEvent()
 
 
 EVT_WG_SELECT = _EVT_WG_SELECT
 """Identifier for the :data:`WidgetGridSelectEvent`. """
+
+
+EVT_WG_REORDER = _EVT_WG_SELECT
+"""Identifier for the :data:`WidgetGridReorderEvent`. """
 
 
 WidgetGridSelectEvent = _WidgetGridSelectEvent
@@ -1137,4 +1181,12 @@ WidgetGridSelectEvent = _WidgetGridSelectEvent
 
  - ``col`` Column index of the selected item. If -1, an entire row
    has been selected.
+"""
+
+
+WidgetGridReorderEvent = _WidgetGridReorderEvent
+"""Event generated when the columns in a ``WidgetGrid`` are reordered. A
+``WidgetGridReorderEvent`` has the following attributes:
+
+ - ``order`` The new column order.
 """
