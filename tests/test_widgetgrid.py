@@ -75,6 +75,7 @@ def test_reorder_events():
     run_with_wx(_test_reorder_events)
 def _test_reorder_events():
     frame = wx.GetApp().GetTopWindow()
+    frame.SetSize((800, 600))
     sim   = wx.UIActionSimulator()
     grid  = widgetgrid.WidgetGrid(frame, style=widgetgrid.WG_DRAGGABLE_COLUMNS)
     sizer = wx.BoxSizer(wx.VERTICAL)
@@ -110,6 +111,10 @@ def _test_reorder_events():
 
     for clickcol, dropcol, droppos, exporder in tests:
 
+        grid.ClearGrid()
+        grid.Refresh()
+        grid.SetGridSize(1, 5)
+
         labels = ['col {}' .format(i) for i in range(5)]
         cells  = ['cell {}'.format(i) for i in range(5)]
 
@@ -122,14 +127,13 @@ def _test_reorder_events():
         cwidget = grid.colLabels[clickcol].GetParent()
         dwidget = grid.colLabels[dropcol].GetParent()
 
+        realYield()
         simmouse(sim, cwidget, 'left', 'down', [0.5,     0.5])
         realYield()
         simmouse(sim, dwidget, 'left', 'up',   [droppos, 0.5])
         realYield()
 
-        print(clickcol, dropcol, droppos, exporder)
-
         explabels = [labels[i] for i in exporder]
-        gotlabels = [grid.GetColLabel(i) for i in range(5)]
+        gotlabels = [str(grid.GetColLabel(i)) for i in range(5)]
 
         assert explabels == gotlabels
