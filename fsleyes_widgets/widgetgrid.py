@@ -1322,6 +1322,7 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__dragStartCol   = None
         self.__dragCurrentCol = None
         self.__dragPanel.ClearBackground()
+        self.__dragPanel.Refresh()
 
         self.__colLabels[startcol][0].SetBackgroundColour(self.__labelColour)
         self.__colLabels[startcol][1].SetBackgroundColour(self.__labelColour)
