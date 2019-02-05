@@ -4,7 +4,7 @@ import wx
 
 import numpy as np
 
-from . import run_with_wx, simmouse, realYield
+from . import run_with_wx, simdragdrop, realYield
 
 import fsleyes_widgets.widgetgrid as widgetgrid
 
@@ -86,6 +86,15 @@ def _test_reorder_events():
     grid.ShowColLabels()
     grid.SetGridSize(1, 5)
 
+    labels = ['col {}' .format(i) for i in range(5)]
+    cells  = ['cell {}'.format(i) for i in range(5)]
+
+    for i in range(5): grid.SetColLabel(i, labels[i])
+    for i in range(5): grid.SetText(0,  i, cells[i])
+
+    grid.Refresh()
+    frame.Layout()
+
     # (clicked column, drop column, drop pos, expected order)
     tests = [
         (0, 0, 0.25, [0, 1, 2, 3, 4]),
@@ -114,29 +123,15 @@ def _test_reorder_events():
 
     for clickcol, dropcol, droppos, exporder in tests:
 
-        grid.ClearGrid()
-        grid.Refresh()
-        grid.SetGridSize(1, 5)
-
-        labels = ['col {}' .format(i) for i in range(5)]
-        cells  = ['cell {}'.format(i) for i in range(5)]
-
-        for i in range(5): grid.SetColLabel(i, labels[i])
-        for i in range(5): grid.SetText(0,  i, cells[i])
-
-        grid.Refresh()
-        frame.Layout()
-
         cwidget = grid.colLabels[clickcol].GetParent()
-        dwidget = grid.colLabels[dropcol].GetParent()
+        dwidget = grid.colLabels[dropcol] .GetParent()
 
-        realYield()
-        simmouse(sim, cwidget, 'left', 'down', [0.5,     0.5])
-        realYield()
-        simmouse(sim, dwidget, 'left', 'up',   [droppos, 0.5])
+        simdragdrop(sim, cwidget, dwidget, 'left', [0.5, 0.5], [droppos, 0.5])
         realYield()
 
         explabels = [labels[i] for i in exporder]
         gotlabels = grid.GetColLabels()
 
         assert explabels == gotlabels
+
+        labels = gotlabels

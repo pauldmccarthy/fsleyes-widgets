@@ -200,6 +200,35 @@ def simmouse(sim, target, btn, ev, pos):
     realYield()
 
 
+def simdragdrop(sim, target1, target2, btn, pos1, pos2):
+    w1, h1 = target1.GetClientSize().Get()
+    x1, y1 = target1.GetScreenPosition()
+    w2, h2 = target2.GetClientSize().Get()
+    x2, y2 = target2.GetScreenPosition()
+
+    if pos1 is None: pos1 = [0.5, 0.5]
+    if pos2 is None: pos2 = [0.5, 0.5]
+
+    # under gtk, events seem to be sporadically
+    # dropped. Inserting a bit of jitter in an
+    # attempt to prevent this.
+    pos1[0] += -0.2 + 0.4 * np.random.random()
+    pos1[1] += -0.2 + 0.4 * np.random.random()
+    pos2[0] += -0.2 + 0.4 * np.random.random()
+    pos2[1] += -0.2 + 0.4 * np.random.random()
+
+    x1 += w1 * pos1[0]
+    y1 += h1 * pos1[1]
+    x2 += w2 * pos2[0]
+    y2 += h2 * pos2[1]
+
+    if   btn == 'left':  btn = wx.MOUSE_BTN_LEFT
+    elif btn == 'right': btn = wx.MOUSE_BTN_RIGHT
+
+    sim.MouseDragDrop(x1, y1, x2, y2, btn)
+    realYield()
+
+
 def simtext(sim, target, text, enter=True):
 
     target.SetFocus()
