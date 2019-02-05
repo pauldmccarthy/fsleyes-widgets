@@ -14,6 +14,8 @@ import logging
 import wx
 import wx.lib.newevent as wxevent
 
+import fsleyes_widgets.utils.b64icon as b64icon
+
 
 log = logging.getLogger(__name__)
 
@@ -140,11 +142,12 @@ class WidgetGrid(wx.ScrolledWindow):
         if style is None:
             style = wx.HSCROLL | wx.VSCROLL
 
-        self.__hscroll     = style & wx.HSCROLL
-        self.__vscroll     = style & wx.VSCROLL
-        self.__keynav      = style & WG_KEY_NAVIGATION
-        self.__draggable   = style & WG_DRAGGABLE_COLUMNS
-        self.__currentDrag = None
+        self.__hscroll        = style & wx.HSCROLL
+        self.__vscroll        = style & wx.VSCROLL
+        self.__keynav         = style & WG_KEY_NAVIGATION
+        self.__draggable      = style & WG_DRAGGABLE_COLUMNS
+        self.__dragStartCol   = None
+        self.__dragCurrentCol = None
 
         if   style & WG_SELECTABLE_CELLS:   self.__selectable = 'cells'
         elif style & WG_SELECTABLE_ROWS:    self.__selectable = 'rows'
@@ -163,6 +166,21 @@ class WidgetGrid(wx.ScrolledWindow):
 
         self.__sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.__sizer)
+
+        # if column drag is enabled, we use a separate
+        # strip above the grid to show where a dragged
+        # column will be placed when it is dropped.
+        if self.__draggable:
+
+            self.__dragIcon  = b64icon.loadBitmap(TRIANGLE_ICON)
+            height           = self.__dragIcon.GetSize()[1]
+            self.__dragPanel = wx.Window(self)
+            self.__dragPanel.SetMinSize((-1, height))
+            self.__dragPanel.SetMaxSize((-1, height))
+            self.__sizer.Add(self.__dragPanel, flag=wx.EXPAND)
+
+            self.__dragPanel.Bind(wx.EVT_PAINT, self.__dragPanelPaint)
+
         self.__sizer.Add(self.__gridPanel, flag=wx.EXPAND)
 
         # The __widgets array contains wx.Panel
@@ -1204,7 +1222,9 @@ class WidgetGrid(wx.ScrolledWindow):
             ev.Skip()
             return
 
-        self.__currentDrag = col
+        self.__dragStartCol   = col
+        self.__dragCurrentCol = col
+
         self.__colLabels[col][0].SetBackgroundColour(self.__dragColour)
         self.__colLabels[col][1].SetBackgroundColour(self.__dragColour)
 
@@ -1222,7 +1242,7 @@ class WidgetGrid(wx.ScrolledWindow):
         to be dropped now.
         """
 
-        startcol = self.__currentDrag
+        startcol = self.__dragStartCol
         atpos    = wx.FindWindowAtPointer()[0]
         atpos    = self.__getCellPanel(atpos)
         endcol   = self.GetColumn(atpos)
@@ -1234,21 +1254,44 @@ class WidgetGrid(wx.ScrolledWindow):
         # column to place the dragged column
         # (i.e. on either its left or right
         # side).
-        lenx = atpos.GetSize().GetWidth()
-        posx = atpos.ScreenToClient(wx.GetMouseState().GetPosition()).x
-        posx = posx / lenx
-
+        lenx   = atpos.GetSize().GetWidth()
+        posx   = atpos.ScreenToClient(wx.GetMouseState().GetPosition()).x
+        posx   = posx / lenx
         endcol = int(round(endcol + posx))
 
         return endcol
 
 
     def __onColumnLabelMouseDrag(self, ev):
-        """Called during a column drag.
+        """Called during a column drag. Updates the marker location on
+        the drag panel.
         """
-        if self.__currentDrag is None:
+        if self.__dragStartCol is None:
             ev.Skip()
             return
+
+        startcol   = self.__dragStartCol
+        lastcol    = self.__dragCurrentCol
+        currentcol = self.__getColumnDragPosition()
+        panel      = self.__dragPanel
+
+        # mouse is off the grid, or
+        # current drop position would
+        # not move the column
+        if currentcol == -1         or \
+           startcol   == currentcol or \
+           startcol   == currentcol - 1:
+            self.__dragCurrentCol = None
+            panel.ClearBackground()
+            return
+
+        # No change since last draw
+        if lastcol == currentcol:
+            return
+
+        self.__dragCurrentCol = currentcol
+
+        self.__dragPanel.Refresh()
 
 
     def __onColumnLabelMouseUp(self, ev):
@@ -1257,23 +1300,24 @@ class WidgetGrid(wx.ScrolledWindow):
         Re-orders the grid columns.
         """
 
-        if self.__currentDrag is None:
+        if self.__dragStartCol is None:
             ev.Skip()
             return
 
         # The start column was saved in the
         # mousedown handler. Figure out the
         # column that mouseup occurred in.
-        startcol           = self.__currentDrag
-        endcol             = self.__getColumnDragPosition()
-        self.__currentDrag = None
+        startcol              = self.__dragStartCol
+        endcol                = self.__getColumnDragPosition()
+        self.__dragStartCol   = None
+        self.__dragCurrentCol = None
+        self.__dragPanel.ClearBackground()
 
         self.__colLabels[startcol][0].SetBackgroundColour(self.__labelColour)
         self.__colLabels[startcol][1].SetBackgroundColour(self.__labelColour)
         self.__colLabels[startcol][0].Refresh()
 
         if endcol == -1 or startcol == endcol:
-            ev.Skip()
             return
 
         # Offset the insertion index if
@@ -1291,6 +1335,38 @@ class WidgetGrid(wx.ScrolledWindow):
 
         self.ReorderColumns(order)
         self.Refresh()
+
+
+    def __dragPanelPaint(self, ev):
+        """Paints the current column drop location on the drag panel. """
+
+        currentcol = self.__dragCurrentCol
+        dc         = wx.PaintDC(self.__dragPanel)
+
+        if not dc.IsOk():
+            return
+
+        if currentcol is None:
+            return
+
+        dwidth, dheight = dc.GetSize().Get()
+
+        if dwidth == 0 or dheight == 0:
+            return
+
+        if currentcol == self.__ncols:
+            szitem = self.__gridSizer.GetItem(self.__colLabels[-1][0])
+            xpos   = szitem.GetPosition()[0] + szitem.GetSize()[0]
+
+        else:
+            szitem = self.__gridSizer.GetItem(self.__colLabels[currentcol][0])
+            xpos   = szitem.GetPosition()[0]
+
+        xpos -= 0.5 * self.__dragIcon.GetSize()[0]
+
+        self.__dragCurrentCol = currentcol
+        dc.Clear()
+        dc.DrawBitmap(self.__dragIcon, xpos, 0, False)
 
 
 WG_SELECTABLE_CELLS = 1
@@ -1346,4 +1422,16 @@ WidgetGridReorderEvent = _WidgetGridReorderEvent
 ``WidgetGridReorderEvent`` has the following attributes:
 
  - ``order`` The new column order.
+"""
+
+
+TRIANGLE_ICON = b'''
+iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABmJLR0QA/wD/AP+gvaeTAAAA
+CXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wIFDQoeGSImZAAAACZpVFh0Q29tbWVudAAA
+AAAAQ3JlYXRlZCB3aXRoIEdJTVAgb24gYSBNYWOV5F9bAAAAZklEQVQY053PwQmEUAyE4U8F
+tw5L8KAlbksetgIrsBLRy8O9RBDxCTowhyTDH4YH+iFhyzhFRn8T2t3v1DFDTXEDJdobWouy
+imHBig51AGZ8MWAtTsW201xctf+gObxsYpfVFH6nP5vqKwqbBq3zAAAAAElFTkSuQmCC
+'''.strip().replace(b'\n', b'')
+"""Icon used as the drop marker when columns are being re-ordered by
+mouse drag.
 """
