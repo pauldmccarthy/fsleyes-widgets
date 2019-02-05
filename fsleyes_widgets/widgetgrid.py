@@ -550,7 +550,7 @@ class WidgetGrid(wx.ScrolledWindow):
         """
         panel = wx.Panel(self.__gridPanel)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        lbl   = wx.StaticText(
+        label = wx.StaticText(
             panel,
             style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ALIGN_CENTRE_VERTICAL)
 
@@ -558,13 +558,16 @@ class WidgetGrid(wx.ScrolledWindow):
         panel._wg_cell = True
 
         panel.SetSizer(sizer)
-        sizer.Add(lbl, flag=wx.CENTRE)
+        sizer.Add(label, flag=wx.CENTRE)
 
         self.__initWidget(panel, -1, col)
-        self.__initWidget(lbl,   -1, col)
-        self.__colLabels[col] = (panel, lbl)
+        self.__initWidget(label, -1, col)
+        self.__colLabels[col] = (panel, label)
 
         if self.__draggable:
+            label.Bind(wx.EVT_LEFT_DOWN, self.__onColumnLabelMouseDown)
+            label.Bind(wx.EVT_LEFT_UP,   self.__onColumnLabelMouseUp)
+            label.Bind(wx.EVT_MOTION,    self.__onColumnLabelMouseDrag)
             panel.Bind(wx.EVT_LEFT_DOWN, self.__onColumnLabelMouseDown)
             panel.Bind(wx.EVT_LEFT_UP,   self.__onColumnLabelMouseUp)
             panel.Bind(wx.EVT_MOTION,    self.__onColumnLabelMouseDrag)
@@ -1225,11 +1228,13 @@ class WidgetGrid(wx.ScrolledWindow):
 
     def __onColumnLabelMouseDown(self, ev):
         """Called on mouse down events on a column label. """
+
+        ev.Skip()
+
         lbl = ev.GetEventObject()
         col = self.GetColumn(lbl)
 
         if col == -1:
-            ev.Skip()
             return
 
         self.__dragStartCol   = col
@@ -1277,7 +1282,6 @@ class WidgetGrid(wx.ScrolledWindow):
         the drag panel.
         """
         if self.__dragStartCol is None:
-            ev.Skip()
             return
 
         startcol   = self.__dragStartCol
@@ -1311,7 +1315,6 @@ class WidgetGrid(wx.ScrolledWindow):
         """
 
         if self.__dragStartCol is None:
-            ev.Skip()
             return
 
         # The start column was saved in the
