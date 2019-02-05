@@ -28,10 +28,11 @@ def _test_create():
 
     grid.Refresh()
 
-    for i in range(10):
-        assert grid.GetRowLabel(i) == 'row {}'.format(i + 1)
-    for i in range(10):
-        assert grid.GetColLabel(i) == 'col {}'.format(i + 1)
+    exprowlbls = ['row {}'.format(i + 1) for i in range(10)]
+    expcollbls = ['col {}'.format(i + 1) for i in range(10)]
+
+    assert grid.GetRowLabels() == exprowlbls
+    assert grid.GetColLabels() == expcollbls
 
     for i in range(10):
         for j in range(10):
@@ -107,6 +108,8 @@ def _test_reorder_events():
         (1, 3, 0.75, [0, 2, 3, 1, 4]),
         (3, 1, 0.25, [0, 3, 1, 2, 4]),
         (3, 1, 0.75, [0, 1, 3, 2, 4]),
+        (1, 4, 0.25, [0, 2, 3, 1, 4]),
+        (1, 4, 0.75, [0, 2, 3, 4, 1]),
     ]
 
     for clickcol, dropcol, droppos, exporder in tests:
@@ -134,6 +137,6 @@ def _test_reorder_events():
         realYield()
 
         explabels = [labels[i] for i in exporder]
-        gotlabels = [str(grid.GetColLabel(i)) for i in range(5)]
+        gotlabels = grid.GetColLabels()
 
         assert explabels == gotlabels
