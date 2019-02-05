@@ -15,6 +15,7 @@ Added
 * New :meth:`.WidgetGrid.ReorderColumns` method and
   :data:`.WG_DRAGGABLE_COLUMNS` style, allowing columns to be re-ordered by
   clicking and dragging the column labels.
+* New :mod:`.b64icon` module, for loading base64-encoded images.
 
 
 Changed
