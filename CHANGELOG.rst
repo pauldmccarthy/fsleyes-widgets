@@ -10,8 +10,18 @@ Added
 ^^^^^
 
 
-* New `.EditableListBox.GetWidgets` method.
-* New `.WidgetList.GetWidgets` method.
+* New :meth:`.EditableListBox.GetWidgets` method.
+* New :meth:`.WidgetList.GetWidgets` method.
+* New :meth:`.WidgetGrid.ReorderColumns` method and
+  :data:`.WG_DRAGGABLE_COLUMNS` style, allowing columns to be re-ordered by
+  clicking and dragging the column labels.
+
+
+Changed
+^^^^^^^
+
+
+* ``fsleyes-widgets`` is no longer tested against Python 2.7 or 3.4.
 
 
 Fixed
