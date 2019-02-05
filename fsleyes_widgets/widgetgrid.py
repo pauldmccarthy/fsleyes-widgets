@@ -1191,6 +1191,16 @@ class WidgetGrid(wx.ScrolledWindow):
         return self.__colLabels[col][1].GetLabel()
 
 
+    def GetRowLabels(self):
+        """Return all row labels. """
+        return [self.__rowLabels[i][1].GetLabel() for i in range(self.__nrows)]
+
+
+    def GetColLabels(self):
+        """Return all column labels. """
+        return [self.__colLabels[i][1].GetLabel() for i in range(self.__ncols)]
+
+
     def ReorderColumns(self, order):
         """Re-orders the grid columns according to the given sequence
         of column indices.
@@ -1335,6 +1345,10 @@ class WidgetGrid(wx.ScrolledWindow):
 
         self.ReorderColumns(order)
         self.Refresh()
+
+        event = WidgetGridReorderEvent(order=order)
+        event.SetEventObject(self)
+        wx.PostEvent(self, event)
 
 
     def __dragPanelPaint(self, ev):
