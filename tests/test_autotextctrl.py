@@ -18,7 +18,7 @@ def sendEvent(target, evType, source=None):
         source = target
 
     target.ProcessEvent(wx.CommandEvent(evType, source.GetId()))
-    wx.Yield()
+    realYield()
 
 # Simple test - programmatically
 # set, then retrieve the value

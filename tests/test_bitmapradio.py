@@ -11,7 +11,7 @@ import pytest
 
 import wx
 
-from . import run_with_wx, simclick
+from . import run_with_wx, simclick, realYield
 
 import fsleyes_widgets.bitmapradio  as bmpradio
 import fsleyes_widgets.bitmaptoggle as bmptoggle
@@ -97,7 +97,7 @@ def _test_Event():
 
     panel.Layout()
     panel.Fit()
-    wx.Yield()
+    realYield()
 
     btns = []
     for c in rad.GetChildren():
