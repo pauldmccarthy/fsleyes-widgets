@@ -4,7 +4,7 @@ import wx
 
 import numpy as np
 
-from . import run_with_wx, simdragdrop, realYield
+from . import run_with_wx, simmove, realYield
 
 import fsleyes_widgets.widgetgrid as widgetgrid
 
@@ -97,6 +97,17 @@ def _test_reorder_events():
     grid.Refresh()
     frame.Layout()
 
+    class FakeEV(object):
+
+        def __init__(self, evo):
+            self.evo = evo
+
+        def Skip(self):
+            pass
+
+        def GetEventObject(self):
+            return self.evo
+
     # (clicked column, drop column, drop pos, expected order)
     tests = [
         (0, 0, 0.25, [0, 1, 2, 3, 4]),
@@ -129,8 +140,16 @@ def _test_reorder_events():
         cwidget = grid.colLabels[clickcol].GetParent()
         dwidget = grid.colLabels[dropcol] .GetParent()
 
-
-        simdragdrop(sim, cwidget, dwidget, 'left', [0.5, 0.5], [droppos, 0.5])
+        simmove(sim, cwidget, [0.5, 0.5])
+        ev = FakeEV(cwidget)
+        grid._WidgetGrid__onColumnLabelMouseDown(ev)
+        realYield()
+        simmove(sim, dwidget, [droppos, 0.5])
+        realYield()
+        grid._WidgetGrid__onColumnLabelMouseDrag(ev)
+        realYield()
+        ev.evo = dwidget
+        grid._WidgetGrid__onColumnLabelMouseUp(ev)
         realYield()
 
         explabels = [labels[i] for i in exporder]

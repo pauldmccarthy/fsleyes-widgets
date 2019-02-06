@@ -178,6 +178,20 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
     realYield()
 
 
+def simmove(sim, target, pos):
+    w, h = target.GetClientSize().Get()
+    x, y = target.GetScreenPosition()
+
+    if pos is None:
+        pos = [0.5, 0.5]
+
+    x += w * pos[0]
+    y += h * pos[1]
+
+    sim.MouseMove(x, y)
+
+
+
 def simmouse(sim, target, btn, ev, pos):
     w, h = target.GetClientSize().Get()
     x, y = target.GetScreenPosition()
