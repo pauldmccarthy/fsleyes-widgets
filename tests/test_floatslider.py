@@ -160,7 +160,7 @@ def _test_FloatSlider_mouse():
     sizer.Add(slider, flag=wx.EXPAND, proportion=1)
     frame.SetSizer(sizer)
     frame.Layout()
-    wx.Yield()
+    realYield()
 
     called = [0]
 
@@ -216,7 +216,7 @@ def _test_FloatSlider_wheel():
     val = slider.GetValue()
     ev.GetWheelRotation.return_value = 1
     slider._FloatSlider__onMouseWheel(ev)
-    wx.Yield()
+    realYield()
     assert called[0]
     assert slider.GetValue() > val
 
@@ -226,7 +226,7 @@ def _test_FloatSlider_wheel():
     called[0] = False
     ev.GetWheelRotation.return_value = -1
     slider._FloatSlider__onMouseWheel(ev)
-    wx.Yield()
+    realYield()
     assert called[0]
     assert slider.GetValue() < val
 
@@ -235,7 +235,7 @@ def _test_FloatSlider_wheel():
     called[0] = False
     ev.GetWheelRotation.return_value = 0
     slider._FloatSlider__onMouseWheel(ev)
-    wx.Yield()
+    realYield()
     assert not called[0]
     assert np.isclose(slider.GetValue(), val)
 

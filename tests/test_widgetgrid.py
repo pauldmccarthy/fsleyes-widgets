@@ -56,12 +56,13 @@ def _test_reorder():
     for i in range(10): grid.SetText(0,  i, cells[i])
 
     grid.Refresh()
-
+    realYield()
     for i in range(5):
         neworder = np.array(range(10))
         np.random.shuffle(neworder)
         grid.ReorderColumns(neworder)
         grid.Refresh()
+        realYield()
 
         for i in range(10):
 
@@ -75,6 +76,7 @@ def _test_reorder():
 def test_reorder_events():
     run_with_wx(_test_reorder_events)
 def _test_reorder_events():
+    realYield()
     frame = wx.GetApp().GetTopWindow()
     frame.SetSize((800, 600))
     sim   = wx.UIActionSimulator()
@@ -121,10 +123,12 @@ def _test_reorder_events():
         (1, 4, 0.75, [0, 2, 3, 4, 1]),
     ]
 
+    realYield()
     for clickcol, dropcol, droppos, exporder in tests:
 
         cwidget = grid.colLabels[clickcol].GetParent()
         dwidget = grid.colLabels[dropcol] .GetParent()
+
 
         simdragdrop(sim, cwidget, dwidget, 'left', [0.5, 0.5], [droppos, 0.5])
         realYield()

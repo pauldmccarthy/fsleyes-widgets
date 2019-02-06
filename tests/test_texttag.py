@@ -34,9 +34,9 @@ def _test_StaticTextTag():
     assert tag.GetText() == 'TagText'
 
     dummy.SetFocus()
-    wx.Yield()
+    realYield()
     tag.SetFocus()
-    wx.Yield()
+    realYield()
 
 
 def test_StaticTextTag_Close():
@@ -206,7 +206,7 @@ def _test_TextTagPanel_close_event():
 
     panel.AddTag('MyTag1')
     panel.AddTag('MyTag2')
-    wx.Yield()
+    realYield()
 
     simclick(sim, panel.tags[1].closeButton, stype=2)
     assert result[0]       == 'MyTag2'
