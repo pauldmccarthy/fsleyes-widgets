@@ -79,7 +79,7 @@ def textBitmap(text,
     buf = canvas.tostring_argb()
     ncols, nrows = canvas.get_width_height()
 
-    bitmap = np.fromstring(buf, dtype=np.uint8)
+    bitmap = np.frombuffer(buf, dtype=np.uint8)
     bitmap = bitmap.reshape(nrows, ncols, 4)
 
     rgb = bitmap[:, :, 1:]
