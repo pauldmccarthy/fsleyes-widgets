@@ -91,12 +91,12 @@ class ImagePanel(wx.Panel):
             # canvas is too wide - reduce
             # the display image width
             if dratio > iratio:
-                dwidth = dheight / iratio
+                dwidth = dheight * iratio
 
             # canvas is too tall - reduce
             # the display image height
             elif dratio < iratio:
-                dheight = dwidth * iratio
+                dheight = dwidth / iratio
 
         bitmap = self.__image.Scale(dwidth, dheight).ConvertToBitmap()
 
