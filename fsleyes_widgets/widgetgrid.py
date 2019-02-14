@@ -1184,6 +1184,28 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__colLabels[col][1].SetLabel(label)
 
 
+    def SetRowLabels(self, labels):
+        """Sets the label for every row.
+        """
+        if len(labels) != self.__nrows:
+            raise ValueError('Wrong number of row labels ({} != {})'.format(
+                len(labels), self.__nrows))
+
+        for i, label in enumerate(labels):
+            self.__rowLabels[i][1].SetLabel(label)
+
+
+    def SetColLabels(self, labels):
+        """Sets the label for every column.
+        """
+        if len(labels) != self.__ncols:
+            raise ValueError('Wrong number of column labels ({} != {})'.format(
+                len(labels), self.__ncols))
+
+        for i, label in enumerate(labels):
+            self.__colLabels[i][1].SetLabel(label)
+
+
     def GetRowLabel(self, row):
         """Return the label of the specified ``row``. """
         return self.__rowLabels[row][1].GetLabel()
