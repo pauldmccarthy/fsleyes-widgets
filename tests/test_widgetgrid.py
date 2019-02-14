@@ -52,7 +52,9 @@ def _test_reorder():
     labels = ['col {}' .format(i) for i in range(10)]
     cells  = ['cell {}'.format(i) for i in range(10)]
 
-    for i in range(10): grid.SetColLabel(i, labels[i])
+    grid.SetColLabels(labels)
+    grid.SetRowLabels(['row'])
+
     for i in range(10): grid.SetText(0,  i, cells[i])
 
     grid.Refresh()
