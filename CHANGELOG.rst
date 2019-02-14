@@ -16,6 +16,7 @@ Added
   :data:`.WG_DRAGGABLE_COLUMNS` style, allowing columns to be re-ordered by
   clicking and dragging the column labels.
 * New :meth:`.WidgetGrid.GetRowLabels`, :meth:`.WidgetGrid.GetColLabels`,
+  :meth:`.WidgetGrid.SetRowLabels`, :meth:`.WidgetGrid.SetColLabels`,
   :meth:`.WidgetGrid.GetRowLabel`, and :meth:`.WidgetGrid.GetColLabel`
   accessor methods.
 * New :mod:`.b64icon` module, for loading base64-encoded images.
