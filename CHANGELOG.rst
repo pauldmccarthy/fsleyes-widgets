@@ -2,6 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.8.0 (Under development)
+-------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed a bug in the :class:`.ImagePanel` aspect ratio calculation.
+
+
 0.7.3 (Monday January 7th 2019)
 -------------------------------
 
