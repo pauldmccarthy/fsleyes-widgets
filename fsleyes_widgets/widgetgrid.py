@@ -214,7 +214,11 @@ class WidgetGrid(wx.ScrolledWindow):
         self.Bind(wx.EVT_SIZE, self.__onResize)
 
         if self.__keynav:
-            self.Bind(wx.EVT_KEY_DOWN, self.__onKeyboard)
+            # We use CHAR_HOOK for key events,
+            # because we want to capture key
+            # presses whenever this panel or
+            # any of its children has focus.
+            self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
 
         if self.__selectable:
             # A silly internal multi-level semaphore
@@ -743,7 +747,7 @@ class WidgetGrid(wx.ScrolledWindow):
         :arg text: Text to display.
         """
 
-        txt = wx.StaticText(self.__gridPanel, label=text)
+        txt = wx.StaticText(self.__gridPanel, label=text, style=wx.WANTS_CHARS)
         self.SetWidget(row, col, txt)
 
 
@@ -982,7 +986,7 @@ class WidgetGrid(wx.ScrolledWindow):
 
         log.debug('Keyboard event ({})'.format(key))
 
-        if key not in (up, down, left, right):
+        if ev.HasModifiers() or (key not in (up, down, left, right)):
             ev.Skip()
             return
 
