@@ -146,6 +146,7 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__vscroll        = style & wx.VSCROLL
         self.__keynav         = style & WG_KEY_NAVIGATION
         self.__draggable      = style & WG_DRAGGABLE_COLUMNS
+        self.__dragLimit      = -1
         self.__dragStartCol   = None
         self.__dragCurrentCol = None
 
@@ -331,6 +332,15 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__rightKey = right
 
 
+    def SetDragLimit(self, limit):
+        """Set the index of the highest column that can be dragged.  Only
+        columns before this limit can be dragged, and they can only be dropped
+        onto a location before the limit. Only relevant if
+        :data:`WG_DRAGGABLE_COLUMNS` is enabled.
+        """
+        self.__dragLimit = limit
+
+
     def __onResize(self, ev):
         """Called when this ``WidgetGrid`` is resized. Makes sure the
         scrollbars are up to date.
@@ -496,6 +506,7 @@ class WidgetGrid(wx.ScrolledWindow):
 
         self.__nrows     = nrows
         self.__ncols     = ncols
+        self.__dragLimit = -1
         self.__gridSizer = wx.FlexGridSizer(nrows + 1, ncols + 1, 0, 0)
 
         self.__gridSizer.SetFlexibleDirection(wx.BOTH)
@@ -727,6 +738,7 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__gridSizer  = None
         self.__nrows      = 0
         self.__ncols      = 0
+        self.__dragLimit  = -1
         self.__widgets    = []
         self.__widgetRefs = []
         self.__rowLabels  = []
@@ -1260,7 +1272,7 @@ class WidgetGrid(wx.ScrolledWindow):
         lbl = ev.GetEventObject()
         col = self.GetColumn(lbl)
 
-        if col == -1:
+        if col == -1 or (self.__dragLimit > -1 and col > self.__dragLimit):
             return
 
         self.__dragStartCol   = col
@@ -1299,6 +1311,11 @@ class WidgetGrid(wx.ScrolledWindow):
         posx   = atpos.ScreenToClient(wx.GetMouseState().GetPosition()).x
         posx   = posx / lenx
         endcol = int(round(endcol + posx))
+
+        # Clip to the drag limit column if
+        # it is set
+        if self.__dragLimit > -1:
+            endcol = min(endcol, self.__dragLimit + 1)
 
         return endcol
 
