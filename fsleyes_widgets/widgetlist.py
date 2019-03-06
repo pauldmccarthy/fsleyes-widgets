@@ -479,7 +479,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         keys = self.__widgets.keys()
         for key in keys:
             widg = self.__widgets.pop(key)
-            self.__propSizer.Detach(widg.sizer)
+            self.__widgSizer.Detach(widg.sizer)
             widg.Destroy()
 
         for group in self.GetGroups():
