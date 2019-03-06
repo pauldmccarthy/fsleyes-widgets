@@ -12,9 +12,10 @@ Added
 
 * New :meth:`.EditableListBox.GetWidgets` method.
 * New :meth:`.WidgetList.GetWidgets` method.
-* New :meth:`.WidgetGrid.ReorderColumns` method and
-  :data:`.WG_DRAGGABLE_COLUMNS` style, allowing columns to be re-ordered by
-  clicking and dragging the column labels.
+* New :data:`.WG_DRAGGABLE_COLUMNS` style and
+  :meth:`.WidgetGrid.ReorderColumns` and :meth:`.WidgetGrid.SetDragLimits`
+  methods, allowing columns to be re-ordered by clicking and dragging the
+  column labels.
 * New :meth:`.WidgetGrid.GetRowLabels`, :meth:`.WidgetGrid.GetColLabels`,
   :meth:`.WidgetGrid.SetRowLabels`, :meth:`.WidgetGrid.SetColLabels`,
   :meth:`.WidgetGrid.GetRowLabel`, and :meth:`.WidgetGrid.GetColLabel`
