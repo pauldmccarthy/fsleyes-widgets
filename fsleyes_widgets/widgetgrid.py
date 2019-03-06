@@ -1462,7 +1462,7 @@ EVT_WG_SELECT = _EVT_WG_SELECT
 """Identifier for the :data:`WidgetGridSelectEvent`. """
 
 
-EVT_WG_REORDER = _EVT_WG_SELECT
+EVT_WG_REORDER = _EVT_WG_REORDER
 """Identifier for the :data:`WidgetGridReorderEvent`. """
 
 
