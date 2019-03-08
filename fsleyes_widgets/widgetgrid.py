@@ -1172,7 +1172,8 @@ class WidgetGrid(wx.ScrolledWindow):
             widget    = self.__widgetRefs[row][col]
             self.__setBackgroundColour(container, colour)
             self.__setBackgroundColour(widget,    colour)
-            widget.Refresh()
+            widget   .Refresh()
+            container.Refresh()
 
 
     def ShowRowLabels(self, show=True):
