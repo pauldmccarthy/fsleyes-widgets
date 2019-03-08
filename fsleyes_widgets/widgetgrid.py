@@ -752,6 +752,9 @@ class WidgetGrid(wx.ScrolledWindow):
         """Convenience method which creates a :class:`wx.StaticText` widget
         with the given text, and passes it to the :meth:`SetWidget` method.
 
+        If there is already a ``wx.StaticText`` widget at the given
+        ``row``/``col``, it is re-used, and its label simply updated.
+
         :arg row:  Row index.
 
         :arg col:  Column index.
@@ -759,8 +762,15 @@ class WidgetGrid(wx.ScrolledWindow):
         :arg text: Text to display.
         """
 
-        txt = wx.StaticText(self.__gridPanel, label=text, style=wx.WANTS_CHARS)
-        self.SetWidget(row, col, txt)
+        txt = self.GetWidget(row, col)
+
+        if isinstance(txt, wx.StaticText):
+            txt.SetLabel(text)
+        else:
+            txt = wx.StaticText(self.__gridPanel,
+                                label=text,
+                                style=wx.WANTS_CHARS)
+            self.SetWidget(row, col, txt)
 
 
     def GetWidget(self, row, col):
