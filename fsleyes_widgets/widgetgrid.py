@@ -1108,6 +1108,11 @@ class WidgetGrid(wx.ScrolledWindow):
         sizex -= widgSizex
         sizey -= widgSizey
 
+        # take into account the drag
+        # panel if it is visible
+        if self.__draggable:
+            sizey -= self.__dragPanel.GetClientSize().GetHeight()
+
         scrollx = startx
         scrolly = starty
 
