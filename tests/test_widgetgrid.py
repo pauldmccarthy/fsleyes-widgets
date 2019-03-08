@@ -160,3 +160,82 @@ def _test_reorder_events():
         assert explabels == gotlabels
 
         labels = gotlabels
+
+
+def test_reorder_events_draglimit():
+    run_with_wx(_test_reorder_events_draglimit)
+def _test_reorder_events_draglimit():
+    realYield()
+    frame = wx.GetApp().GetTopWindow()
+    frame.SetSize((800, 600))
+    sim   = wx.UIActionSimulator()
+    grid  = widgetgrid.WidgetGrid(frame, style=widgetgrid.WG_DRAGGABLE_COLUMNS)
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    frame.SetSizer(sizer)
+    sizer.Add(grid, flag=wx.EXPAND, proportion=1)
+
+    grid.ShowColLabels()
+    grid.SetGridSize(1, 5)
+    grid.SetDragLimit(2)
+
+    labels = ['col {}' .format(i) for i in range(5)]
+    cells  = ['cell {}'.format(i) for i in range(5)]
+
+    for i in range(5): grid.SetColLabel(i, labels[i])
+    for i in range(5): grid.SetText(0,  i, cells[i])
+
+    grid.Refresh()
+    frame.Layout()
+
+    class FakeEV(object):
+
+        def __init__(self, evo):
+            self.evo = evo
+
+        def Skip(self):
+            pass
+
+        def GetEventObject(self):
+            return self.evo
+
+    # (clicked column, drop column, drop pos, expected order)
+    tests = [
+        (0, 1, 0.75, [1, 0, 2, 3, 4]),
+        (1, 2, 0.75, [0, 2, 1, 3, 4]),
+        (1, 0, 0.25, [1, 0, 2, 3, 4]),
+        (2, 1, 0.25, [0, 2, 1, 3, 4]),
+
+        # drop is past drag limit -> clamp
+        (0, 3, 0.75, [1, 2, 0, 3, 4]),
+        (0, 4, 0.75, [1, 2, 0, 3, 4]),
+
+        # past drag limit -> no-ops
+        (3, 1, 0.25, [0, 1, 2, 3, 4]),
+        (3, 4, 0.75, [0, 1, 2, 3, 4]),
+        (4, 3, 0.25, [0, 1, 2, 3, 4]),
+    ]
+
+    realYield()
+    for clickcol, dropcol, droppos, exporder in tests:
+
+        cwidget = grid.colLabels[clickcol].GetParent()
+        dwidget = grid.colLabels[dropcol] .GetParent()
+
+        simmove(sim, cwidget, [0.5, 0.5])
+        ev = FakeEV(cwidget)
+        grid._WidgetGrid__onColumnLabelMouseDown(ev)
+        realYield()
+        simmove(sim, dwidget, [droppos, 0.5])
+        realYield()
+        grid._WidgetGrid__onColumnLabelMouseDrag(ev)
+        realYield()
+        ev.evo = dwidget
+        grid._WidgetGrid__onColumnLabelMouseUp(ev)
+        realYield()
+
+        explabels = [labels[i] for i in exporder]
+        gotlabels = grid.GetColLabels()
+
+        assert explabels == gotlabels
+
+        labels = gotlabels
