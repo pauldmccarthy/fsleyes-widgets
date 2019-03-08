@@ -987,6 +987,9 @@ class WidgetGrid(wx.ScrolledWindow):
         row    = widget._wg_row
         col    = widget._wg_col
 
+        if not widget.AcceptsFocus():
+            self.SetFocusIgnoringChildren()
+
         log.debug('Left mouse down on cell {}'.format((row, col)))
 
         self.__selectCell(row, col)
