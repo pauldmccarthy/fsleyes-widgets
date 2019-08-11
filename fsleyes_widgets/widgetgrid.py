@@ -9,7 +9,8 @@ tabular grid of arbitrary widgets.
 """
 
 
-import logging
+import functools as ft
+import              logging
 
 import wx
 import wx.lib.newevent as wxevent
@@ -258,6 +259,35 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__refresh()
 
 
+    def __recurse(self, obj, funcname, *args, **kwargs):
+        """Recursively call ``funcname`` on ``obj`` and all its children.
+
+        This really is something which ``wxwidgets`` should be able to do for
+        me (e.g. enable/disable a window *and* all of its children).
+        """
+        if obj is self:
+            func = ft.partial(getattr(wx.ScrolledWindow, funcname), self)
+        else:
+            func = getattr(obj, funcname)
+
+        func(*args, **kwargs)
+
+        for child in obj.GetChildren():
+            self.__recurse(child, funcname, *args, **kwargs)
+
+
+    def Disable(self):
+        """Disables this ``WidgetGrid``. """
+        self.Enable(False)
+
+
+    def Enable(self, enable=True):
+        """Enables/disable this ``WidgetGrid``, and recursively does the same
+        to all of its children.
+        """
+        self.__recurse(self, 'Enable', enable)
+
+
     def Hide(self):
         """Hides this ``WidgetGrid``. """
         self.Show(False)
@@ -267,15 +297,14 @@ class WidgetGrid(wx.ScrolledWindow):
         """Shows/hides this ``WidgetGrid``, and recursively does the same
         to all of its children.
         """
+        self.__recurse(self, 'Show', show)
 
-        def realShow(obj):
-            if obj is self: wx.ScrolledWindow.Show(self, show)
-            else:           obj.Show(show)
 
-            for child in obj.GetChildren():
-                realShow(child)
-
-        realShow(self)
+    def SetEvtHandlerEnabled(self, enable=True):
+        """Enables/disables events on this ``WidgetGrid``, and recursively does
+        the same to all of its children.
+        """
+        self.__recurse(self, 'SetEvtHandlerEnabled', enable)
 
 
     def SetColours(self, **kwargs):
