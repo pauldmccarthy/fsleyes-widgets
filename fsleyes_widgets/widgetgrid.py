@@ -411,6 +411,7 @@ class WidgetGrid(wx.ScrolledWindow):
         labelColour  = self.__labelColour
         oddColour    = self.__oddColour
         evenColour   = self.__evenColour
+        ncols        = self.__ncols
 
         if borderColour is None: borderColour = WidgetGrid._defaultBorderColour
         if labelColour  is None: labelColour  = WidgetGrid._defaultLabelColour
@@ -442,14 +443,20 @@ class WidgetGrid(wx.ScrolledWindow):
             colLabel._wg_row = -1
             colLabel._wg_col = coli
 
-            # 1px border between every column
-            if coli == self.__ncols - 1: flag = wx.TOP | wx.LEFT | wx.RIGHT
-            else:                        flag = wx.TOP | wx.LEFT
+            # If drag limit is set, add a border
+            # between the last draggable column,
+            # unless all columns are draggable.
+            if (coli == self.__dragLimit) and (coli < ncols - 1):
+                flag   = wx.EXPAND | wx.RIGHT
+                border = 2
+            else:
+                flag   = wx.EXPAND
+                border = 0
 
             lblPanel.SetBackgroundColour(labelColour)
             colLabel.SetBackgroundColour(labelColour)
 
-            self.__gridSizer.Add( lblPanel, border=1, flag=wx.EXPAND | flag)
+            self.__gridSizer.Add( lblPanel, border=border, flag=flag)
             self.__gridSizer.Show(lblPanel, self.__showColLabels)
 
         # Rows
@@ -466,7 +473,7 @@ class WidgetGrid(wx.ScrolledWindow):
             lblPanel.SetBackgroundColour(labelColour)
             rowLabel.SetBackgroundColour(labelColour)
 
-            self.__gridSizer.Add( lblPanel, border=1, flag=wx.EXPAND | flag)
+            self.__gridSizer.Add( lblPanel, flag=wx.EXPAND)
             self.__gridSizer.Show(lblPanel, self.__showRowLabels)
 
             # Widgets
@@ -480,14 +487,17 @@ class WidgetGrid(wx.ScrolledWindow):
                 container._wg_row = rowi
                 container._wg_col = coli
 
-                flag = wx.TOP | wx.LEFT
-
-                if rowi == self.__nrows - 1: flag |= wx.BOTTOM
-                if coli == self.__ncols - 1: flag |= wx.RIGHT
+                # border at drag limit
+                if (coli == self.__dragLimit) and (coli < ncols - 1):
+                    flag   = wx.EXPAND | wx.RIGHT
+                    border = 2
+                else:
+                    flag   = wx.EXPAND
+                    border = 0
 
                 self.__gridSizer.Add(container,
-                                     flag=wx.EXPAND | flag,
-                                     border=1,
+                                     flag=flag,
+                                     border=border,
                                      proportion=1)
 
                 if rowi % 2: colour = oddColour
@@ -536,8 +546,10 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__nrows     = nrows
         self.__ncols     = ncols
         self.__dragLimit = -1
-        self.__gridSizer = wx.FlexGridSizer(nrows + 1, ncols + 1, 0, 0)
 
+        # set hgap and vgap so we get
+        # a 1px border between cells
+        self.__gridSizer = wx.FlexGridSizer(nrows + 1, ncols + 1, 1, 1)
         self.__gridSizer.SetFlexibleDirection(wx.BOTH)
 
         for col in growCols:
