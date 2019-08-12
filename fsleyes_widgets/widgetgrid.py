@@ -567,7 +567,18 @@ class WidgetGrid(wx.ScrolledWindow):
         for rowi in range(nrows): self.__initRowLabel(rowi)
         for coli in range(ncols): self.__initColLabel(coli)
 
-        self.__gridPanel.SetSizer(self.__gridSizer)
+        # Put the main grid sizer inside
+        # another sizer, so we get a
+        # border around the entire thing
+        # (this can't be done in the grid
+        # sizer itself, because the borders
+        # between columns potentially vary)
+        self.__gridBorderSizer = wx.BoxSizer(wx.VERTICAL)
+        self.__gridBorderSizer.Add(self.__gridSizer,
+                                   flag=wx.EXPAND | wx.ALL,
+                                   border=1)
+
+        self.__gridPanel.SetSizer(self.__gridBorderSizer)
 
 
     def __initCell(self, row, col):
