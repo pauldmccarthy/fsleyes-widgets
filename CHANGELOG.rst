@@ -21,6 +21,8 @@ Added
   :meth:`.WidgetGrid.GetRowLabel`, and :meth:`.WidgetGrid.GetColLabel`
   accessor methods.
 * New :mod:`.b64icon` module, for loading base64-encoded images.
+* New :mod:`.overlay` module, for drawing overlays on any widget. Currently
+  only one function - :func:`.textOverlay` - is available.
 
 
 Changed
