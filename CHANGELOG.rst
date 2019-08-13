@@ -6,6 +6,32 @@ chronological order.
 -------------------------
 
 
+Added
+^^^^^
+
+
+* New :meth:`.EditableListBox.GetWidgets` method.
+* New :meth:`.WidgetList.GetWidgets` method.
+* New :data:`.WG_DRAGGABLE_COLUMNS` style and
+  :meth:`.WidgetGrid.ReorderColumns` and :meth:`.WidgetGrid.SetDragLimits`
+  methods, allowing columns to be re-ordered by clicking and dragging the
+  column labels.
+* New :meth:`.WidgetGrid.GetRowLabels`, :meth:`.WidgetGrid.GetColLabels`,
+  :meth:`.WidgetGrid.SetRowLabels`, :meth:`.WidgetGrid.SetColLabels`,
+  :meth:`.WidgetGrid.GetRowLabel`, and :meth:`.WidgetGrid.GetColLabel`
+  accessor methods.
+* New :mod:`.b64icon` module, for loading base64-encoded images.
+* New :mod:`.overlay` module, for drawing overlays on any widget. Currently
+  only one function - :func:`.textOverlay` - is available.
+
+
+Changed
+^^^^^^^
+
+
+* ``fsleyes-widgets`` is no longer tested against Python 2.7 or 3.4.
+
+
 Fixed
 ^^^^^
 

@@ -4,8 +4,10 @@
 .. toctree::
    :hidden:
 
+   fsleyes_widgets.utils.b64icon
    fsleyes_widgets.utils.colourbarbitmap
    fsleyes_widgets.utils.layout
+   fsleyes_widgets.utils.overlay
    fsleyes_widgets.utils.progress
    fsleyes_widgets.utils.runwindow
    fsleyes_widgets.utils.status

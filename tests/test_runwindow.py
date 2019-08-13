@@ -12,7 +12,7 @@ import tempfile
 
 import fsleyes_widgets.utils.runwindow as runwindow
 
-from . import run_with_wx
+from . import run_with_wx, realYield
 
 
 def _gen_dummy_script():
@@ -85,7 +85,7 @@ def test_ProcessManager_termProc():
         pm.start()
 
         for i in range(2):
-            wx.Yield()
+            realYield()
             time.sleep(1)
 
         pm.termProc()

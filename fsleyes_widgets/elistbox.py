@@ -853,6 +853,12 @@ class EditableListBox(wx.Panel):
         return [self.__listItems[i].data for i in indices]
 
 
+    def GetWidgets(self):
+        """Returns the widget associated with every item in the list."""
+        indices = map(self.__fixIndex, range(self.GetCount()))
+        return [self.__listItems[i].extraWidget for i in indices]
+
+
     def SetItemLabel(self, n, s):
         """Sets the label of the item at index ``n`` to the string ``s``.
 

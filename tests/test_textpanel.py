@@ -7,7 +7,7 @@
 
 import wx
 
-from . import run_with_wx
+from . import run_with_wx, realYield
 
 import fsleyes_widgets.textpanel as tp
 
@@ -18,10 +18,10 @@ def _test_TextPanel():
     panel = tp.TextPanel(frame)
 
     panel.SetLabel('')
-    wx.Yield()
+    realYield()
     panel.SetLabel('Blab')
-    wx.Yield()
+    realYield()
     panel.SetOrient(wx.HORIZONTAL)
-    wx.Yield()
+    realYield()
     panel.SetOrient(wx.VERTICAL)
-    wx.Yield()
+    realYield()

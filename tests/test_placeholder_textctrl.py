@@ -8,7 +8,7 @@
 
 import wx
 
-from . import run_with_wx
+from . import run_with_wx, realYield
 
 import fsleyes_widgets.placeholder_textctrl as ptc
 
@@ -27,7 +27,7 @@ def _test_PlaceholderTextCtrl():
     sizer.Add(ctrl,  flag=wx.EXPAND)
     frame.SetSizer(sizer)
     frame.Layout()
-    wx.Yield()
+    realYield()
 
     assert ctrl.GetPlaceholder()       == 'Enter text'
     assert tuple(ctrl.GetPlaceholderColour()) == (200, 100, 100)
@@ -37,8 +37,8 @@ def _test_PlaceholderTextCtrl():
     ctrl.SetValue('')
 
     dummy.SetFocus()
-    wx.Yield()
+    realYield()
     ctrl.SetFocus()
-    wx.Yield()
+    realYield()
     dummy.SetFocus()
-    wx.Yield()
+    realYield()

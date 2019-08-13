@@ -298,10 +298,9 @@ class WidgetList(scrolledpanel.ScrolledPanel):
                         be returned. Otherwise, ungrouped widgets are returned.
         """
         if groupName is None: widgDict = self.__widgets
-        else:                 widgDict = group.widgets
+        else:                 widgDict = self.__groups[groupName].widgets
         widgets = [w.widget for w in widgDict.values()]
         return widgets
-
 
 
     def AddWidget(self, widget, displayName, tooltip=None, groupName=None):
@@ -476,10 +475,9 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
     def Clear(self):
         """Removes and destroys all widgets and groups. """
-        keys = self.__widgets.keys()
-        for key in keys:
+        for key in list(self.__widgets.keys()):
             widg = self.__widgets.pop(key)
-            self.__propSizer.Detach(widg.sizer)
+            self.__widgSizer.Detach(widg.sizer)
             widg.Destroy()
 
         for group in self.GetGroups():

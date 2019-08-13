@@ -9,10 +9,13 @@ tabular grid of arbitrary widgets.
 """
 
 
-import logging
+import functools as ft
+import              logging
 
 import wx
 import wx.lib.newevent as wxevent
+
+import fsleyes_widgets.utils.b64icon as b64icon
 
 
 log = logging.getLogger(__name__)
@@ -68,15 +71,18 @@ class WidgetGrid(wx.ScrolledWindow):
 
     The ``WidgetGrid`` supports the following styles:
 
-    =============================== ================================
+    =============================== ==================================
     ``wx.HSCROLL``                  Use a horizontal scrollbar.
     ``wx.VSCROLL``                  Use a vertical scrollbar.
     :data:`WG_SELECTABLE_CELLS`     Individual cells are selectable.
     :data:`WG_SELECTABLE_ROWS`      Rows are selectable.
     :data:`WG_SELECTABLE_COLUMN`    Columns are selectable.
     :data:`WG_KEY_NAVIGATION`       The keyboard can be used for
-                                    navigation
-    =============================== ================================
+                                    navigation.
+    :data:`WG_DRAGGABLE_COLUMNS`    Columns can be dragged to re-order
+                                    them (see also the
+                                    :meth:`ReorderColumns` method)
+    =============================== ==================================
 
 
     The ``*_SELECTABLE_*`` styles are mutualliy exclusive; their precedence
@@ -93,6 +99,7 @@ class WidgetGrid(wx.ScrolledWindow):
        :nosignatures:
 
        :data:`WidgetGridSelectEvent`
+       :data:`WidgetGridReorderEvent`
     """
 
 
@@ -118,22 +125,31 @@ class WidgetGrid(wx.ScrolledWindow):
     """Background colour for selected cells. """
 
 
+    _defaultDragColour = '#ffcdcd'
+    """Background colour for columns being dragged. """
+
+
     def __init__(self, parent, style=None):
         """Create a ``WidgetGrid``.
 
         :arg parent: The :mod:`wx` parent object.
         :arg style:  Style flags  - can be a combination of ``wx.HSCROLL``,
                      ``wx.VSCROLL``, :data:`WG_SELECTABLE_CELLS`,
-                     :data:`WG_SELECTABLE_ROWS`, and
-                     :data:`WG_SELECTABLE_COLUMNS`.
+                     :data:`WG_SELECTABLE_ROWS`,
+                     :data:`WG_SELECTABLE_COLUMNS`, and
+                     :data:`WG_DRAGGABLE_COLUMNS`.
         """
 
         if style is None:
             style = wx.HSCROLL | wx.VSCROLL
 
-        self.__hscroll = style & wx.HSCROLL
-        self.__vscroll = style & wx.VSCROLL
-        self.__keynav  = style & WG_KEY_NAVIGATION
+        self.__hscroll        = style & wx.HSCROLL
+        self.__vscroll        = style & wx.VSCROLL
+        self.__keynav         = style & WG_KEY_NAVIGATION
+        self.__draggable      = style & WG_DRAGGABLE_COLUMNS
+        self.__dragLimit      = -1
+        self.__dragStartCol   = None
+        self.__dragCurrentCol = None
 
         if   style & WG_SELECTABLE_CELLS:   self.__selectable = 'cells'
         elif style & WG_SELECTABLE_ROWS:    self.__selectable = 'rows'
@@ -152,6 +168,21 @@ class WidgetGrid(wx.ScrolledWindow):
 
         self.__sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.__sizer)
+
+        # if column drag is enabled, we use a separate
+        # strip above the grid to show where a dragged
+        # column will be placed when it is dropped.
+        if self.__draggable:
+
+            self.__dragIcon  = b64icon.loadBitmap(TRIANGLE_ICON)
+            height           = self.__dragIcon.GetSize()[1]
+            self.__dragPanel = wx.Window(self)
+            self.__dragPanel.SetMinSize((-1, height))
+            self.__dragPanel.SetMaxSize((-1, height))
+            self.__sizer.Add(self.__dragPanel, flag=wx.EXPAND)
+
+            self.__dragPanel.Bind(wx.EVT_PAINT, self.__dragPanelPaint)
+
         self.__sizer.Add(self.__gridPanel, flag=wx.EXPAND)
 
         # The __widgets array contains wx.Panel
@@ -176,6 +207,7 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__oddColour      = WidgetGrid._defaultOddColour
         self.__evenColour     = WidgetGrid._defaultEvenColour
         self.__selectedColour = WidgetGrid._defaultSelectedColour
+        self.__dragColour     = WidgetGrid._defaultDragColour
         self.__upKey          = wx.WXK_UP
         self.__downKey        = wx.WXK_DOWN
         self.__leftKey        = wx.WXK_LEFT
@@ -184,7 +216,11 @@ class WidgetGrid(wx.ScrolledWindow):
         self.Bind(wx.EVT_SIZE, self.__onResize)
 
         if self.__keynav:
-            self.Bind(wx.EVT_KEY_DOWN, self.__onKeyboard)
+            # We use CHAR_HOOK for key events,
+            # because we want to capture key
+            # presses whenever this panel or
+            # any of its children has focus.
+            self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
 
         if self.__selectable:
             # A silly internal multi-level semaphore
@@ -196,11 +232,60 @@ class WidgetGrid(wx.ScrolledWindow):
             self.Bind(wx.EVT_CHILD_FOCUS, self.__onChildFocus)
 
 
+    @property
+    def rowLabels(self):
+        """Returns the ``wx.StaticText`` objects used for the row labels. """
+        return [l[1] for l in self.__rowLabels]
+
+
+    @property
+    def colLabels(self):
+        """Returns the ``wx.StaticText`` objects used for the column labels.
+        """
+        return [l[1] for l in self.__colLabels]
+
+
+    @property
+    def widgets(self):
+        """Returns a list of lists, containing all widgets in the grid.
+        """
+        return [list(row) for row in self.__widgets]
+
+
     def Refresh(self):
         """Redraws the contents of this ``WidgetGrid``. This method must be
         called after the contents of the grid are changed.
         """
         self.__refresh()
+
+
+    def __recurse(self, obj, funcname, *args, **kwargs):
+        """Recursively call ``funcname`` on ``obj`` and all its children.
+
+        This really is something which ``wxwidgets`` should be able to do for
+        me (e.g. enable/disable a window *and* all of its children).
+        """
+        if obj is self:
+            func = ft.partial(getattr(wx.ScrolledWindow, funcname), self)
+        else:
+            func = getattr(obj, funcname)
+
+        func(*args, **kwargs)
+
+        for child in obj.GetChildren():
+            self.__recurse(child, funcname, *args, **kwargs)
+
+
+    def Disable(self):
+        """Disables this ``WidgetGrid``. """
+        self.Enable(False)
+
+
+    def Enable(self, enable=True):
+        """Enables/disable this ``WidgetGrid``, and recursively does the same
+        to all of its children.
+        """
+        self.__recurse(self, 'Enable', enable)
 
 
     def Hide(self):
@@ -212,15 +297,14 @@ class WidgetGrid(wx.ScrolledWindow):
         """Shows/hides this ``WidgetGrid``, and recursively does the same
         to all of its children.
         """
+        self.__recurse(self, 'Show', show)
 
-        def realShow(obj):
-            if obj is self: wx.ScrolledWindow.Show(self, show)
-            else:           obj.Show(show)
 
-            for child in obj.GetChildren():
-                realShow(child)
-
-        realShow(self)
+    def SetEvtHandlerEnabled(self, enable=True):
+        """Enables/disables events on this ``WidgetGrid``, and recursively does
+        the same to all of its children.
+        """
+        self.__recurse(self, 'SetEvtHandlerEnabled', enable)
 
 
     def SetColours(self, **kwargs):
@@ -236,6 +320,8 @@ class WidgetGrid(wx.ScrolledWindow):
         :arg even:     Background colour for cells on even rows.
 
         :arg selected: Background colour for selected cells.
+
+        :arg drag:     Background colour for columns being dragged.
         """
 
         border   = kwargs.get('border',   self)
@@ -243,12 +329,14 @@ class WidgetGrid(wx.ScrolledWindow):
         odd      = kwargs.get('odd',      self)
         even     = kwargs.get('even',     self)
         selected = kwargs.get('selected', self)
+        drag     = kwargs.get('drag',     self)
 
         if border   is not self: self.__borderColour   = border
         if label    is not self: self.__labelColour    = label
         if odd      is not self: self.__oddColour      = odd
         if even     is not self: self.__evenColour     = even
         if selected is not self: self.__selectedColour = selected
+        if drag     is not self: self.__dragColour     = drag
 
 
     def SetNavKeys(self, **kwargs):
@@ -271,6 +359,15 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__downKey  = down
         self.__leftKey  = left
         self.__rightKey = right
+
+
+    def SetDragLimit(self, limit):
+        """Set the index of the highest column that can be dragged.  Only
+        columns before this limit can be dragged, and they can only be dropped
+        onto a location before the limit. Only relevant if
+        :data:`WG_DRAGGABLE_COLUMNS` is enabled.
+        """
+        self.__dragLimit = limit
 
 
     def __onResize(self, ev):
@@ -314,12 +411,14 @@ class WidgetGrid(wx.ScrolledWindow):
         labelColour  = self.__labelColour
         oddColour    = self.__oddColour
         evenColour   = self.__evenColour
+        ncols        = self.__ncols
 
         if borderColour is None: borderColour = WidgetGrid._defaultBorderColour
         if labelColour  is None: labelColour  = WidgetGrid._defaultLabelColour
         if oddColour    is None: oddColour    = WidgetGrid._defaultOddColour
         if evenColour   is None: evenColour   = WidgetGrid._defaultEvenColour
 
+        # Grid is empty
         if self.__gridSizer is None:
             self.FitInside()
             self.Layout()
@@ -339,20 +438,34 @@ class WidgetGrid(wx.ScrolledWindow):
         # column labels
         for coli, (lblPanel, colLabel) in enumerate(self.__colLabels):
 
-            # 1px border between every column
-            if coli == self.__ncols - 1: flag = wx.TOP | wx.LEFT | wx.RIGHT
-            else:                        flag = wx.TOP | wx.LEFT
+            lblPanel._wg_row = -1
+            lblPanel._wg_col = coli
+            colLabel._wg_row = -1
+            colLabel._wg_col = coli
+
+            # If drag limit is set, add a border
+            # between the last draggable column,
+            # unless all columns are draggable.
+            if (coli == self.__dragLimit) and (coli < ncols - 1):
+                flag   = wx.EXPAND | wx.RIGHT
+                border = 2
+            else:
+                flag   = wx.EXPAND
+                border = 0
 
             lblPanel.SetBackgroundColour(labelColour)
             colLabel.SetBackgroundColour(labelColour)
 
-            self.__gridSizer.Add( lblPanel, border=1, flag=wx.EXPAND | flag)
+            self.__gridSizer.Add( lblPanel, border=border, flag=flag)
             self.__gridSizer.Show(lblPanel, self.__showColLabels)
 
         # Rows
-        for rowi in range(self.__nrows):
+        for rowi, (lblPanel, rowLabel) in enumerate(self.__rowLabels):
 
-            lblPanel, rowLabel = self.__rowLabels[rowi]
+            lblPanel._wg_row = rowi
+            lblPanel._wg_col = -1
+            rowLabel._wg_row = rowi
+            rowLabel._wg_col = -1
 
             if rowi == self.__nrows - 1: flag = wx.TOP | wx.LEFT | wx.BOTTOM
             else:                        flag = wx.TOP | wx.LEFT
@@ -360,7 +473,7 @@ class WidgetGrid(wx.ScrolledWindow):
             lblPanel.SetBackgroundColour(labelColour)
             rowLabel.SetBackgroundColour(labelColour)
 
-            self.__gridSizer.Add( lblPanel, border=1, flag=wx.EXPAND | flag)
+            self.__gridSizer.Add( lblPanel, flag=wx.EXPAND)
             self.__gridSizer.Show(lblPanel, self.__showRowLabels)
 
             # Widgets
@@ -369,14 +482,22 @@ class WidgetGrid(wx.ScrolledWindow):
                 widget    = self.__widgetRefs[rowi][coli]
                 container = self.__widgets[   rowi][coli]
 
-                flag = wx.TOP | wx.LEFT
+                widget   ._wg_row = rowi
+                widget   ._wg_col = coli
+                container._wg_row = rowi
+                container._wg_col = coli
 
-                if rowi == self.__nrows - 1: flag |= wx.BOTTOM
-                if coli == self.__ncols - 1: flag |= wx.RIGHT
+                # border at drag limit
+                if (coli == self.__dragLimit) and (coli < ncols - 1):
+                    flag   = wx.EXPAND | wx.RIGHT
+                    border = 2
+                else:
+                    flag   = wx.EXPAND
+                    border = 0
 
                 self.__gridSizer.Add(container,
-                                     flag=wx.EXPAND | flag,
-                                     border=1,
+                                     flag=flag,
+                                     border=border,
                                      proportion=1)
 
                 if rowi % 2: colour = oddColour
@@ -424,8 +545,11 @@ class WidgetGrid(wx.ScrolledWindow):
 
         self.__nrows     = nrows
         self.__ncols     = ncols
-        self.__gridSizer = wx.FlexGridSizer(nrows + 1, ncols + 1, 0, 0)
+        self.__dragLimit = -1
 
+        # set hgap and vgap so we get
+        # a 1px border between cells
+        self.__gridSizer = wx.FlexGridSizer(nrows + 1, ncols + 1, 1, 1)
         self.__gridSizer.SetFlexibleDirection(wx.BOTH)
 
         for col in growCols:
@@ -443,7 +567,18 @@ class WidgetGrid(wx.ScrolledWindow):
         for rowi in range(nrows): self.__initRowLabel(rowi)
         for coli in range(ncols): self.__initColLabel(coli)
 
-        self.__gridPanel.SetSizer(self.__gridSizer)
+        # Put the main grid sizer inside
+        # another sizer, so we get a
+        # border around the entire thing
+        # (this can't be done in the grid
+        # sizer itself, because the borders
+        # between columns potentially vary)
+        self.__gridBorderSizer = wx.BoxSizer(wx.VERTICAL)
+        self.__gridBorderSizer.Add(self.__gridSizer,
+                                   flag=wx.EXPAND | wx.ALL,
+                                   border=1)
+
+        self.__gridPanel.SetSizer(self.__gridBorderSizer)
 
 
     def __initCell(self, row, col):
@@ -465,6 +600,9 @@ class WidgetGrid(wx.ScrolledWindow):
             panel,
             style=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
 
+        # See comment in SetWidget
+        panel._wg_cell = True
+
         panel.SetSizer(sizer)
         sizer.Add(lbl, flag=wx.CENTRE)
 
@@ -479,16 +617,42 @@ class WidgetGrid(wx.ScrolledWindow):
         """
         panel = wx.Panel(self.__gridPanel)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        lbl   = wx.StaticText(
+        label = wx.StaticText(
             panel,
             style=wx.ALIGN_CENTRE_HORIZONTAL | wx.ALIGN_CENTRE_VERTICAL)
 
+        # See comment in SetWidget
+        panel._wg_cell = True
+
         panel.SetSizer(sizer)
-        sizer.Add(lbl, flag=wx.CENTRE)
+        sizer.Add(label, flag=wx.CENTRE)
 
         self.__initWidget(panel, -1, col)
-        self.__initWidget(lbl,   -1, col)
-        self.__colLabels[col] = (panel, lbl)
+        self.__initWidget(label, -1, col)
+        self.__colLabels[col] = (panel, label)
+
+        if self.__draggable:
+            label.Bind(wx.EVT_LEFT_DOWN, self.__onColumnLabelMouseDown)
+            label.Bind(wx.EVT_LEFT_UP,   self.__onColumnLabelMouseUp)
+            label.Bind(wx.EVT_MOTION,    self.__onColumnLabelMouseDrag)
+            panel.Bind(wx.EVT_LEFT_DOWN, self.__onColumnLabelMouseDown)
+            panel.Bind(wx.EVT_LEFT_UP,   self.__onColumnLabelMouseUp)
+            panel.Bind(wx.EVT_MOTION,    self.__onColumnLabelMouseDrag)
+
+
+    def __getCellPanel(self, widget):
+        """Returns the parent ``wx.Panel`` for the given ``widget``, or
+        ``None`` if the widget is not in the grid.
+        """
+
+        while widget is not None:
+
+            if hasattr(widget, '_wg_cell'):
+                break
+
+            widget = widget.GetParent()
+
+        return widget
 
 
     def GetRow(self, widget):
@@ -503,7 +667,7 @@ class WidgetGrid(wx.ScrolledWindow):
         """Returns the index of the column in which the given ``widget`` is
         located, or ``-1`` if it is not in the ``WidgetGrid``.
         """
-        try:                   return widget._wg_row
+        try:                   return widget._wg_col
         except AttributeError: return -1
 
 
@@ -626,6 +790,7 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__gridSizer  = None
         self.__nrows      = 0
         self.__ncols      = 0
+        self.__dragLimit  = -1
         self.__widgets    = []
         self.__widgetRefs = []
         self.__rowLabels  = []
@@ -639,6 +804,9 @@ class WidgetGrid(wx.ScrolledWindow):
         """Convenience method which creates a :class:`wx.StaticText` widget
         with the given text, and passes it to the :meth:`SetWidget` method.
 
+        If there is already a ``wx.StaticText`` widget at the given
+        ``row``/``col``, it is re-used, and its label simply updated.
+
         :arg row:  Row index.
 
         :arg col:  Column index.
@@ -646,8 +814,15 @@ class WidgetGrid(wx.ScrolledWindow):
         :arg text: Text to display.
         """
 
-        txt = wx.StaticText(self.__gridPanel, label=text)
-        self.SetWidget(row, col, txt)
+        txt = self.GetWidget(row, col)
+
+        if isinstance(txt, wx.StaticText):
+            txt.SetLabel(text)
+        else:
+            txt = wx.StaticText(self.__gridPanel,
+                                label=text,
+                                style=wx.WANTS_CHARS)
+            self.SetWidget(row, col, txt)
 
 
     def GetWidget(self, row, col):
@@ -689,6 +864,13 @@ class WidgetGrid(wx.ScrolledWindow):
         panel = wx.Panel(self.__gridPanel, style=wx.WANTS_CHARS)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         panel.SetSizer(sizer)
+
+        # Put a marker on the cell panel
+        # so the __gelCellPanel method
+        # can identify it - cell panels
+        # are used in certain event
+        # handlers (e.g. __onColumnLabelMouse*)
+        panel._wg_cell = True
 
         self.__reparent(widget, panel)
 
@@ -857,6 +1039,9 @@ class WidgetGrid(wx.ScrolledWindow):
         row    = widget._wg_row
         col    = widget._wg_col
 
+        if not widget.AcceptsFocus():
+            self.SetFocusIgnoringChildren()
+
         log.debug('Left mouse down on cell {}'.format((row, col)))
 
         self.__selectCell(row, col)
@@ -878,7 +1063,7 @@ class WidgetGrid(wx.ScrolledWindow):
 
         log.debug('Keyboard event ({})'.format(key))
 
-        if key not in (up, down, left, right):
+        if ev.HasModifiers() or (key not in (up, down, left, right)):
             ev.Skip()
             return
 
@@ -975,6 +1160,11 @@ class WidgetGrid(wx.ScrolledWindow):
         sizex -= widgSizex
         sizey -= widgSizey
 
+        # take into account the drag
+        # panel if it is visible
+        if self.__draggable:
+            sizey -= self.__dragPanel.GetClientSize().GetHeight()
+
         scrollx = startx
         scrolly = starty
 
@@ -1039,7 +1229,8 @@ class WidgetGrid(wx.ScrolledWindow):
             widget    = self.__widgetRefs[row][col]
             self.__setBackgroundColour(container, colour)
             self.__setBackgroundColour(widget,    colour)
-            widget.Refresh()
+            widget   .Refresh()
+            container.Refresh()
 
 
     def ShowRowLabels(self, show=True):
@@ -1080,6 +1271,236 @@ class WidgetGrid(wx.ScrolledWindow):
         self.__colLabels[col][1].SetLabel(label)
 
 
+    def SetRowLabels(self, labels):
+        """Sets the label for every row.
+        """
+        if len(labels) != self.__nrows:
+            raise ValueError('Wrong number of row labels ({} != {})'.format(
+                len(labels), self.__nrows))
+
+        for i, label in enumerate(labels):
+            self.__rowLabels[i][1].SetLabel(label)
+
+
+    def SetColLabels(self, labels):
+        """Sets the label for every column.
+        """
+        if len(labels) != self.__ncols:
+            raise ValueError('Wrong number of column labels ({} != {})'.format(
+                len(labels), self.__ncols))
+
+        for i, label in enumerate(labels):
+            self.__colLabels[i][1].SetLabel(label)
+
+
+    def GetRowLabel(self, row):
+        """Return the label of the specified ``row``. """
+        return self.__rowLabels[row][1].GetLabel()
+
+
+    def GetColLabel(self, col):
+        """Return the label of the specified ``column``. """
+        return self.__colLabels[col][1].GetLabel()
+
+
+    def GetRowLabels(self):
+        """Return all row labels. """
+        return [self.__rowLabels[i][1].GetLabel() for i in range(self.__nrows)]
+
+
+    def GetColLabels(self):
+        """Return all column labels. """
+        return [self.__colLabels[i][1].GetLabel() for i in range(self.__ncols)]
+
+
+    def ReorderColumns(self, order):
+        """Re-orders the grid columns according to the given sequence
+        of column indices.
+
+        A call to this method must be followed by a call to :meth:`Refresh`.
+
+        :arg order: Sequence of column indices (starting from 0) specifying
+                    the new column ordering.
+        """
+        if list(sorted(order)) != list(range(self.__ncols)):
+            raise ValueError('Invalid column order (ncols: {}): {}'.format(
+                self.__ncols, order))
+
+        self.__colLabels = [self.__colLabels[i] for i in order]
+
+        for rowi in range(self.__nrows):
+            widgets    = self.__widgets[   rowi]
+            widgetRefs = self.__widgetRefs[rowi]
+            self.__widgets[   rowi] = [widgets[i]    for i in order]
+            self.__widgetRefs[rowi] = [widgetRefs[i] for i in order]
+
+
+    def __onColumnLabelMouseDown(self, ev):
+        """Called on mouse down events on a column label. """
+
+        ev.Skip()
+
+        lbl = ev.GetEventObject()
+        col = self.GetColumn(lbl)
+
+        if col == -1 or (self.__dragLimit > -1 and col > self.__dragLimit):
+            return
+
+        self.__dragStartCol   = col
+        self.__dragCurrentCol = col
+
+        self.__colLabels[col][0].SetBackgroundColour(self.__dragColour)
+        self.__colLabels[col][1].SetBackgroundColour(self.__dragColour)
+
+        # on macOS, an explicit refresh is
+        # needed on the backing wx.Panel to
+        # ensure that its background colour
+        # is updated
+        self.__colLabels[col][0].Refresh()
+
+
+    def __getColumnDragPosition(self):
+        """Called during a column drag/drop.
+
+        Returns the current insert index of the dragged column, if it were
+        to be dropped now.
+        """
+
+        startcol = self.__dragStartCol
+        atpos    = wx.FindWindowAtPointer()[0]
+        atpos    = self.__getCellPanel(atpos)
+        endcol   = self.GetColumn(atpos)
+
+        if endcol == -1 or startcol == endcol:
+            return endcol
+
+        # Figure out which side of the drop
+        # column to place the dragged column
+        # (i.e. on either its left or right
+        # side).
+        lenx   = atpos.GetSize().GetWidth()
+        posx   = atpos.ScreenToClient(wx.GetMouseState().GetPosition()).x
+        posx   = posx / lenx
+        endcol = int(round(endcol + posx))
+
+        # Clip to the drag limit column if
+        # it is set
+        if self.__dragLimit > -1:
+            endcol = min(endcol, self.__dragLimit + 1)
+
+        return endcol
+
+
+    def __onColumnLabelMouseDrag(self, ev):
+        """Called during a column drag. Updates the marker location on
+        the drag panel.
+        """
+        if self.__dragStartCol is None:
+            return
+
+        startcol   = self.__dragStartCol
+        lastcol    = self.__dragCurrentCol
+        currentcol = self.__getColumnDragPosition()
+        panel      = self.__dragPanel
+
+        # mouse is off the grid, or
+        # current drop position would
+        # not move the column
+        if currentcol == -1         or \
+           startcol   == currentcol or \
+           startcol   == currentcol - 1:
+            self.__dragCurrentCol = None
+            panel.ClearBackground()
+            return
+
+        # No change since last draw
+        if lastcol == currentcol:
+            return
+
+        self.__dragCurrentCol = currentcol
+
+        self.__dragPanel.Refresh()
+
+
+    def __onColumnLabelMouseUp(self, ev):
+        """Called on the mouse up event at the end of a column drag.
+
+        Re-orders the grid columns.
+        """
+
+        if self.__dragStartCol is None:
+            return
+
+        # The start column was saved in the
+        # mousedown handler. Figure out the
+        # column that mouseup occurred in.
+        startcol              = self.__dragStartCol
+        endcol                = self.__getColumnDragPosition()
+        self.__dragStartCol   = None
+        self.__dragCurrentCol = None
+        self.__dragPanel.ClearBackground()
+        self.__dragPanel.Refresh()
+
+        self.__colLabels[startcol][0].SetBackgroundColour(self.__labelColour)
+        self.__colLabels[startcol][1].SetBackgroundColour(self.__labelColour)
+        self.__colLabels[startcol][0].Refresh()
+
+        if endcol == -1 or startcol == endcol:
+            return
+
+        # Offset the insertion index if
+        # the starting column is before
+        # it, as it gets removed before
+        # being re-added
+        if startcol < endcol:
+            endcol = endcol - 1
+
+        # Generate a new column ordering
+        order = list(range(self.__ncols))
+        order.pop(startcol)
+
+        order.insert(endcol, startcol)
+
+        self.ReorderColumns(order)
+        self.Refresh()
+
+        event = WidgetGridReorderEvent(order=order)
+        event.SetEventObject(self)
+        wx.PostEvent(self, event)
+
+
+    def __dragPanelPaint(self, ev):
+        """Paints the current column drop location on the drag panel. """
+
+        currentcol = self.__dragCurrentCol
+        dc         = wx.PaintDC(self.__dragPanel)
+
+        if not dc.IsOk():
+            return
+
+        if currentcol is None:
+            return
+
+        dwidth, dheight = dc.GetSize().Get()
+
+        if dwidth == 0 or dheight == 0:
+            return
+
+        if currentcol == self.__ncols:
+            szitem = self.__gridSizer.GetItem(self.__colLabels[-1][0])
+            xpos   = szitem.GetPosition()[0] + szitem.GetSize()[0]
+
+        else:
+            szitem = self.__gridSizer.GetItem(self.__colLabels[currentcol][0])
+            xpos   = szitem.GetPosition()[0]
+
+        xpos -= 0.5 * self.__dragIcon.GetSize()[0]
+
+        self.__dragCurrentCol = currentcol
+        dc.Clear()
+        dc.DrawBitmap(self.__dragIcon, xpos, 0, False)
+
+
 WG_SELECTABLE_CELLS = 1
 """If this style is enabled, individual cells can be selected. """
 
@@ -1098,11 +1519,22 @@ the user may use the keyboard to navigate between cells, rows, or columns.
 """
 
 
-_WidgetGridSelectEvent, _EVT_WG_SELECT = wxevent.NewEvent()
+WG_DRAGGABLE_COLUMNS = 16
+"""If this style is enabled, column names can be dragged with the mouse to
+re-order them.
+"""
+
+
+_WidgetGridSelectEvent,  _EVT_WG_SELECT  = wxevent.NewEvent()
+_WidgetGridReorderEvent, _EVT_WG_REORDER = wxevent.NewEvent()
 
 
 EVT_WG_SELECT = _EVT_WG_SELECT
 """Identifier for the :data:`WidgetGridSelectEvent`. """
+
+
+EVT_WG_REORDER = _EVT_WG_REORDER
+"""Identifier for the :data:`WidgetGridReorderEvent`. """
 
 
 WidgetGridSelectEvent = _WidgetGridSelectEvent
@@ -1114,4 +1546,24 @@ WidgetGridSelectEvent = _WidgetGridSelectEvent
 
  - ``col`` Column index of the selected item. If -1, an entire row
    has been selected.
+"""
+
+
+WidgetGridReorderEvent = _WidgetGridReorderEvent
+"""Event generated when the columns in a ``WidgetGrid`` are reordered. A
+``WidgetGridReorderEvent`` has the following attributes:
+
+ - ``order`` The new column order.
+"""
+
+
+TRIANGLE_ICON = b'''
+iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABmJLR0QA/wD/AP+gvaeTAAAA
+CXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wIFDQoeGSImZAAAACZpVFh0Q29tbWVudAAA
+AAAAQ3JlYXRlZCB3aXRoIEdJTVAgb24gYSBNYWOV5F9bAAAAZklEQVQY053PwQmEUAyE4U8F
+tw5L8KAlbksetgIrsBLRy8O9RBDxCTowhyTDH4YH+iFhyzhFRn8T2t3v1DFDTXEDJdobWouy
+imHBig51AGZ8MWAtTsW201xctf+gObxsYpfVFH6nP5vqKwqbBq3zAAAAAElFTkSuQmCC
+'''.strip().replace(b'\n', b'')
+"""Icon used as the drop marker when columns are being re-ordered by
+mouse drag.
 """

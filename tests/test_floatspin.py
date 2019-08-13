@@ -101,14 +101,14 @@ def _test_FloatSpinCtrl_spinButtons():
     time.sleep(0.05)
     spin.SetValue(50)
     spin._FloatSpinCtrl__onSpinUp(ev)
-    wx.Yield()
+    realYield()
     assert results[0] == 51
 
     results[0] = None
     time.sleep(0.05)
     spin.SetValue(50)
     spin._FloatSpinCtrl__onSpinDown(ev)
-    wx.Yield()
+    realYield()
     assert results[0] == 49
 
 
@@ -147,7 +147,7 @@ def _test_FloatSpinCtrl_mouseWheel():
         ev.GetWheelRotation.return_value = rot
 
         spin._FloatSpinCtrl__onMouseWheel(ev)
-        wx.Yield()
+        realYield()
 
         assert results[0]      == 50 + expected
         assert spin.GetValue() == 50 + expected

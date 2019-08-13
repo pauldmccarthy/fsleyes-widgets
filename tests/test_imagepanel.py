@@ -10,7 +10,7 @@ import os.path as op
 
 import wx
 
-from . import run_with_wx
+from . import run_with_wx, realYield
 
 import fsleyes_widgets.imagepanel as ip
 
@@ -28,10 +28,10 @@ def _test_ImagePanel():
 
     frame  = wx.GetApp().GetTopWindow()
     panel1 = ip.ImagePanel(frame)
-    wx.Yield()
+    realYield()
     panel1.SetImage(icon)
-    wx.Yield()
+    realYield()
     panel2 = ip.ImagePanel(frame, preserveAspect=True)
-    wx.Yield()
+    realYield()
     panel2.SetImage(icon)
-    wx.Yield()
+    realYield()

@@ -472,12 +472,12 @@ class TextEditDialog(wx.Dialog):
 
         if style & TED_OK:
             self.__ok = wx.Button(self, id=wx.ID_OK)
-            self.__ok.Bind(wx.EVT_BUTTON, self.__onOk)
+            self.__ok.Bind(wx.EVT_BUTTON, self.onOk)
             self.__buttons.append(self.__ok)
 
         if style & TED_CANCEL:
             self.__cancel = wx.Button(self, id=wx.ID_CANCEL)
-            self.__cancel.Bind(wx.EVT_BUTTON, self.__onCancel)
+            self.__cancel.Bind(wx.EVT_BUTTON, self.onCancel)
             self.__buttons.append(self.__cancel)
 
         if style & TED_COPY:
@@ -541,15 +541,15 @@ class TextEditDialog(wx.Dialog):
             self.__buttons[0].SetFocus()
 
         elif key == wx.WXK_RETURN:
-            self.__onOk(None)
+            self.onOk(None)
 
 
-    def __onOk(self, ev):
+    def onOk(self, ev):
         """Called when the *Ok* button is pressed. Ends the dialog. """
         self.EndModal(wx.ID_OK)
 
 
-    def __onCancel(self, ev):
+    def onCancel(self, ev):
         """Called when the *Cancel* button is pressed. Ends the dialog. """
         self.EndModal(wx.ID_CANCEL)
 
