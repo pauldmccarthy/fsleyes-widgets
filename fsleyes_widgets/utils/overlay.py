@@ -44,16 +44,16 @@ def textOverlay(target,
         target.GetParent().Update()
         return
 
-    w, h = dc.GetSize().Get()
-    w    = dc.DeviceToLogicalX(w)
-    h    = dc.DeviceToLogicalY(h)
-
+    w, h   = dc.GetSize().Get()
+    w      = dc.DeviceToLogicalX(w)
+    h      = dc.DeviceToLogicalY(h)
     tw, th = dc.GetTextExtent(text).Get()
+    x      = (w - tw) / 2
+    y      = (h - th) / 2
 
-    x = (w - tw) / 2
-    y = (h - th) / 2
+    if box:
+        dc.SetBrush(wx.Brush(wx.Colour(bgColour)))
+        dc.DrawRoundedRectangle(x - 5, y - 5, tw + 10, th + 10, 2)
 
     dc.SetTextForeground(wx.Colour(fgColour))
-    dc.SetBrush(wx.Brush(wx.Colour(bgColour)))
-    dc.DrawRoundedRectangle(x - 5, y - 5, tw + 10, th + 10, 2)
     dc.DrawText(text, x, y)
