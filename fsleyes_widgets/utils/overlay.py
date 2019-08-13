@@ -22,8 +22,7 @@ def textOverlay(target,
                 box=True,
                 bgColour=(205, 205, 255),
                 fgColour=(0, 0, 0)):
-    """Shows the given ``text`` on the given ``target``. Pass in ``None``
-    to clear any previously displayed message.
+    """Shows the given ``text`` on the given ``target``.
 
     :arg target:   ``wx.Window`` object
 
@@ -37,13 +36,7 @@ def textOverlay(target,
     :arg fgColour: Colour to draw the text in
     """
 
-    dc = wx.ClientDC(target)
-
-    if text is None:
-        target.GetParent().Refresh()
-        target.GetParent().Update()
-        return
-
+    dc     = wx.ClientDC(target)
     w, h   = dc.GetSize().Get()
     w      = dc.DeviceToLogicalX(w)
     h      = dc.DeviceToLogicalY(h)
