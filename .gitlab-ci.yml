@@ -157,6 +157,17 @@ test:3.7:
   image: pauldmccarthy/fsleyes-py37-wxpy4-gtk2
   <<: *test_template
 
+test:build-pypi-dist:
+  stage: test
+  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk2
+  <<: *except_releases
+
+  tags:
+    - docker
+
+  script:
+   - source /test.venv/bin/activate
+   - bash ./.ci/build_pypi_dist.sh
 
 
 #############
@@ -204,7 +215,7 @@ build-pypi-dist:
   <<: *check_version
 
   stage: build
-  image: python:3.5
+  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk2
 
   tags:
     - docker
