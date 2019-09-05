@@ -25,4 +25,4 @@ if [ "$TEST_STYLE"x != "x" ]; then pylint --output-format=colorized fsleyes_widg
 if [ "$TEST_STYLE"x != "x" ]; then exit 0; fi
 
 # Run the tests.
-xvfb-run -s "-screen 0 1920x1200x24" python setup.py test
+xvfb-run -a -s "-screen 0 1920x1200x24" python setup.py test
