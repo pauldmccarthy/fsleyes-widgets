@@ -145,14 +145,14 @@ def _test_reorder_events():
         simmove(sim, cwidget, [0.5, 0.5])
         ev = FakeEV(cwidget)
         grid._WidgetGrid__onColumnLabelMouseDown(ev)
-        realYield()
+        realYield(50)
         simmove(sim, dwidget, [droppos, 0.5])
-        realYield()
+        realYield(50)
         grid._WidgetGrid__onColumnLabelMouseDrag(ev)
-        realYield()
+        realYield(50)
         ev.evo = dwidget
         grid._WidgetGrid__onColumnLabelMouseUp(ev)
-        realYield()
+        realYield(50)
 
         explabels = [labels[i] for i in exporder]
         gotlabels = grid.GetColLabels()
@@ -224,14 +224,14 @@ def _test_reorder_events_draglimit():
         simmove(sim, cwidget, [0.5, 0.5])
         ev = FakeEV(cwidget)
         grid._WidgetGrid__onColumnLabelMouseDown(ev)
-        realYield()
+        realYield(50)
         simmove(sim, dwidget, [droppos, 0.5])
-        realYield()
+        realYield(50)
         grid._WidgetGrid__onColumnLabelMouseDrag(ev)
-        realYield()
+        realYield(50)
         ev.evo = dwidget
         grid._WidgetGrid__onColumnLabelMouseUp(ev)
-        realYield()
+        realYield(50)
 
         explabels = [labels[i] for i in exporder]
         gotlabels = grid.GetColLabels()
