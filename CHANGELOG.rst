@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.8.1 (Tuesday September 10th 2019)
+-----------------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed a bug in the :class:`.WidgetGrid` where scrolling behaviour was not
+  being initialised correctly.
+
+
 0.8.0 (Wednesday August 21st 2019)
 ----------------------------------
 

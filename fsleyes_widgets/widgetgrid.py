@@ -136,8 +136,8 @@ class WidgetGrid(wx.ScrolledWindow):
         :arg style:  Style flags  - can be a combination of ``wx.HSCROLL``,
                      ``wx.VSCROLL``, :data:`WG_SELECTABLE_CELLS`,
                      :data:`WG_SELECTABLE_ROWS`,
-                     :data:`WG_SELECTABLE_COLUMNS`, and
-                     :data:`WG_DRAGGABLE_COLUMNS`.
+                     :data:`WG_SELECTABLE_COLUMNS`, :data:`WG_KEY_NAVIGATION`,
+                      and :data:`WG_DRAGGABLE_COLUMNS`.
         """
 
         if style is None:
@@ -158,7 +158,10 @@ class WidgetGrid(wx.ScrolledWindow):
             self.__keynav     = False
             self.__selectable = None
 
-        wx.ScrolledWindow.__init__(self, parent, style=wx.WANTS_CHARS)
+        # clear WG_* flags before passing
+        # style to ScrolledWindow
+        style = (style & wx.HSCROLL) | (style & wx.VSCROLL) | wx.WANTS_CHARS
+        wx.ScrolledWindow.__init__(self, parent, style=style)
 
         hrate = 1 if self.__hscroll else 0
         vrate = 1 if self.__vscroll else 0
