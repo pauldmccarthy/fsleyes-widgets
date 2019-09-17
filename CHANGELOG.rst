@@ -10,7 +10,7 @@ Changed
 ^^^^^^^
 
 
-* ``fsleyes-widgetw`` is now tested against Python 3.8 and GTK3.
+* ``fsleyes-widgetw`` is now tested against Python 3.6, 3.7 and 3.8, and GTK3.
 
 
 Fixed
