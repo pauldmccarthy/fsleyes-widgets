@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import wx
-
+from unittest import mock
 import numpy as np
 
 from . import run_with_wx, simmove, realYield
@@ -75,6 +75,35 @@ def _test_reorder():
         cells  = [cells[ i] for i in neworder]
 
 
+class FakeMouseState(object):
+    def __init__(self):
+        self.pos = wx.Point(0, 0)
+    def GetPosition(self):
+        return self.pos
+
+class FakeEV(object):
+
+    def __init__(self, evo):
+        self.evo = evo
+
+    def Skip(self):
+        pass
+
+    def GetEventObject(self):
+        return self.evo
+
+
+def cxy(target, pos):
+    w, h = target.GetClientSize().Get()
+    x, y = target.GetScreenPosition()
+    x += w * pos[0]
+    y += h * pos[1]
+    return x, y
+
+
+
+
+
 def test_reorder_events():
     run_with_wx(_test_reorder_events)
 def _test_reorder_events():
@@ -98,17 +127,6 @@ def _test_reorder_events():
 
     grid.Refresh()
     frame.Layout()
-
-    class FakeEV(object):
-
-        def __init__(self, evo):
-            self.evo = evo
-
-        def Skip(self):
-            pass
-
-        def GetEventObject(self):
-            return self.evo
 
     # (clicked column, drop column, drop pos, expected order)
     tests = [
@@ -139,27 +157,32 @@ def _test_reorder_events():
     realYield()
     for clickcol, dropcol, droppos, exporder in tests:
 
-        cwidget = grid.colLabels[clickcol].GetParent()
-        dwidget = grid.colLabels[dropcol] .GetParent()
+        fakestate = FakeMouseState()
 
-        simmove(sim, cwidget, [0.5, 0.5])
-        ev = FakeEV(cwidget)
-        grid._WidgetGrid__onColumnLabelMouseDown(ev)
-        realYield(50)
-        simmove(sim, dwidget, [droppos, 0.5])
-        realYield(50)
-        grid._WidgetGrid__onColumnLabelMouseDrag(ev)
-        realYield(50)
-        ev.evo = dwidget
-        grid._WidgetGrid__onColumnLabelMouseUp(ev)
-        realYield(50)
+        with mock.patch('wx.GetMouseState', return_value=fakestate):
 
-        explabels = [labels[i] for i in exporder]
-        gotlabels = grid.GetColLabels()
+            cwidget = grid.colLabels[clickcol].GetParent()
+            dwidget = grid.colLabels[dropcol] .GetParent()
 
-        assert explabels == gotlabels
+            ev = FakeEV(cwidget)
+            grid._WidgetGrid__onColumnLabelMouseDown(ev)
+            realYield()
 
-        labels = gotlabels
+            fakestate.pos = wx.Point(*cxy(dwidget, (droppos, 0.5)))
+            with mock.patch('wx.FindWindowAtPointer',
+                            return_value=[dwidget]):
+                grid._WidgetGrid__onColumnLabelMouseDrag(ev)
+                realYield()
+                ev.evo = dwidget
+                grid._WidgetGrid__onColumnLabelMouseUp(ev)
+                realYield()
+
+            explabels = [labels[i] for i in exporder]
+            gotlabels = grid.GetColLabels()
+
+            assert explabels == gotlabels
+
+            labels = gotlabels
 
 
 def test_reorder_events_draglimit():
@@ -187,17 +210,6 @@ def _test_reorder_events_draglimit():
     grid.Refresh()
     frame.Layout()
 
-    class FakeEV(object):
-
-        def __init__(self, evo):
-            self.evo = evo
-
-        def Skip(self):
-            pass
-
-        def GetEventObject(self):
-            return self.evo
-
     # (clicked column, drop column, drop pos, expected order)
     tests = [
         (0, 1, 0.75, [1, 0, 2, 3, 4]),
@@ -218,24 +230,29 @@ def _test_reorder_events_draglimit():
     realYield()
     for clickcol, dropcol, droppos, exporder in tests:
 
-        cwidget = grid.colLabels[clickcol].GetParent()
-        dwidget = grid.colLabels[dropcol] .GetParent()
+        fakestate = FakeMouseState()
 
-        simmove(sim, cwidget, [0.5, 0.5])
-        ev = FakeEV(cwidget)
-        grid._WidgetGrid__onColumnLabelMouseDown(ev)
-        realYield(50)
-        simmove(sim, dwidget, [droppos, 0.5])
-        realYield(50)
-        grid._WidgetGrid__onColumnLabelMouseDrag(ev)
-        realYield(50)
-        ev.evo = dwidget
-        grid._WidgetGrid__onColumnLabelMouseUp(ev)
-        realYield(50)
+        with mock.patch('wx.GetMouseState', return_value=fakestate):
 
-        explabels = [labels[i] for i in exporder]
-        gotlabels = grid.GetColLabels()
+            cwidget = grid.colLabels[clickcol].GetParent()
+            dwidget = grid.colLabels[dropcol] .GetParent()
 
-        assert explabels == gotlabels
+            ev = FakeEV(cwidget)
+            grid._WidgetGrid__onColumnLabelMouseDown(ev)
+            realYield()
 
-        labels = gotlabels
+            fakestate.pos = wx.Point(*cxy(dwidget, (droppos, 0.5)))
+            with mock.patch('wx.FindWindowAtPointer',
+                            return_value=[dwidget]):
+                grid._WidgetGrid__onColumnLabelMouseDrag(ev)
+                realYield()
+                ev.evo = dwidget
+                grid._WidgetGrid__onColumnLabelMouseUp(ev)
+                realYield()
+
+            explabels = [labels[i] for i in exporder]
+            gotlabels = grid.GetColLabels()
+
+            assert explabels == gotlabels
+
+            labels = gotlabels
