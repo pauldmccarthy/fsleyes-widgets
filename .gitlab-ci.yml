@@ -159,14 +159,13 @@ test:3.8:
 
 test:build-pypi-dist:
   stage: test
-  image: python:3.6
+  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3
   <<: *except_releases
 
   tags:
     - docker
 
   script:
-   - source /test.venv/bin/activate
    - bash ./.ci/build_pypi_dist.sh
 
 
@@ -215,7 +214,7 @@ build-pypi-dist:
   <<: *check_version
 
   stage: build
-  image: python:3.6
+  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3
 
   tags:
     - docker
