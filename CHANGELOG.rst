@@ -2,8 +2,8 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.8.2 (Wednesday September 18th 2019
-------------------------------------
+0.8.2 (Wednesday September 18th 2019)
+-------------------------------------
 
 
 Changed
