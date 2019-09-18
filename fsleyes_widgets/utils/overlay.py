@@ -41,8 +41,8 @@ def textOverlay(target,
     w      = dc.DeviceToLogicalX(w)
     h      = dc.DeviceToLogicalY(h)
     tw, th = dc.GetTextExtent(text).Get()
-    x      = (w - tw) / 2
-    y      = (h - th) / 2
+    x      = int((w - tw) / 2)
+    y      = int((h - th) / 2)
 
     if box:
         dc.SetBrush(wx.Brush(wx.Colour(bgColour)))

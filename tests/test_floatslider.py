@@ -306,7 +306,7 @@ def _test_SliderSpinPanel_show_edit_limits():
 
     ]
 
-    with mock.patch('fsleyes_widgets.floatslider.numberdialog.NumberDialog',
+    with mock.patch('fsleyes_widgets.numberdialog.NumberDialog',
                     return_value=numberdlg):
 
         for btn, val, expected, shouldEv in testcases:
@@ -315,6 +315,7 @@ def _test_SliderSpinPanel_show_edit_limits():
 
             numberdlg.GetValue.return_value = val
 
+            realYield()
             simclick(sim, btn)
             assert tuple(panel.GetRange()) == expected
 

@@ -58,8 +58,8 @@ def _test_StaticTextTag_Close():
     tag.Bind(tt.EVT_STT_CLOSE, handler)
 
     tag.SetText('Blah')
-
-    simclick(sim, closeBtn, stype=2)
+    tag._StaticTextTag__onCloseButton(None)
+    realYield()
     assert called[0]
 
 
@@ -208,11 +208,13 @@ def _test_TextTagPanel_close_event():
     panel.AddTag('MyTag2')
     realYield()
 
-    simclick(sim, panel.tags[1].closeButton, stype=2)
+    panel.tags[1]._StaticTextTag__onCloseButton(None)
+    realYield()
     assert result[0]       == 'MyTag2'
     assert panel.GetTags() == ['MyTag1']
 
-    simclick(sim, panel.tags[0].closeButton, stype=2)
+    panel.tags[0]._StaticTextTag__onCloseButton(None)
+    realYield()
     assert result[0]       == 'MyTag1'
     assert panel.GetTags() == []
 

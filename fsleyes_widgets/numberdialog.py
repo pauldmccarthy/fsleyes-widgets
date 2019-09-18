@@ -67,18 +67,15 @@ class NumberDialog(wx.Dialog):
 
         wx.Dialog.__init__(self, parent, title=title)
 
-        self.__value     = None
-        self.__cancelled = False
-        self.__panel     = wx.Panel(self)
-        self.__sizer     = wx.BoxSizer(wx.VERTICAL)
-        self.__panel.SetSizer(self.__sizer)
-
-        self.__buttonPanel = wx.Panel(self.__panel)
+        self.__value       = None
+        self.__cancelled   = False
+        self.__sizer       = wx.BoxSizer(wx.VERTICAL)
         self.__buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.__buttonPanel.SetSizer(self.__buttonSizer)
+
+        self.SetSizer(self.__sizer)
 
         if message is not None:
-            self.__label = wx.StaticText(self.__panel, label=message)
+            self.__label = wx.StaticText(self, label=message)
         else:
             self.__label = (0, 0)
 
@@ -89,14 +86,14 @@ class NumberDialog(wx.Dialog):
             style |= floatspin.FSC_NO_LIMIT
 
         self.__spinCtrl = floatspin.FloatSpinCtrl(
-            self.__panel,
+            self,
             minValue=minValue,
             maxValue=maxValue,
             value=initial,
             style=style)
 
-        self.__okButton     = wx.Button(self.__buttonPanel, label=okText)
-        self.__cancelButton = wx.Button(self.__buttonPanel, label=cancelText)
+        self.__okButton     = wx.Button(self, label=okText)
+        self.__cancelButton = wx.Button(self, label=cancelText)
 
         self.__buttonSizer.Add(self.__okButton,
                                flag=wx.EXPAND | wx.ALL,
@@ -111,8 +108,7 @@ class NumberDialog(wx.Dialog):
         self.__sizer.Add(self.__spinCtrl,
                          flag=(wx.EXPAND | wx.LEFT | wx.RIGHT),
                          border=15)
-
-        self.__sizer.Add(self.__buttonPanel,
+        self.__sizer.Add(self.__buttonSizer,
                          flag=wx.EXPAND | wx.ALL,
                          border=10)
 
@@ -120,9 +116,7 @@ class NumberDialog(wx.Dialog):
         self.__okButton    .Bind(wx.EVT_BUTTON,     self.__onOk)
         self.__cancelButton.Bind(wx.EVT_BUTTON,     self.__onCancel)
 
-        self.__panel.Layout()
-        self.__panel.Fit()
-
+        self.Layout()
         self.Fit()
         self.CentreOnParent()
 
