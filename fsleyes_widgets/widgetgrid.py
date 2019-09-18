@@ -1501,7 +1501,7 @@ class WidgetGrid(wx.ScrolledWindow):
 
         self.__dragCurrentCol = currentcol
         dc.Clear()
-        dc.DrawBitmap(self.__dragIcon, xpos, 0, False)
+        dc.DrawBitmap(self.__dragIcon, int(xpos), 0, False)
 
 
 WG_SELECTABLE_CELLS = 1

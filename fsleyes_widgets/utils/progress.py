@@ -88,7 +88,7 @@ def runWithBounce(task, *args, **kwargs):
             dlg.DoBounce()
 
     thread.start()
-    timer.Start(polltime * 1000, wx.TIMER_CONTINUOUS)
+    timer.Start(int(polltime * 1000), wx.TIMER_CONTINUOUS)
     dlg.Bind(wx.EVT_TIMER, poll)
     dlg.Show()
 
