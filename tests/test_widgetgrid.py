@@ -98,7 +98,7 @@ def cxy(target, pos):
     x, y = target.GetScreenPosition()
     x += w * pos[0]
     y += h * pos[1]
-    return x, y
+    return int(x), int(y)
 
 
 
