@@ -127,8 +127,8 @@ class TextPanel(TextPanelBase):
         paneW, paneH = dc.GetSize().Get()
         textW, textH = self.__size
 
-        x = (paneW - textW) / 2.0
-        y = (paneH - textH) / 2.0
+        x = int((paneW - textW) / 2.0)
+        y = int((paneH - textH) / 2.0)
 
         if self.__orient == wx.VERTICAL:
             dc.DrawRotatedText(self.__text, x, paneH - y, 90)
