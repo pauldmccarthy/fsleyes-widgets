@@ -2,6 +2,24 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.8.2 (Wednesday September 18th 2019)
+-------------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* ``fsleyes-widgets`` is now tested against Python 3.6, 3.7 and 3.8, and GTK3.
+
+
+Fixed
+^^^^^
+
+
+* Fixed minor mis-usage of ``wx.BoxSizer`` in the :class:`.Notebook` class.
+
+
 0.8.1 (Tuesday September 10th 2019)
 -----------------------------------
 

@@ -145,19 +145,46 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
             return self.evo
 
     parent = target.GetParent()
-    if GTK:
 
-        if type(target).__name__ == 'StaticTextTag' and \
-           type(parent).__name__ == 'TextTagPanel':
-            parent._TextTagPanel__onTagLeftDown(FakeEv(target))
-            realYield()
-            return
+    # event simulation is super flaky
+    if type(target).__name__ == 'StaticTextTag' and \
+       type(parent).__name__ == 'TextTagPanel':
+        parent._TextTagPanel__onTagLeftDown(FakeEv(target))
+        realYield()
+        return
 
-        if type(target).__name__ == 'StaticText' and \
-           type(parent).__name__ == 'TogglePanel':
-            parent.Toggle(FakeEv(target))
-            realYield()
-            return
+    if type(target).__name__ == 'StaticText' and \
+       type(parent).__name__ == 'TogglePanel':
+        parent.Toggle(FakeEv(target))
+        realYield()
+        return
+    if type(target).__name__ == 'BitmapToggleButton':
+        target.SetValue(not target.GetValue())
+        target._BitmapToggleButton__onToggle(FakeEv(target))
+        realYield()
+        return
+    if type(target).__name__ == 'ColourButton':
+        target._ColourButton__onClick(FakeEv(target))
+        realYield()
+        return
+    if type(target).__name__ == 'Button' and \
+       type(parent).__name__ == 'SliderSpinPanel':
+        parent._SliderSpinPanel__onLimitButton(FakeEv(target))
+        realYield()
+        return
+    if type(target).__name__ == 'Button' and \
+       type(parent).__name__ == 'RangeSliderSpinPanel':
+        parent._RangeSliderSpinPanel__onLimitButton(FakeEv(target))
+        realYield()
+        return
+    if type(parent).__name__ == 'NumberDialog' and \
+       type(target).__name__ == 'Button':
+        if target.GetLabel().lower() == 'ok':
+            parent._NumberDialog__onOk(FakeEv(target))
+        else:
+            parent._NumberDialog__onCancel(FakeEv(target))
+        realYield()
+        return
 
     w, h = target.GetClientSize().Get()
     x, y = target.GetScreenPosition()

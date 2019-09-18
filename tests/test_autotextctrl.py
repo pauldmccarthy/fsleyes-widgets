@@ -187,6 +187,12 @@ def _test_popup_focusback():
 def test_popup_dblclick():
     run_with_wx(_test_popup_dblclick)
 def _test_popup_dblclick():
+
+
+    class FakeEv:
+        def Skip(self):
+            pass
+
     sim    = wx.UIActionSimulator()
     parent = wx.GetApp().GetTopWindow()
     atc    = autott.AutoTextCtrl(parent, ownloop=False)
@@ -196,6 +202,8 @@ def _test_popup_dblclick():
     addall(parent, [atc])
 
     simkey(  sim, atc.textCtrl, wx.WXK_RETURN)
-    simclick(sim, atc.popup.listBox, stype=1, pos=[0.5, 0.05])
+    atc.popup.listBox.SetSelection(0)
+    atc.popup._AutoCompletePopup__onListMouseDblClick(FakeEv())
+    realYield()
 
     assert atc.GetValue() == 'aaa'

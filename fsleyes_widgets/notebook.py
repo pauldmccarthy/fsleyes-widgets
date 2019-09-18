@@ -91,7 +91,7 @@ class Notebook(wx.Panel):
         self.__sizer.Add(
             self.__dividerLine,
             border=self.__border,
-            flag=wx.EXPAND | wx.ALIGN_CENTER | borderflags & ~btnside)
+            flag=wx.EXPAND | borderflags & ~btnside)
 
         # a row of buttons for each page
         if btnside in (wx.TOP, wx.LEFT): idx = 0
@@ -100,14 +100,14 @@ class Notebook(wx.Panel):
             idx,
             self.__buttonPanel,
             border=self.__border,
-            flag=wx.EXPAND | wx.ALIGN_CENTER | self.__borderflags)
+            flag=wx.EXPAND | self.__borderflags)
 
         # a vertical line at the start of the button row
         self.__buttonSizer.Insert(
             0,
             wx.StaticLine(self.__buttonPanel, style=invbtnorient),
             border=3,
-            flag=wx.EXPAND | wx.ALIGN_CENTER | borderflags)
+            flag=wx.EXPAND | borderflags)
 
         self.__pages    = []
         self.__buttons  = []
@@ -254,7 +254,7 @@ class Notebook(wx.Panel):
             buttonIdx + 1,
             wx.StaticLine(self.__buttonPanel, style=self.__invbtnorient),
             border=3,
-            flag=wx.EXPAND | wx.ALIGN_CENTER | self.__borderflags)
+            flag=wx.EXPAND | self.__borderflags)
 
         button.Bind(wx.EVT_LEFT_DOWN, self.__onButton)
 
