@@ -353,6 +353,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             for child in widget.GetChildren():
                 child.GetWindow().Reparent(widgPanel)
         else:
+            widget.SetMinSize(widget.GetBestSize())
             widget.Reparent(widgPanel)
 
         label = wx.StaticText(widgPanel,
