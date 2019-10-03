@@ -29,16 +29,14 @@ class AutoTextCtrl(wx.Panel):
     """
 
 
-    def __init__(self, parent, style=0, ownloop=True):
+    def __init__(self, parent, style=0):
         """Create an ``AutoTextCtrl``.
 
         :arg parent: The ``wx`` parent object.
         :arg style:  Can be :data:`ATC_CASE_SENSITIVE` to restrict the
                      auto-completion options to case sensitive matches.
-        arg ownloop: See :meth:`AutoCompletePopup.__init__`.
         """
 
-        self.__ownloop       = ownloop
         self.__caseSensitive = style & ATC_CASE_SENSITIVE
 
         wx.Panel.__init__(self, parent)
@@ -223,8 +221,7 @@ class AutoTextCtrl(wx.Panel):
             self,
             text,
             self.__options,
-            style,
-            self.__ownloop)
+            style)
 
         if popup.GetCount() == 0:
             popup.Destroy()
@@ -261,7 +258,7 @@ class AutoTextCtrl(wx.Panel):
 
         popup.SetSize((-1, -1))
         popup.SetPosition((posx,  posy))
-        popup.Show()
+        popup.ShowModal()
 
 
 ATC_CASE_SENSITIVE = 1
@@ -286,12 +283,12 @@ Contains a single attribute, ``text``, which contains the text in the
 """
 
 
-class AutoCompletePopup(wx.Frame):
+class AutoCompletePopup(wx.Dialog):
     """The ``AutoCompletePopup`` class is used by the :class:`AutoTextCtrl`
     to display a list of completion options to the user.
     """
 
-    def __init__(self, parent, atc, text, options, style=0, ownloop=True):
+    def __init__(self, parent, atc, text, options, style=0):
         """Create an ``AutoCompletePopup``.
 
         :arg parent:  The ``wx`` parent object.
@@ -300,20 +297,12 @@ class AutoCompletePopup(wx.Frame):
         :arg options: A list of all possible auto-completion options.
         :arg style:   Set to :data:`ATC_CASE_SENSITIVE` to make the
                       pattern matching case sensitive.
-        :arg ownloop: If ``True`` (the default), a separate event loop
-                      is created and run while the popup is displayed.
-                      This gives the popup modal behaviour.
         """
 
-        wx.Frame.__init__(self,
+        wx.Dialog.__init__(self,
                           parent,
-                          style=(wx.NO_BORDER        |
-                                 wx.STAY_ON_TOP      |
-                                 wx.FRAME_NO_TASKBAR |
-                                 wx.FRAME_FLOAT_ON_PARENT))
+                          style=(wx.NO_BORDER | wx.STAY_ON_TOP))
 
-        self.__ownloop       = None
-        self.__evloop        = None
         self.__caseSensitive = style & ATC_CASE_SENSITIVE
         self.__atc           = atc
         self.__options       = options
@@ -365,25 +354,6 @@ class AutoCompletePopup(wx.Frame):
         self           .Bind(wx.EVT_SET_FOCUS,     self.__onSetFocus)
         self.__textCtrl.Bind(wx.EVT_SET_FOCUS,     self.__onSetFocus)
         self.__listBox .Bind(wx.EVT_SET_FOCUS,     self.__onSetFocus)
-
-
-    def Show(self):
-        """Shows this ``AutoCompletePopup``. If the ``ownloop`` parameter
-        passed to :meth:`__init__` was ``True``, a A new ``wx.GUIEventLoop``
-        is created and started, until this ``AutoCompletePopup`` loses focus.
-        """
-
-        parent = self.GetParent().GetTopLevelParent()
-
-        parent.Disable()
-        wx.Frame.Show(self)
-
-        if self.__ownloop:
-            self.__evloop = wx.GUIEventLoop()
-            self.__evloop.Run()
-            self.__evloop = None
-
-        parent.Enable()
 
 
     def GetCount(self):
@@ -443,6 +413,7 @@ class AutoCompletePopup(wx.Frame):
         this ``AutoCompletePopup`` to the owning :class:`AutoTextCtrl`,
         and then (asynchronously) destroys this ``AutoCompletePopup``.
         """
+
         value = self.__textCtrl.GetValue()
         idx   = self.__textCtrl.GetInsertionPoint()
         atc   = self.__atc
@@ -471,8 +442,11 @@ class AutoCompletePopup(wx.Frame):
 
         def destroy():
             try:
-                self.Close()
-                self.Destroy()
+                if self.IsModal():
+                    self.EndModal(wx.ID_OK)
+                else:
+                    self.Close()
+                    self.Destroy()
 
             except wx.PyDeadObjectError:
                 pass
@@ -480,12 +454,6 @@ class AutoCompletePopup(wx.Frame):
         ev = ATCPopupDestroyEvent()
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
-
-        # Kill the event loop used by
-        # the popup (see the Show method)
-        if self.__evloop is not None:
-            self.__evloop.Exit()
-            self.__evloop = None
 
         wx.CallAfter(destroy)
 
