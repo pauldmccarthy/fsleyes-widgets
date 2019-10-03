@@ -62,11 +62,14 @@ class WidgetList(scrolledpanel.ScrolledPanel):
     """Border and title background colour for widget groups. """
 
 
-    def __init__(self, parent, style=0):
+    def __init__(self, parent, style=0, minHeight=-1):
         """Create a ``WidgetList``.
 
-        :arg parent: The :mod:`wx` parent object.
+        :arg parent:    The :mod:`wx` parent object.
+        :arg style:     Passed through to ``wx.ScrolledPanel.__init__``
+        :arg minHeight: Minimum height of each row
         """
+        self.__minHeight   = minHeight
         self.__widgSizer   = wx.BoxSizer(wx.VERTICAL)
         self.__sizer       = wx.BoxSizer(wx.VERTICAL)
 
@@ -353,7 +356,10 @@ class WidgetList(scrolledpanel.ScrolledPanel):
             for child in widget.GetChildren():
                 child.GetWindow().Reparent(widgPanel)
         else:
-            widget.SetMinSize(widget.GetBestSize())
+            w, h = widget.GetBestSize().Get()
+            if self.__minHeight > h:
+                h = self.__minHeight
+            widget.SetMinSize( (w, h))
             widget.Reparent(widgPanel)
 
         label = wx.StaticText(widgPanel,
