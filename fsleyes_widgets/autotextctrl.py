@@ -29,18 +29,22 @@ class AutoTextCtrl(wx.Panel):
     """
 
 
-    def __init__(self, parent, style=0):
+    def __init__(self, parent, style=0, modal=True):
         """Create an ``AutoTextCtrl``.
 
         :arg parent: The ``wx`` parent object.
         :arg style:  Can be :data:`ATC_CASE_SENSITIVE` to restrict the
                      auto-completion options to case sensitive matches.
+        :arg modal:  If ``True`` (the default), the :class:`AutoCompletePopup`
+                     is shoown modally. This option is primarily for testing
+                     purposes.
         """
 
         self.__caseSensitive = style & ATC_CASE_SENSITIVE
 
         wx.Panel.__init__(self, parent)
 
+        self.__modal    = modal
         self.__popup    = None
         self.__textCtrl = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.__sizer    = wx.BoxSizer(wx.HORIZONTAL)
@@ -258,7 +262,9 @@ class AutoTextCtrl(wx.Panel):
 
         popup.SetSize((-1, -1))
         popup.SetPosition((posx,  posy))
-        popup.ShowModal()
+
+        if self.__modal: popup.ShowModal()
+        else:            popup.Show()
 
 
 ATC_CASE_SENSITIVE = 1
