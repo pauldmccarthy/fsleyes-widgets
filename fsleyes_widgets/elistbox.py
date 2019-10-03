@@ -104,7 +104,8 @@ class EditableListBox(wx.Panel):
             labels=None,
             clientData=None,
             tooltips=None,
-            style=0):
+            style=0,
+            vgap=0):
         """Create an ``EditableListBox``.
 
         :arg parent:     :mod:`wx` parent object
@@ -122,6 +123,9 @@ class EditableListBox(wx.Panel):
                          :data:`ELB_NO_LABEL`, :data:`ELB_WIDGET_RIGHT`,
                          :data:`ELB_TOOLTIP_DOWN`, and
                          :data:`ELB_SCROLL_BUTTONS`.
+
+        :arg vgap:       Vertical gap in pixels between each item. Ignored if
+                         :data:`ELB_NO_LABEL` is set.
         """
 
         wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
@@ -150,6 +154,7 @@ class EditableListBox(wx.Panel):
         self.__widgetOnRight = widgetOnRight
         self.__tooltipDown   = tooltipDown
         self.__scrollButtons = scrollButtons
+        self.__vgap          = vgap
 
         if labels     is None: labels     = []
         if clientData is None: clientData = [None] * len(labels)
@@ -632,9 +637,12 @@ class EditableListBox(wx.Panel):
         container.SetSizer(sizer)
 
         sizerItems = [labelWidget]
-        if self.__noLabels: sizerFlags = [{}]
-        else:               sizerFlags = [{'flag'       : wx.ALIGN_CENTRE,
-                                           'proportion' : 1}]
+        if self.__noLabels:
+            sizerFlags = [{}]
+        else:
+            sizerFlags = [{'flag'       : wx.ALIGN_CENTRE | wx.BOTTOM,
+                           'border'     : self.__vgap,
+                           'proportion' : 1}]
 
         if extraWidget is not None:
             extraWidget.Reparent(container)
