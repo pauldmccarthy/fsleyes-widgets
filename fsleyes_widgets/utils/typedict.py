@@ -10,7 +10,7 @@
 
 import six
 
-import collections
+from collections import abc
 
 
 class TypeDict(object):
@@ -189,15 +189,15 @@ class TypeDict(object):
             if '.' in key: return tuple(key.split('.'))
             else:          return key
 
-        if isinstance(key, collections.Sequence):
+        if isinstance(key, abc.Sequence):
 
             tKeys = map(self.tokenifyKey, key)
             key   = []
 
             for tk in tKeys:
-                if   isinstance(tk, six.string_types):     key.append(tk)
-                elif isinstance(tk, collections.Sequence): key += list(tk)
-                else:                                      key.append(tk)
+                if   isinstance(tk, six.string_types): key.append(tk)
+                elif isinstance(tk, abc.Sequence):     key += list(tk)
+                else:                                  key.append(tk)
 
             return tuple(key)
 
