@@ -60,7 +60,7 @@ def _test_Bounce():
         else:
             dlg.Show()
             eval()
-        if endfunc is not 'Destroy':
+        if endfunc != 'Destroy':
             dlg.Destroy()
         dlg = None
         assert passed[0]
