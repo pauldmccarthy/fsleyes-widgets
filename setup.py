@@ -60,7 +60,7 @@ class doc(Command):
 
         print('Building documentation [{}]'.format(destdir))
 
-        import sphinx
+        import sphinx.cmd.build as sphinx_build
 
         try:
             import unittest.mock as mock
@@ -81,7 +81,7 @@ class doc(Command):
                   [mock.patch(c, object) for c in mockedClasses]
 
         [p.start() for p in patches]
-        sphinx.main(['sphinx-build', docdir, destdir])
+        sphinx_build.main([docdir, destdir])
         [p.stop() for p in patches]
 
 
@@ -91,6 +91,7 @@ setup(
     version=version,
     description='A collection of wxPython widgets used by FSLeyes',
     long_description=readme,
+    long_description_content_type='text/x-rst',
     url='https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets',
     author='Paul McCarthy',
     author_email='pauldmccarthy@gmail.com',
@@ -100,9 +101,9 @@ setup(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Software Development :: Libraries :: Python Modules'],
 
     packages=packages,
