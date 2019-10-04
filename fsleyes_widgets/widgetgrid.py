@@ -1066,7 +1066,19 @@ class WidgetGrid(wx.ScrolledWindow):
 
         log.debug('Keyboard event ({})'.format(key))
 
+        # ignore modified keypresses, and all
+        # keypresses that are not arrows
         if ev.HasModifiers() or (key not in (up, down, left, right)):
+            ev.Skip()
+            return
+
+        # if up/down, but we can't select rows
+        if key in (up, down) and self.__selectable == 'columns':
+            ev.Skip()
+            return
+
+        # if left/right, but we can't select columns
+        if key in (left, right) and self.__selectable == 'rows':
             ev.Skip()
             return
 

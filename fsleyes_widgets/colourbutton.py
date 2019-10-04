@@ -56,6 +56,7 @@ class ColourButton(wx.Button):
         self.Bind(wx.EVT_BUTTON, self.__onClick)
 
         self.SetValue(colour)
+        self.SetMinSize(self.GetBestSize())
 
 
     def GetValue(self):
@@ -98,8 +99,7 @@ class ColourButton(wx.Button):
         else:
             self.__bmp = wx.BitmapFromBufferRGBA( w, h, data)
 
-
-        self.SetBitmapLabel(self.__bmp)
+        self.SetBitmap(self.__bmp)
 
 
     def __onClick(self, ev):
