@@ -2,6 +2,25 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.8.3 (Friday October 4th 2019)
+-------------------------------
+
+
+Added
+^^^^^
+
+
+* New ``vgap`` option for the :class:`.EditableListBox`.
+* New ``minHeight`` option for the :class:`.WidgetList`.
+
+
+Changed
+^^^^^^^
+
+
+* Minor GTK3 compatibility fixes.
+
+
 0.8.2 (Wednesday September 18th 2019)
 -------------------------------------
 
