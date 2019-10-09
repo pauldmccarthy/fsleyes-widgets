@@ -202,6 +202,7 @@ class ClearThread(threading.Thread):
         self.daemon       = True
         self.__clearEvent = threading.Event()
         self.__vetoEvent  = threading.Event()
+        self.__dieEvent   = threading.Event()
         self.__timeout    = None
 
 
@@ -220,6 +221,27 @@ class ClearThread(threading.Thread):
         self.__vetoEvent.set()
 
 
+    def die(self):
+        """This method may be used to force the ``ClearThread`` to exit
+        immediately, rather than when the process exits.
+
+
+        To cleanly kill the ``ClearThread``, follow this procedure::
+
+            import fsleyes_widgets.utils.status as status
+
+            status._clearThread.die()
+            status._clearThread.clear(0.1)
+            status._clearThread.join()
+            status._clearThread = None
+
+
+        If the :func:`update` function is used again, a new ``ClearThread``
+        will automatically be started.
+        """
+        self.__dieEvent.set()
+
+
     def run(self):
         """The ``ClearThread`` function. Infinite loop which waits until
         the :meth:`clear` method is called, and then clears the status
@@ -232,6 +254,9 @@ class ClearThread(threading.Thread):
             self.__clearEvent.wait()
             self.__clearEvent.clear()
 
+            if self.__dieEvent.is_set():
+                return
+
             # http://bugs.python.org/issue14623
             #
             # When the main thread exits, daemon threads will
@@ -240,7 +265,7 @@ class ClearThread(threading.Thread):
             # result in errors.
             try:
                 if not self.__clearEvent.wait(self.__timeout) and \
-                   not self.__vetoEvent.isSet():
+                   not self.__vetoEvent.is_set():
 
                     log.debug('Timeout - clearing status')
                     clearStatus()
