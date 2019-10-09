@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.8.4 (Wednesday October 9th 2019)
+----------------------------------
+
+
+Added
+^^^^^
+
+
+* New :meth:`.status.ClearThreaad.die` method, used for testing purposes.
+
+
+
 0.8.3 (Friday October 4th 2019)
 -------------------------------
 
