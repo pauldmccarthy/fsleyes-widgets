@@ -76,6 +76,31 @@ def test_clearStatus():
     assert target.msg == ''
 
 
+def test_ClearThread_die():
+    target = MockTarget()
+    status.setTarget(target)
+
+    # make sure the clearthread is running
+    status.update('Status1', 1.0)
+    time.sleep(1.1)
+
+    # and can be killed
+    status._clearThread.die()
+    status._clearThread.clear(0.1)
+    status._clearThread.join()
+    status._clearThread = None
+
+    # and then gets restarted again
+    status.update('Status1', 0.25)
+    assert target.msg == 'Status1'
+    time.sleep(0.5)
+    assert target.msg == ''
+
+
+
+
+
+
 def test_reportError():
 
     class MockWX(object):
