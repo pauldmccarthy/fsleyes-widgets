@@ -223,11 +223,21 @@ class ClearThread(threading.Thread):
 
     def die(self):
         """This method may be used to force the ``ClearThread`` to exit
-        immediately, rather than when the process exits. The :meth:`clear`
-        method must also be called to end the thread, i.e.::
+        immediately, rather than when the process exits.
 
-            clearThread.die()
-            clearThread.clear()
+
+        To cleanly kill the ``ClearThread``, follow this procedure::
+
+            import fsleyes_widgets.utils.status as status
+
+            status._clearThread.die()
+            status._clearThread.clear(0.1)
+            status._clearThread.join()
+            status._clearThread = None
+
+
+        If the :func:`update` function is used again, a new ``ClearThread``
+        will automatically be started.
         """
         self.__dieEvent.set()
 
