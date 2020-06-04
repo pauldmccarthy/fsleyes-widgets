@@ -438,12 +438,21 @@ class AutoCompletePopup(wx.Dialog):
         # events, which will trigger another call to
         # __destroy. So we remove all callbacks to
         # prevent this from happening.
-        self           .Bind(wx.EVT_SET_FOCUS,  None)
-        self.__textCtrl.Bind(wx.EVT_SET_FOCUS,  None)
-        self.__listBox .Bind(wx.EVT_SET_FOCUS,  None)
-        self           .Bind(wx.EVT_KILL_FOCUS, None)
-        self.__textCtrl.Bind(wx.EVT_KILL_FOCUS, None)
-        self.__listBox .Bind(wx.EVT_KILL_FOCUS, None)
+        self.__textCtrl.Bind(wx.EVT_TEXT,           None)
+        self.__textCtrl.Bind(wx.EVT_TEXT_ENTER,     None)
+        self.__textCtrl.Bind(wx.EVT_CHAR_HOOK,      None)
+        self.__textCtrl.Bind(wx.EVT_KEY_DOWN,       None)
+        self.__listBox .Bind(wx.EVT_CHAR_HOOK,      None)
+        self.__listBox .Bind(wx.EVT_KEY_DOWN,       None)
+        self.__listBox .Bind(wx.EVT_LISTBOX_DCLICK, None)
+        self.__listBox .Bind(wx.EVT_LEFT_DOWN,      None)
+        self.__listBox .Bind(wx.EVT_RIGHT_DOWN,     None)
+        self           .Bind(wx.EVT_SET_FOCUS,      None)
+        self.__textCtrl.Bind(wx.EVT_SET_FOCUS,      None)
+        self.__listBox .Bind(wx.EVT_SET_FOCUS,      None)
+        self           .Bind(wx.EVT_KILL_FOCUS,     None)
+        self.__textCtrl.Bind(wx.EVT_KILL_FOCUS,     None)
+        self.__listBox .Bind(wx.EVT_KILL_FOCUS,     None)
 
         atc.ChangeValue(      value)
         atc.SetInsertionPoint(idx)
