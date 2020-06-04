@@ -327,7 +327,8 @@ class SliderSpinPanel(wx.Panel):
                  maxValue=None,
                  label=None,
                  style=None,
-                 spinWidth=None):
+                 spinWidth=None,
+                 precision=None):
         """Create a ``SliderSpinPanel``.
 
         The following style flags are available:
@@ -413,7 +414,8 @@ class SliderSpinPanel(wx.Panel):
             maxValue=maxValue,
             increment=increment,
             style=spinStyle,
-            width=spinWidth)
+            width=spinWidth,
+            precision=precision)
 
         self.__sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.SetSizer(self.__sizer)

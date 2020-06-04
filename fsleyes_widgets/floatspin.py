@@ -50,7 +50,8 @@ class FloatSpinCtrl(FloatSpinBase):
                  value=None,
                  style=None,
                  width=None,
-                 evDelta=None):
+                 evDelta=None,
+                 precision=None):
         """Create a ``FloatSpinCtrl``.
 
         The following style flags are available:
@@ -91,6 +92,10 @@ class FloatSpinCtrl(FloatSpinBase):
                         This has the side effect that if the user clicks and
                         holds on the spin button, they have to wait <delta>
                         seconds between increments/decrements.
+
+        :arg precision: The desired precision to the right of the decimal
+                        value. Ignored if the :attr:`FSC_INTEGER` style is
+                        active.
         """
         FloatSpinBase.__init__(self, parent)
 
@@ -150,6 +155,10 @@ class FloatSpinCtrl(FloatSpinBase):
 
         if self.__integer: self.__format = '{:d}'
         else:              self.__format = '{:.7G}'
+
+        if   self.__integer:    self.__format = '{:d}'
+        elif precision is None: self.__format = '{:.7G}'
+        else:                   self.__format = '{:.' + str(precision) + 'f}'
 
         # Events on key down, enter, focus
         # lost, and on the spin control
@@ -380,7 +389,6 @@ class FloatSpinCtrl(FloatSpinBase):
         except ValueError:
             self.SetValue(self.__value)
             return
-
         valset = self.SetValue(val)
 
         # Add a 'changed' attribute so
