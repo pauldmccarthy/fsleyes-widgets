@@ -103,6 +103,7 @@ def _test_RangePanel_logic_spin():
     _test_RangePanel_logic(panel)
 
 
+@pytest.mark.dodgy
 def test_RangePanel_events_slider():
     run_with_wx(_test_RangePanel_events_slider)
 def _test_RangePanel_events_slider():
@@ -236,6 +237,7 @@ def _test_RangeSliderSpinPanel_logic():
     _test_RangePanel_logic(panel)
 
 
+@pytest.mark.dodgy
 def test_RangeSliderSpinPanel_onchange():
     run_with_wx(_test_RangeSliderSpinPanel_onchange)
 def _test_RangeSliderSpinPanel_onchange():

@@ -140,11 +140,15 @@ def _test_FloatSlider_changeRange():
     _test_widget_changeRange(slider)
 
 
+@pytest.mark.dodgy
 def test_FloatSlider_mouse_non_gtk():
     run_with_wx(_test_FloatSlider_mouse)
+
+@pytest.mark.dodgy
 def test_FloatSlider_mouse_gtk():
     with mock.patch('fsleyes_widgets.floatslider.wx.Platform', '__WXGTK__'):
         run_with_wx(_test_FloatSlider_mouse)
+
 def _test_FloatSlider_mouse():
 
     sim    = wx.UIActionSimulator()
@@ -323,6 +327,7 @@ def _test_SliderSpinPanel_show_edit_limits():
             else:        assert result[0] is None
 
 
+@pytest.mark.dodgy
 def test_SliderSpinPanel_events():
     run_with_wx(_test_SliderSpinPanel_events)
 def _test_SliderSpinPanel_events():

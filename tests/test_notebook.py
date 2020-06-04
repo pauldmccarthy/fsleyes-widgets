@@ -190,9 +190,10 @@ def _test_enable_disable_show_hide(side, ornt):
     assert notebook.GetSelection() == 1
 
 
-def test_event():
-    nb_run_with_wx(_test_event)
-def _test_event(side, ornt):
+@pytest.mark.dodgy
+def test_notebook_events():
+    nb_run_with_wx(_test_notebook_events)
+def _test_notebook_events(side, ornt):
     sim      = wx.UIActionSimulator()
     frame    = wx.GetApp().GetTopWindow()
     sizer    = wx.BoxSizer(wx.VERTICAL)
