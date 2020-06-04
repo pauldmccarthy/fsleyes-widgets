@@ -2,8 +2,16 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.8.5 (Thursday June 4th 2020)
+0.9.0 (Thursday June 4th 2020)
 ------------------------------
+
+
+Added
+^^^^^
+
+
+* The :class:`.FloatSpinCtrl` has a new ``precision`` option, allowing
+  the displayed precision to be specified (!52).
 
 
 Fixed
@@ -11,7 +19,7 @@ Fixed
 
 
 * Fixed a bug in the :class:`.AutoCompletePopup`, which could cause a
-  segmentation fault on GTK.
+  segmentation fault on GTK (!53).
 
 
 0.8.4 (Wednesday October 9th 2019)
