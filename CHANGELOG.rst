@@ -11,7 +11,7 @@ Added
 
 
 * The :class:`.FloatSpinCtrl` has a new ``precision`` option, allowing
-  the displayed precision to be specified (!52).
+  the displayed precision to be specified (!52, !54).
 
 
 Fixed
