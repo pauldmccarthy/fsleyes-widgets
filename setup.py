@@ -23,8 +23,7 @@ basedir = op.dirname(__file__)
 with open(op.join(basedir, 'requirements.txt'), 'rt') as f:
     install_requires = [l.strip() for l in f.readlines()]
 
-packages = find_packages(
-    exclude=('doc', 'tests', 'dist', 'build', 'fsleyes_widgets.egg-info'))
+packages = find_packages(include=('fsleyes_widgets', 'fsleyes_widgets.*'))
 
 # Extract the vesrion number from fsleyes_widgets/__init__.py
 version = {}

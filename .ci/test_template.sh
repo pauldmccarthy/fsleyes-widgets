@@ -12,6 +12,11 @@ fi;
 
 source /test.venv/bin/activate
 
+apt install -y locales
+locale-gen en_US.UTF-8
+locale-gen en_GB.UTF-8
+update-locale
+
 
 PIPARGS="--retries 10 --timeout 30"
 
@@ -25,4 +30,4 @@ if [ "$TEST_STYLE"x != "x" ]; then pylint --output-format=colorized fsleyes_widg
 if [ "$TEST_STYLE"x != "x" ]; then exit 0; fi
 
 # Run the tests.
-xvfb-run -a -s "-screen 0 1920x1200x24" python setup.py test
+xvfb-run -a -s "-screen 0 1920x1200x24" python setup.py test  --addopts="-m 'not dodgy'"

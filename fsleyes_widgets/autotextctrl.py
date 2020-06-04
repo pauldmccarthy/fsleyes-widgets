@@ -18,6 +18,8 @@ import logging
 import wx
 import wx.lib.newevent as wxevent
 
+import fsleyes_widgets.utils as wutils
+
 
 log = logging.getLogger(__name__)
 
@@ -309,6 +311,7 @@ class AutoCompletePopup(wx.Dialog):
                           parent,
                           style=(wx.NO_BORDER | wx.STAY_ON_TOP))
 
+        self.__alive         = True
         self.__caseSensitive = style & ATC_CASE_SENSITIVE
         self.__atc           = atc
         self.__options       = options
@@ -420,6 +423,13 @@ class AutoCompletePopup(wx.Dialog):
         and then (asynchronously) destroys this ``AutoCompletePopup``.
         """
 
+        # destroy has already been
+        # called - don't run again
+        if not self.__alive:
+            return
+
+        self.__alive = False
+
         value = self.__textCtrl.GetValue()
         idx   = self.__textCtrl.GetInsertionPoint()
         atc   = self.__atc
@@ -428,12 +438,21 @@ class AutoCompletePopup(wx.Dialog):
         # events, which will trigger another call to
         # __destroy. So we remove all callbacks to
         # prevent this from happening.
-        self           .Bind(wx.EVT_SET_FOCUS,  None)
-        self.__textCtrl.Bind(wx.EVT_SET_FOCUS,  None)
-        self.__listBox .Bind(wx.EVT_SET_FOCUS,  None)
-        self           .Bind(wx.EVT_KILL_FOCUS, None)
-        self.__textCtrl.Bind(wx.EVT_KILL_FOCUS, None)
-        self.__listBox .Bind(wx.EVT_KILL_FOCUS, None)
+        self.__textCtrl.Bind(wx.EVT_TEXT,           None)
+        self.__textCtrl.Bind(wx.EVT_TEXT_ENTER,     None)
+        self.__textCtrl.Bind(wx.EVT_CHAR_HOOK,      None)
+        self.__textCtrl.Bind(wx.EVT_KEY_DOWN,       None)
+        self.__listBox .Bind(wx.EVT_CHAR_HOOK,      None)
+        self.__listBox .Bind(wx.EVT_KEY_DOWN,       None)
+        self.__listBox .Bind(wx.EVT_LISTBOX_DCLICK, None)
+        self.__listBox .Bind(wx.EVT_LEFT_DOWN,      None)
+        self.__listBox .Bind(wx.EVT_RIGHT_DOWN,     None)
+        self           .Bind(wx.EVT_SET_FOCUS,      None)
+        self.__textCtrl.Bind(wx.EVT_SET_FOCUS,      None)
+        self.__listBox .Bind(wx.EVT_SET_FOCUS,      None)
+        self           .Bind(wx.EVT_KILL_FOCUS,     None)
+        self.__textCtrl.Bind(wx.EVT_KILL_FOCUS,     None)
+        self.__listBox .Bind(wx.EVT_KILL_FOCUS,     None)
 
         atc.ChangeValue(      value)
         atc.SetInsertionPoint(idx)
@@ -447,20 +466,19 @@ class AutoCompletePopup(wx.Dialog):
             atc.GenEnterEvent()
 
         def destroy():
-            try:
-                if self.IsModal():
-                    self.EndModal(wx.ID_OK)
-                else:
-                    self.Close()
-                    self.Destroy()
 
-            except wx.PyDeadObjectError:
-                pass
+            if not wutils.isalive(self):
+                return
+
+            if self.IsModal():
+                self.EndModal(wx.ID_OK)
+            else:
+                self.Close()
+                self.Destroy()
 
         ev = ATCPopupDestroyEvent()
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)
-
         wx.CallAfter(destroy)
 
 

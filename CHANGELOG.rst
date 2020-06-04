@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.8.5 (Thursday June 4th 2020)
+------------------------------
+
+
+Fixed
+^^^^^
+
+
+* Fixed a bug in the :class:`.AutoCompletePopup`, which could cause a
+  segmentation fault on GTK.
+
+
 0.8.4 (Wednesday October 9th 2019)
 ----------------------------------
 
