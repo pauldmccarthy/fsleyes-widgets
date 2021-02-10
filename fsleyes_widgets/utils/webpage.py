@@ -17,9 +17,9 @@ The following functions are provided:
    openFile
 """
 
-import                             webbrowser
-import six.moves.urllib.parse   as urlparse
-import six.moves.urllib.request as urlrequest
+import                   webbrowser
+import urllib.parse   as urlparse
+import urllib.request as urlrequest
 
 
 def fileToUrl(fileName):
