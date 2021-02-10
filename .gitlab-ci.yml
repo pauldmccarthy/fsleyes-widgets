@@ -157,6 +157,11 @@ test:3.8:
   image: pauldmccarthy/fsleyes-py38-wxpy4-gtk3
   <<: *test_template
 
+test:3.9:
+  stage: test
+  image: pauldmccarthy/fsleyes-py39-wxpy4-gtk3
+  <<: *test_template
+
 test:build-pypi-dist:
   stage: test
   image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3

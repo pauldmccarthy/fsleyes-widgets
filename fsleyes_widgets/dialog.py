@@ -22,7 +22,6 @@ import            os
 import os.path as op
 import            threading
 
-import            six
 import            wx
 
 import fsleyes_widgets as fw
@@ -712,8 +711,8 @@ class FSLDirDialog(wx.Dialog):
 
             self.__hint = wx.StaticText(
                 self,
-                label=six.u('Hint: Press \u2318+\u21e7+G in the file '
-                            'dialog to manually type in a location.'))
+                label='Hint: Press \u2318+\u21e7+G in the file '
+                      'dialog to manually type in a location.')
 
             self.__hint.SetForegroundColour('#888888')
 

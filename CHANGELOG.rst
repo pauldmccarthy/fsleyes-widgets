@@ -2,6 +2,19 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+
+0.10.0 (Wednesday February 10th 2020)
+-------------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* The `.textBitmap` function has been made more flexible, and can
+  automatically infer the width/height of the bitmap given just a font size.
+
+
 0.9.0 (Thursday June 4th 2020)
 ------------------------------
 

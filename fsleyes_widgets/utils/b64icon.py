@@ -11,7 +11,7 @@ to create a ``wx.Bitmap`` object from a base64-encoded image.
 
 import base64 as b64
 
-from six import BytesIO
+from io import BytesIO
 
 import wx
 

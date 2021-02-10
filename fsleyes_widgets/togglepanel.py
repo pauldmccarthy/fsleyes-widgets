@@ -12,7 +12,6 @@ of the content.
 
 
 import warnings
-import six
 
 import wx
 import wx.lib.newevent as wxevent
@@ -69,22 +68,19 @@ class TogglePanel(wx.Panel):
             raise ValueError('toggleSide must be one of wx.TOP, '
                              'wx.BOTTOM, wx.LEFT or wx.RIGHT')
 
-        if label is not None:
-            label = six.u(label)
-
         self.__toggleButton = wx.StaticText(
             self,
             style=(wx.ALIGN_CENTRE_VERTICAL | wx.ALIGN_CENTRE_HORIZONTAL))
 
-        if   toggleSide == wx.TOP:    hideLabel = six.u('\u25B2')
-        elif toggleSide == wx.BOTTOM: hideLabel = six.u('\u25BC')
-        elif toggleSide == wx.LEFT:   hideLabel = six.u('\u25C0')
-        elif toggleSide == wx.RIGHT:  hideLabel = six.u('\u25B6')
+        if   toggleSide == wx.TOP:    hideLabel = '\u25B2'
+        elif toggleSide == wx.BOTTOM: hideLabel = '\u25BC'
+        elif toggleSide == wx.LEFT:   hideLabel = '\u25C0'
+        elif toggleSide == wx.RIGHT:  hideLabel = '\u25B6'
 
-        if   toggleSide == wx.TOP:    showLabel = six.u('\u25BC')
-        elif toggleSide == wx.BOTTOM: showLabel = six.u('\u25B2')
-        elif toggleSide == wx.LEFT:   showLabel = six.u('\u25B6')
-        elif toggleSide == wx.RIGHT:  showLabel = six.u('\u25C0')
+        if   toggleSide == wx.TOP:    showLabel = '\u25BC'
+        elif toggleSide == wx.BOTTOM: showLabel = '\u25B2'
+        elif toggleSide == wx.LEFT:   showLabel = '\u25B6'
+        elif toggleSide == wx.RIGHT:  showLabel = '\u25C0'
 
         self.__showLabel = showLabel
         self.__hideLabel = hideLabel
@@ -149,7 +145,7 @@ class TogglePanel(wx.Panel):
         else:      label = self.__showLabel
 
         if self.__label is not None:
-            label = six.u('{} {}').format(label, self.__label)
+            label = '{} {}'.format(label, self.__label)
 
         self.__state = expand
         self.__toggleButton.SetLabel(label)

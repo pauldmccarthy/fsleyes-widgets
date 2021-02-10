@@ -12,8 +12,6 @@
 import math
 import logging
 
-import six
-
 import wx
 import wx.lib.newevent as wxevent
 import wx.lib.stattext as stattext
@@ -196,10 +194,10 @@ class EditableListBox(wx.Panel):
         # Buttons for moving the selected item up/down
         if moveSupport:
             self.__upButton   = wx.Button(self.__buttonPanel,
-                                          label=six.u('\u25B2'),
+                                          label='\u25B2',
                                           style=wx.BU_EXACTFIT)
             self.__downButton = wx.Button(self.__buttonPanel,
-                                          label=six.u('\u25BC'),
+                                          label='\u25BC',
                                           style=wx.BU_EXACTFIT)
             self.__upButton  .Bind(wx.EVT_BUTTON, self.__moveItemUp)
             self.__downButton.Bind(wx.EVT_BUTTON, self.__moveItemDown)
@@ -229,10 +227,10 @@ class EditableListBox(wx.Panel):
             # of wx.StaticText because GTK
             # can't horizontally align text.
             self.__scrollUp   = stattext.GenStaticText(self.__listPanel,
-                                                       label=six.u('\u25B2'),
+                                                       label='\u25B2',
                                                        style=wx.ALIGN_CENTRE)
             self.__scrollDown = stattext.GenStaticText(self.__listPanel,
-                                                       label=six.u('\u25BC'),
+                                                       label='\u25BC',
                                                        style=wx.ALIGN_CENTRE)
 
             self.__scrollUp  .SetFont(self.__scrollUp  .GetFont().Smaller())
