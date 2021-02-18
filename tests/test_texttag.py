@@ -140,7 +140,6 @@ def test_TextTagPanel_nostyle():
     run_with_wx(_test_TextTagPanel_nostyle)
 def _test_TextTagPanel_nostyle():
 
-    sim   = wx.UIActionSimulator()
     frame = wx.GetApp().GetTopWindow()
     panel = tt.TextTagPanel(frame, style=0)
 
@@ -148,10 +147,9 @@ def _test_TextTagPanel_nostyle():
 
     result = [None]
 
-    def handler(ev):
-        result[0] = ev.tag
-
-    panel.Bind(tt.EVT_TTP_TAG_ADDED, handler)
+    def simtext(text):
+        panel.newTagCtrl.ChangeValue(text)
+        panel._TextTagPanel__onTextCtrl(None)
 
     tags = ['Tag1', 'Tag2', 'Tag3']
 
@@ -159,30 +157,24 @@ def _test_TextTagPanel_nostyle():
 
     # Add an existing tag
     realYield()
-    simtext(sim, panel.newTagCtrl.textCtrl, tags[0])
+    simtext(tags[0])
     assert panel.GetTags() == [tags[0]]
-    assert result[0] == tags[0]
 
-    simtext(sim, panel.newTagCtrl.textCtrl, tags[2])
+    simtext(tags[2])
     assert panel.GetTags() == [tags[0], tags[2]]
-    assert result[0] == tags[2]
 
     # Duplicate
     result[0] = None
-    simtext(sim, panel.newTagCtrl.textCtrl, tags[2])
+    simtext(tags[2])
     assert panel.GetTags() == [tags[0], tags[2], tags[2]]
-    assert result[0] == tags[2]
 
     # Case insensitive
-    simtext(sim, panel.newTagCtrl.textCtrl, tags[1].lower())
+    simtext(tags[1].lower())
     assert panel.GetTags() == [tags[0], tags[2], tags[2], tags[1]]
-    assert result[0] == tags[1]
 
     # Not in known tags
-    result[0] = None
-    simtext(sim, panel.newTagCtrl.textCtrl, 'notag')
+    simtext('notag')
     assert panel.GetTags() == [tags[0], tags[2], tags[2], tags[1]]
-    assert result[0] is None
 
 
 def test_TextTagPanel_close_event():

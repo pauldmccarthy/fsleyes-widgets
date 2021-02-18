@@ -188,12 +188,16 @@ def test_popup_dblclick():
     run_with_wx(_test_popup_dblclick)
 def _test_popup_dblclick():
 
-
     class FakeEv:
+        def __init__(self, keycode=None):
+            self.keycode = keycode
+        def GetKeyCode(self):
+            return self.keycode
         def Skip(self):
             pass
+        def ResumePropagation(self, a):
+            pass
 
-    sim    = wx.UIActionSimulator()
     parent = wx.GetApp().GetTopWindow()
     atc    = autott.AutoTextCtrl(parent, modal=False)
 
@@ -201,7 +205,7 @@ def _test_popup_dblclick():
 
     addall(parent, [atc])
 
-    simkey(  sim, atc.textCtrl, wx.WXK_RETURN)
+    atc._AutoTextCtrl__onKeyDown(FakeEv(wx.WXK_RETURN))
     atc.popup.listBox.SetSelection(0)
     atc.popup._AutoCompletePopup__onListMouseDblClick(FakeEv())
     realYield()
