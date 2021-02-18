@@ -36,7 +36,4 @@ from fsleyes_widgets.utils import (WX_PYTHON,  # noqa
                                    haveGui,
                                    inSSHSession,
                                    inVNCSession,
-                                   glVersion,
-                                   glRenderer,
-                                   glIsSoftwareRenderer,
                                    isalive)
