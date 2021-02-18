@@ -149,27 +149,3 @@ def test_inVNCSession():
 
     with mock.patch('os.environ', {}):
         assert not fw.inVNCSession()
-
-
-def test_glVersion():
-    assert fw.glVersion() is None
-    fw.glVersion.version  = '2.1'
-    assert fw.glVersion() == '2.1'
-    fw.glVersion.version = None
-
-
-def test_glRenderer():
-    assert fw.glRenderer() is None
-    fw.glRenderer.renderer  = 'llvmpipe'
-    assert fw.glRenderer() == 'llvmpipe'
-    fw.glRenderer.renderer = None
-
-
-def test_glIsSoftwareRenderer():
-    assert fw.glRenderer() is None
-    assert fw.glIsSoftwareRenderer() is None
-    fw.glRenderer.renderer = 'nvidia'
-    assert not fw.glIsSoftwareRenderer()
-    fw.glRenderer.renderer = 'software'
-    assert fw.glIsSoftwareRenderer()
-    fw.glRenderer.renderer = None
