@@ -22,6 +22,21 @@ __version__ = '0.11.0.dev0'
 
 
 from fsleyes_widgets.utils import (WX_PYTHON,  # noqa
-                                   WX_PHOENIX,
+                                   WX_PHOENIX
+                                   WX_UNKNOWN,
+                                   WX_MAC_COCOA,
+                                   WX_MAC_CARBON,
+                                   WX_GTK,
                                    wxversion,
+                                   wxVersion,
+                                   wxFlavour,
+                                   wxPlatform,
+                                   frozen,
+                                   canHaveGui,
+                                   haveGui,
+                                   inSSHSession,
+                                   inVNCSession,
+                                   glVersion,
+                                   glRenderer,
+                                   glIsSoftwareRenderer,
                                    isalive)
