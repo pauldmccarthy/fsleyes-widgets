@@ -45,10 +45,18 @@ def _test_NumberDialog_create():
         assert dlg.GetValue() == expected
 
 
+def simtextnd(nd, text, changed):
+    class FakeEv:
+        def __init__(self, changed):
+            self.changed = changed
+    nd.floatSpinCtrl.textCtrl.ChangeValue(text)
+    nd.floatSpinCtrl._FloatSpinCtrl__onText(None)
+    nd._NumberDialog__onEnter(FakeEv(changed))
+
+
 def test_NumberDialog_limit():
     run_with_wx(_test_NumberDialog_limit)
 def _test_NumberDialog_limit():
-    sim   = wx.UIActionSimulator()
     frame = wx.GetApp().GetTopWindow()
 
     # kwargs, input, needClick, expected
@@ -91,8 +99,9 @@ def _test_NumberDialog_limit():
 
         dlg.Show()
 
-        simtext(sim, dlg.floatSpinCtrl.textCtrl, text)
+        simtextnd(dlg, text, needClick)
         if needClick:
             assert dlg.GetValue() is None
-            simclick(sim, dlg.okButton)
+            dlg._NumberDialog__onOk(None)
+
         assert dlg.GetValue() == expected
