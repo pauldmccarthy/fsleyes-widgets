@@ -32,11 +32,7 @@ exception of :func:`isalive`), without ``wx`` being installed.
 import functools as ft
 import              os
 import              sys
-import              logging
 import              warnings
-
-
-log = logging.getLogger(__name__)
 
 
 WX_PYTHON  = 1
@@ -86,7 +82,8 @@ def wxVersion():
 
         # Only consider the first three components
         # (e.g. ignore the "post2" in "4.0.7.post2")
-        return '.'.join(wx.__version__.split('.')[:3])
+        version = [int(v) for v in wx.__version__.split('.')[:3]]
+        return '.'.join([str(v) for v in version])
 
     except Exception:
         return None
@@ -140,10 +137,6 @@ def wxPlatform():
     elif any(['gtk'    in p for p in pi]): plat = WX_GTK
     else:                                  plat = WX_UNKNOWN
 
-    if plat is WX_UNKNOWN:
-        log.warning('Could not determine wx platform from '
-                    'information: {}'.format(pi))
-
     return plat
 
 
@@ -168,7 +161,7 @@ def canHaveGui():
         return False
 
 
-def haveGui(self):
+def haveGui():
     """``True`` if we are running with a GUI, ``False`` otherwise.
 
     This currently equates to testing whether a display is available
@@ -205,8 +198,7 @@ def haveGui(self):
     #      (hopefully) temporarily relaxed
     #      until I can think of a better
     #      solution.
-    return (self.canHaveGui and
-            app is not None)
+    return (canHaveGui() and app is not None)
 
 
 def inSSHSession():
@@ -242,7 +234,7 @@ def glVersion():
                   import fsl.utils.platform as plat
                   plat.glVersion.version = '2.1'
     """
-    return getattr(glRenderer, 'version', None)
+    return getattr(glVersion, 'version', None)
 
 
 def glRenderer():
