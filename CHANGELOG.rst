@@ -12,10 +12,9 @@ Added
 
 * New functions for querying the environment at runtime, including,
   :func:`.wxVersion` (not to be confused with the deprecated
-  :func:`.wxversion`), :func:`.wxPlatform`, :func:`.wxFlavour`, :func:`.frozen`,
-  :func:`.canHaveGui`, :func:`.haveGui`, :func:`.inSSHSession`,
-  :func:`.inVNCSession`, :func:`.glVersion`, :func:`.glRenderer`, and
-  :func:`.glIsSoftwareRenderer`.
+  :func:`.wxversion`), :func:`.wxPlatform`, :func:`.wxFlavour`,
+  :func:`.frozen`, :func:`.canHaveGui`, :func:`.haveGui`,
+  :func:`.inSSHSession`, and :func:`.inVNCSession`.
 
 
 Deprecated
