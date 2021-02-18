@@ -18,9 +18,6 @@ random things. A few functions are also defined at the package level:
     haveGui
     inSSHSession
     inVNCSession
-    glVersion
-    glRenderer
-    glIsSoftwareRenderer
     isalive
 
 
@@ -220,56 +217,6 @@ def inVNCSession():
     """
     vncVars = ['VNCDESKTOP', 'X2GO_SESSION', 'NXSESSIONID']
     return any(v in os.environ for v in vncVars)
-
-
-def glVersion():
-    """Return the OpenGL version.
-
-    .. note:: The values of ``glVersion`` is not automatically set - it
-              will only contain a value if one is assigned to it. *FSLeyes*
-              does this during startup, in the :func:`fsleyes.gl.bootstrap`
-              function. A value can be assigend directly to an attribute on
-              the ``glVersion`` function called ``version``, e.g.;;
-
-                  import fsl.utils.platform as plat
-                  plat.glVersion.version = '2.1'
-    """
-    return getattr(glVersion, 'version', None)
-
-
-def glRenderer():
-    """Return the OpenGL renderer description.
-
-    .. note:: The values of ``glRenderer`` is not automatically set - it
-              will only contain a value if one is assigned to it. *FSLeyes*
-              does this during startup, in the :func:`fsleyes.gl.bootstrap`
-              function. A value can be assigend directly to an attribute on
-              the ``glRenderer`` function called ``renderer``, e.g.;;
-
-                  import fsl.utils.platform as plat
-                  plat.glRenderer.renderer = 'Mesa DRI Intel(R) UHD ' \
-                                             'Graphics 620 (WHL GT2)'
-    """
-    return getattr(glRenderer, 'renderer', None)
-
-
-def glIsSoftwareRenderer():
-    """Returns ``True`` if the OpenGL renderer appears to be software based,
-    ``False`` otherwise, or ``None`` if the renderer has not yet been set.
-
-    .. note:: This check is based on heuristics, ans is not guaranteed to
-              be correct.
-    """
-    renderer = glRenderer()
-    if renderer is None:
-        return None
-    # There doesn't seem to be any quantitative
-    # method for determining whether we are using
-    # software-based rendering, so a hack is
-    # necessary.
-    renderer = renderer.lower()
-    return any(('software' in renderer,
-                'chromium' in renderer))
 
 
 def isalive(widget):
