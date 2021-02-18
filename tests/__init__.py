@@ -10,6 +10,9 @@ from __future__ import print_function
 import gc
 import time
 import traceback
+import contextlib as ctxlib
+
+from unittest import mock
 
 import numpy as np
 
@@ -110,6 +113,12 @@ def run_with_wx(func, *args, **kwargs):
     del frame[0]
 
     return result[0]
+
+
+@ctxlib.contextmanager
+def run_without_wx():
+    with mock.patch.dict('sys.modules', wx=None):
+        yield
 
 
 def addall(parent, widgets):
