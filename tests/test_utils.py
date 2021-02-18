@@ -6,10 +6,12 @@
 #
 
 from unittest import mock
+import sys
 
 import wx
 
-import fsleyes_widgets as fw
+import fsleyes_widgets       as fw
+import fsleyes_widgets.utils as fwutils
 
 from . import run_with_wx, run_without_wx, realYield
 
@@ -50,7 +52,7 @@ def _test_isalive():
 def test_wxversion():
     fw.wxversion()
     with run_without_wx():
-        assert fw.wxversion is None
+        assert fw.wxversion() is None
 
 
 def test_wxVersion():
@@ -77,39 +79,53 @@ def test_wxFlavour():
 
 def test_wxPlatform():
     with run_without_wx():
-        assert fw.wxPlatforn() is None
+        assert fw.wxPlatform() is None
     with mock.patch('wx.PlatformInfo', ['cocoa']):
-        assert fw.wxPlatform()  == fw.WX_MAC_COCOCA
+        assert fw.wxPlatform()  == fw.WX_MAC_COCOA
     with mock.patch('wx.PlatformInfo', ['carbon']):
         assert fw.wxPlatform()  == fw.WX_MAC_CARBON
     with mock.patch('wx.PlatformInfo', ['gtk']):
         assert fw.wxPlatform()  == fw.WX_GTK
+    with mock.patch('wx.PlatformInfo', ['atari']):
+        assert fw.wxPlatform()  == fw.WX_UNKNOWN
 
 
 def test_frozen():
     assert not fw.frozen()
-    with mock.patch('sys.frozen', True):
+    with mock.patch('fsleyes_widgets.utils.sys',
+                    mock.Mock(wraps=sys)) as mock_sys:
+        mock_sys.frozen = True
         assert fw.frozen()
+        mock_sys.frozen = False
+        assert not fw.frozen()
 
 
 def test_canHaveGui():
     with run_without_wx():
+        fw.canHaveGui.cache_clear()
         assert not fw.canHaveGui()
     with mock.patch('wx.App.IsDisplayAvailable', return_value=False):
+        fw.canHaveGui.cache_clear()
         assert not fw.canHaveGui()
     with mock.patch('wx.App.IsDisplayAvailable', return_value=True):
+        fw.canHaveGui.cache_clear()
         assert fw.canHaveGui()
+    fw.canHaveGui.cache_clear()
 
 
 @run_with_wx
 def test_haveGui1():
     assert fw.haveGui()
+    fw.canHaveGui.cache_clear()
+
 
 def test_haveGui2():
     with run_without_wx():
         assert not fw.haveGui()
+        fw.canHaveGui.cache_clear()
 
     assert not fw.haveGui()
+    fw.canHaveGui.cache_clear()
 
 
 def test_inSSHSession():
@@ -135,7 +151,7 @@ def test_inVNCSession():
         assert not fw.inVNCSession()
 
 
-def test_glRenderer():
+def test_glVersion():
     assert fw.glVersion() is None
     fw.glVersion.version  = '2.1'
     assert fw.glVersion() == '2.1'
