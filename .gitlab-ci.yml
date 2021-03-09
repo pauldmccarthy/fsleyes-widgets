@@ -150,6 +150,7 @@ test:3.9:
   image: pauldmccarthy/fsleyes-py39-wxpy4-gtk3
   <<: *test_template
 
+
 test:build-pypi-dist:
   stage: test
   image: pauldmccarthy/fsleyes-py38-wxpy4-gtk3
@@ -206,7 +207,7 @@ build-pypi-dist:
   <<: *check_version
 
   stage: build
-  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3
+  image: pauldmccarthy/fsleyes-py38-wxpy4-gtk3
 
   tags:
     - docker
@@ -230,7 +231,7 @@ deploy-pypi:
   <<: *setup_ssh
   stage: deploy
   when:  manual
-  image: python:3.6
+  image: python:3.8
 
   tags:
     - docker
