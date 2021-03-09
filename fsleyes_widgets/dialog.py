@@ -460,7 +460,7 @@ class TextEditDialog(wx.Dialog):
 
             icon = wx.ArtProvider.GetMessageBoxIcon(icon)
 
-            if fw.wxversion() == fw.WX_PHOENIX:
+            if fw.wxFlavour() == fw.WX_PHOENIX:
                 bmp = wx.Bitmap()
             else:
                 bmp = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
@@ -674,7 +674,7 @@ class FSLDirDialog(wx.Dialog):
 
         icon = wx.ArtProvider.GetMessageBoxIcon(wx.ICON_EXCLAMATION)
 
-        if fw.wxversion() == fw.WX_PHOENIX:
+        if fw.wxFlavour() == fw.WX_PHOENIX:
             bmp = wx.Bitmap()
         else:
             bmp  = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())
@@ -844,7 +844,7 @@ class CheckBoxMessageDialog(wx.Dialog):
             icon = wx.ArtProvider.GetMessageBoxIcon(icon)
             self.__icon = wx.StaticBitmap(self)
 
-            if fw.wxversion() == fw.WX_PHOENIX:
+            if fw.wxFlavour() == fw.WX_PHOENIX:
                 bmp = wx.Bitmap()
             else:
                 bmp = wx.EmptyBitmap(icon.GetWidth(), icon.GetHeight())

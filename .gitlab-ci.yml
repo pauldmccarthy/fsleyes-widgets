@@ -5,19 +5,16 @@
 #
 # The build pipeline comprises the following stages:
 #
-#    1. test:   Unit tests. This stage is actually disabled for
-#               fsleyes-widgets, because GTK mouse, keyboard, and focus
-#               events behave differently under xvfb, and cause most
-#               tests to fail.
+#    1. test:   Unit tests.
 #
 #    2. style:  Check coding style
 #
-#    3. doc:    Building API documentation
+#    3. doc:    Building and uploading API documentation using Gitlab
+#               Pages.
 #
 #    4. build:  Building source and wheel distributions
 #
-#    5. deploy: Uploading the build outputs to pypi, and the documentation
-#               to a hosting server.
+#    5. deploy: Uploading the build outputs to pypi.
 #
 # Custom docker images are used for several jobs - these images are
 # available at:
@@ -27,13 +24,10 @@
 # The test and style stages are executed on all branches of upstream and
 # fork repositories.
 #
-# The doc stage, and the deploy-doc job, is executed on all branches of the
-# upstream repository.
+# The doc stage is executed on release branches of the upstream repository.
 #
-# The build stage, and the remaining jobs in the  deploy stage, are only
-# executed on the upstream repository, and only for release tags.
-#
-# The deploy stages are manually instantiated.
+# The build stage and deploy stages are executed on tags on the upstream
+# repository, and the deploy stage must be manually instantiated.
 ###########################################################################
 
 
@@ -58,13 +52,7 @@ stages:
 #   - SSH_PRIVATE_KEY_GIT            - private key for git login to remote host
 #                                      (UPSTREAM_URL)
 #
-#   - SSH_PRIVATE_KEY_DOC_DEPLOY     - private key for rsyncing documentation
-#                                      to remote host (DOC_HOST)
-#
 #   - SSH_SERVER_HOSTKEYS            - List of trusted SSH hosts
-#
-#   - DOC_HOST:                      - Username@host to upload documentation to
-#                                      (e.g. "paulmc@jalapeno.fmrib.ox.ac.uk")
 #
 #   - TWINE_USERNAME:                - Username to use when uploading to pypi
 #
@@ -93,6 +81,11 @@ variables:
 .only_master: &only_master
   only:
     - master@fsl/fsleyes/widgets
+
+
+.only_release_branches: &only_release_branches
+  only:
+    - /^v.+$/@fsl/fsleyes/widgets
 
 
 .only_releases: &only_releases
@@ -159,7 +152,7 @@ test:3.9:
 
 test:build-pypi-dist:
   stage: test
-  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3
+  image: pauldmccarthy/fsleyes-py38-wxpy4-gtk3
   <<: *except_releases
 
   tags:
@@ -176,7 +169,7 @@ test:build-pypi-dist:
 
 style:
   stage: style
-  image: pauldmccarthy/fsleyes-py36-wxpy4-gtk3
+  image: pauldmccarthy/fsleyes-py38-wxpy4-gtk3
   <<: *test_template
   variables:
     TEST_STYLE:  "true"
@@ -186,21 +179,20 @@ style:
 # Doc stage
 ###########
 
-build-doc:
-  <<: *only_upstream
+pages:
+  <<: *only_release_branches
 
   tags:
    - docker
 
   stage: doc
-  image: python:3.6
+  image: python:3.8
 
   script:
     - bash ./.ci/build_doc.sh
   artifacts:
-    expire_in: 1 day
     paths:
-      - doc/$CI_COMMIT_REF_NAME
+      - public
 
 
 
@@ -231,23 +223,6 @@ build-pypi-dist:
 ##############
 # Deploy stage
 ##############
-
-
-deploy-doc:
-  <<: *only_upstream
-  <<: *setup_ssh
-  stage: deploy
-  when:  manual
-  image: python:3.6
-
-  tags:
-    - docker
-
-  dependencies:
-    - build-doc
-
-  script:
-    - bash ./.ci/deploy_doc.sh
 
 
 deploy-pypi:

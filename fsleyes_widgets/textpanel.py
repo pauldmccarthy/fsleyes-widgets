@@ -14,7 +14,7 @@ import wx
 import fsleyes_widgets as fw
 
 
-if fw.wxversion() == fw.WX_PHOENIX: TextPanelBase = wx.Panel
+if fw.wxFlavour() == fw.WX_PHOENIX: TextPanelBase = wx.Panel
 else:                               TextPanelBase = wx.PyPanel
 
 

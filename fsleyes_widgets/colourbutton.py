@@ -47,7 +47,7 @@ class ColourButton(wx.Button):
 
         # Under wxPython-phoenix, setting
         # label='' results in "Button".
-        if fw.wxversion() == fw.WX_PHOENIX:
+        if fw.wxFlavour() == fw.WX_PHOENIX:
             self.SetLabel(' ')
 
         self.__size = size
@@ -94,7 +94,7 @@ class ColourButton(wx.Button):
 
         data[:, :] = colour
 
-        if fw.wxversion() == fw.WX_PHOENIX:
+        if fw.wxFlavour() == fw.WX_PHOENIX:
             self.__bmp = wx.Bitmap.FromBufferRGBA(w, h, data)
         else:
             self.__bmp = wx.BitmapFromBufferRGBA( w, h, data)
