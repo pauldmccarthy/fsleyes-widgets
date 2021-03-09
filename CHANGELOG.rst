@@ -2,6 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.11.1 (Tuesday March 9th 2021)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Removed some uses of the deprecated :func:`.wxversion` function.
+
+
 0.11.0 (Thursday February 18th 2021)
 ------------------------------------
 
