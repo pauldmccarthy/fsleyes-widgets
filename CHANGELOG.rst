@@ -9,7 +9,8 @@ chronological order.
 Changed
 ^^^^^^^
 
-
+* The ``fsleyes-widgets`` API documentation is now hosted at
+  https://open.win.ox.ac.uk/pages/fsl/fsleyes/widgets/
 * Removed some uses of the deprecated :func:`.wxversion` function.
 
 
