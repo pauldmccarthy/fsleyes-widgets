@@ -22,7 +22,7 @@ import fsleyes_widgets as fw
 log = logging.getLogger(__name__)
 
 
-if fw.wxversion() == fw.WX_PHOENIX: FloatSpinBase = wx.Panel
+if fw.wxFlavour() == fw.WX_PHOENIX: FloatSpinBase = wx.Panel
 else:                               FloatSpinBase = wx.PyPanel
 
 
