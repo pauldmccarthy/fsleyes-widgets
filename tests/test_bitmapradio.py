@@ -46,6 +46,9 @@ def _test_Create():
         btn.SetSelection(1)
         assert btn.GetSelection() == 1
 
+        with pytest.raises(IndexError):
+            btn.SetSelection(-1)
+
         btn.EnableChoice(0)
         btn.EnableChoice(0, False)
         btn.DisableChoice(0)
@@ -70,6 +73,49 @@ def _test_Create():
 
         with pytest.raises(IndexError):
             btn.SetSelection(2)
+
+
+def test_allow_deselected():
+    run_with_wx(_test_allow_deselected)
+def _test_allow_deselected():
+
+    falseicon = op.join(datadir, 'false.png')
+    trueicon  = op.join(datadir, 'true.png')
+    falseicon = wx.Bitmap(falseicon, wx.BITMAP_TYPE_PNG)
+    trueicon  = wx.Bitmap(trueicon,  wx.BITMAP_TYPE_PNG)
+
+    sim   = wx.UIActionSimulator()
+    frame = wx.GetApp().GetTopWindow()
+    panel = wx.Panel(frame)
+    szr   = wx.BoxSizer(wx.HORIZONTAL)
+    rad   = bmpradio.BitmapRadioBox(
+        panel, style=bmpradio.BMPRADIO_ALLOW_DESELECTED)
+    rad.Set([trueicon, falseicon])
+    szr.Add(rad, flag=wx.EXPAND)
+    panel.SetSizer(szr)
+    panel.Layout()
+    panel.Fit()
+    realYield()
+
+    assert rad.GetSelection() == -1
+    rad.SetSelection(1)
+    assert rad.GetSelection() == 1
+    rad.SetSelection(-1)
+    assert rad.GetSelection() == -1
+
+    btns = rad.buttons
+    simclick(sim, btns[0])
+    realYield()
+    assert rad.GetSelection() == 0
+    simclick(sim, btns[0])
+    realYield()
+    assert rad.GetSelection() == -1
+    simclick(sim, btns[1])
+    realYield()
+    assert rad.GetSelection() == 1
+    simclick(sim, btns[1])
+    realYield()
+    assert rad.GetSelection() == -1
 
 
 def test_Event():
@@ -99,10 +145,7 @@ def _test_Event():
     panel.Fit()
     realYield()
 
-    btns = []
-    for c in rad.GetChildren():
-        if isinstance(c, bmptoggle.BitmapToggleButton):
-            btns.append(c)
+    btns = rad.buttons
 
     simclick(sim, btns[0])
     assert result[0] == (0, 'true')
