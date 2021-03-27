@@ -62,6 +62,14 @@ class BitmapRadioBox(wx.Panel):
         self.SetSizer(self.__sizer)
 
 
+    @property
+    def buttons(self):
+        """Returns a list containing the :class:`.BitmapToggleButton`
+        instances. Used for testing.
+        """
+        return list(self.__buttons)
+
+
     def AddChoice(self, selectedBmp, unselectedBmp=None, clientData=None):
         """Add a button to this ``BitmapRadioBox``.
 
