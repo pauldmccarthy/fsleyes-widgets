@@ -41,8 +41,9 @@ class BitmapRadioBox(wx.Panel):
 
         :arg parent: A parent window.
 
-        :arg style:  Either ``wx.HORIZONTAL`` (the default) or ``wx.VERTICAL``,
-                     to control the button layout direction.
+        :arg style: A combination of :attr:`BMPRADIO_ALLOW_DESELECTED`, and
+                    one of ``wx.HORIZONTAL`` (the default) or
+                    ``wx.VERTICAL``, to control the button layout direction
         """
         wx.Panel.__init__(self, parent)
 
@@ -52,10 +53,11 @@ class BitmapRadioBox(wx.Panel):
         if style & wx.VERTICAL: szorient = wx.VERTICAL
         else:                   szorient = wx.HORIZONTAL
 
-        self.__selection  = -1
-        self.__buttons    = []
-        self.__clientData = []
-        self.__sizer      = wx.BoxSizer(szorient)
+        self.__allowDeselected = style & BMPRADIO_ALLOW_DESELECTED
+        self.__selection       = -1
+        self.__buttons         = []
+        self.__clientData      = []
+        self.__sizer           = wx.BoxSizer(szorient)
 
         self.SetSizer(self.__sizer)
 
@@ -81,12 +83,12 @@ class BitmapRadioBox(wx.Panel):
         self.__buttons   .append(button)
         self.__clientData.append(clientData)
 
-        self.__sizer.Add(button, flag=wx.EXPAND)
+        self.__sizer.Add(button, flag=wx.EXPAND, proportion=1)
         self.Layout()
 
         button.Bind(bitmaptoggle.EVT_BITMAP_TOGGLE, self.__onButton)
 
-        if self.__selection == -1:
+        if (not self.__allowDeselected) and (self.__selection == -1):
             self.SetSelection(0)
 
 
@@ -134,7 +136,10 @@ class BitmapRadioBox(wx.Panel):
     def SetSelection(self, index):
         """Sets the current selection."""
 
-        if index < 0 or index >= len(self.__buttons):
+        if index < -1 or index >= len(self.__buttons):
+            raise IndexError('Invalid index {}'.format(index))
+
+        if (not self.__allowDeselected) and (index == -1):
             raise IndexError('Invalid index {}'.format(index))
 
         self.__selection = index
@@ -150,12 +155,25 @@ class BitmapRadioBox(wx.Panel):
         and emits a :data:`BitmapRadioEvent`.
         """
 
-        idx  = self.__buttons.index(ev.GetEventObject())
-        data = self.__clientData[idx]
+        button = ev.GetEventObject()
+        idx    = self.__buttons.index(button)
+        data   = self.__clientData[idx]
 
-        self.SetSelection(idx)
+        if self.__allowDeselected and (idx == self.GetSelection()):
+            value = False
+            self.SetSelection(-1)
+        else:
+            value = True
+            self.SetSelection(idx)
 
-        wx.PostEvent(self, BitmapRadioEvent(index=idx, clientData=data))
+        ev = BitmapRadioEvent(index=idx, clientData=data, value=value)
+        wx.PostEvent(self, ev)
+
+
+BMPRADIO_ALLOW_DESELECTED = 1
+"""Style flag which allows all buttons to be de-selected. If not specified
+(the default), one button must always be selected.
+"""
 
 
 _BitampRadioEvent, _EVT_BITMAP_RADIO_EVENT = wxevent.NewEvent()
@@ -171,4 +189,7 @@ the following attributes:
 
   - ``index``:      The index of the new selection.
   - ``clientData``: Client data associated with the new selection.
+  - ``value``:      ``False`` if :attr:`BMPRADIO_ALLOW_DESELECTED` is active,
+                    and  the selected button was clicked on (thus deselecting
+                    it), ``True`` otherwise.
 """
