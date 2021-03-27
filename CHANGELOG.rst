@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.11.2 (Saturday March 27th 2021)
+---------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* The :class:`.BitmapRadioBox` now allows all items to be de-selected,
+  by using the :attr:`.BMPRADIO_ALLOW_DESELECTED` style.
+
+
 0.11.1 (Tuesday March 9th 2021)
 -------------------------------
 
