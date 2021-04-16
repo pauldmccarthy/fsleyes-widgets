@@ -2,6 +2,19 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+
+0.11.3 (Friday April 16th 2021)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Added the :meth:`.EditableListBox.MoveItem` method (it was previously a
+  private method called ``__moveItem``).
+
+
 0.11.2 (Saturday March 27th 2021)
 ---------------------------------
 
