@@ -1097,12 +1097,16 @@ class EditableListBox(wx.Panel):
         wx.PostEvent(self, ev)
 
 
-    def __moveItem(self, offset):
-        """Called when the *move up* or *move down* buttons are pushed.
+    def MoveItem(self, offset, event=False):
+        """Move the currently selected item the specified offset.
 
-        Moves the selected item by the specified offset and posts an
-        :data:`EVT_ELB_MOVE_EVENT`, unless it doesn't make sense to do the
-        move.
+        Called when the *move up* or *move down* buttons are pushed.
+
+        Moves the selected item by the specified offset unless it doesn't make
+        sense to do the move.
+
+        If the item is moved, and ``event is True``, posts a
+        :data:`EVT_ELB_MOVE_EVENT`,
         """
 
         oldIdx, label, data = self.__getSelection()
@@ -1132,23 +1136,24 @@ class EditableListBox(wx.Panel):
         log.debug('ListMoveEvent (oldIdx: {}; newIdx: {}; label: {})'.format(
             oldIdx, newIdx, label))
 
-        ev = ListMoveEvent(
-            oldIdx=oldIdx, newIdx=newIdx, label=label, data=data)
-        wx.PostEvent(self, ev)
+        if event:
+            ev = ListMoveEvent(
+                oldIdx=oldIdx, newIdx=newIdx, label=label, data=data)
+            wx.PostEvent(self, ev)
 
 
     def __moveItemDown(self, ev):
         """Called when the *move down* button is pushed. Calls the
         :meth:`__moveItem` method.
         """
-        self.__moveItem(1)
+        self.MoveItem(1, event=True)
 
 
     def __moveItemUp(self, ev):
         """Called when the *move up* button is pushed. Calls the
         :meth:`__moveItem` method.
         """
-        self.__moveItem(-1)
+        self.MoveItem(-1, event=True)
 
 
     def __addItem(self, ev):
