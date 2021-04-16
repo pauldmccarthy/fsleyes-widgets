@@ -54,9 +54,13 @@ Requirements for running tests and building the documentation are listed in the
 Documentation
 -------------
 
-``fsleyes-widgets`` is documented using
-`sphinx <http://http://sphinx-doc.org/>`_. You can build the API documentation
-by running::
+
+API documentation for ``fsleyes-widgets`` can be found at
+https://open.win.ox.ac.uk/pages/fsl/fsleyes/widgets/.
+
+``fsleyes-widgets`` is documented using `sphinx
+<http://http://sphinx-doc.org/>`_. You can build the API documentation by
+running::
 
     pip install -r requirements-dev.txt
     python setup.py doc
