@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.12.0 (Tuesday April 20th 2021)
+--------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* The :class:`.wxPlatform` function now differentiates between GTK2 and GTK3
+  ``wxPython`` builds.
+
+
 
 0.11.3 (Friday April 16th 2021)
 -------------------------------
