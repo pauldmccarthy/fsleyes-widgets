@@ -84,8 +84,16 @@ def test_wxPlatform():
         assert fw.wxPlatform()  == fw.WX_MAC_COCOA
     with mock.patch('wx.PlatformInfo', ['carbon']):
         assert fw.wxPlatform()  == fw.WX_MAC_CARBON
+
+    with mock.patch('wx.PlatformInfo', ['gtk3']):
+        assert fw.wxPlatform()  == fw.WX_GTK3
+    with mock.patch('wx.PlatformInfo', ['gtk2']):
+        assert fw.wxPlatform()  == fw.WX_GTK2
+    # PlatformInfo should have "gtk2" or "gtk3";
+    # if for some reason it only has "gtk",
+    # wxPlatform will assume gtk2
     with mock.patch('wx.PlatformInfo', ['gtk']):
-        assert fw.wxPlatform()  == fw.WX_GTK
+        assert fw.wxPlatform()  == fw.WX_GTK2
     with mock.patch('wx.PlatformInfo', ['atari']):
         assert fw.wxPlatform()  == fw.WX_UNKNOWN
 
