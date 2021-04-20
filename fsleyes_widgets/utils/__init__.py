@@ -63,8 +63,20 @@ OSX carbon wx version is being used.
 
 
 WX_GTK = 3
+"""Alias for :attr:`WX_GTK2` - will be removed in a future version of
+``fsleyes-widgets``.
+"""
+
+
+WX_GTK2 = 3
 """Constant returned by the :func:`wxPlatform` function, indicating that a
-Linux/GTK wx version is being used.
+Linux/GTK3 wx version is being used.
+"""
+
+
+WX_GTK3 = 4
+"""Constant returned by the :func:`wxPlatform` function, indicating that a
+Linux/GTK3 wx version is being used.
 """
 
 
@@ -118,8 +130,8 @@ def wxversion():
 
 def wxPlatform():
     """Returns one of :data:`WX_UNKNOWN` :data:`WX_MAC_COCOA`,
-    :data:`WX_MAC_CARBON`, or :data:`WX_GTK`, indicating the wx platform, or
-    ``None`` if wxPython does not appear to be installed.
+    :data:`WX_MAC_CARBON`, :data:`WX_GTK2`, or :data:`WX_GTK3`, indicating the
+    wx platform, or ``None`` if wxPython does not appear to be installed.
     """
 
     try:
@@ -131,7 +143,9 @@ def wxPlatform():
 
     if   any(['cocoa'  in p for p in pi]): plat = WX_MAC_COCOA
     elif any(['carbon' in p for p in pi]): plat = WX_MAC_CARBON
-    elif any(['gtk'    in p for p in pi]): plat = WX_GTK
+    elif any(['gtk3'   in p for p in pi]): plat = WX_GTK3
+    elif any(['gtk2'   in p for p in pi]): plat = WX_GTK2
+    elif any(['gtk'    in p for p in pi]): plat = WX_GTK2
     else:                                  plat = WX_UNKNOWN
 
     return plat

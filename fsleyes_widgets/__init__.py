@@ -27,6 +27,8 @@ from fsleyes_widgets.utils import (WX_PYTHON,  # noqa
                                    WX_MAC_COCOA,
                                    WX_MAC_CARBON,
                                    WX_GTK,
+                                   WX_GTK2,
+                                   WX_GTK3,
                                    wxversion,
                                    wxVersion,
                                    wxFlavour,
