@@ -19,16 +19,46 @@
 """
 
 
+import colorsys
 import logging
 import random
 
 import wx
-import wx.lib.newevent as wxevent
+import wx.lib.newevent   as wxevent
+import numpy             as np
+import matplotlib.colors as mplcolors
 
-from . import autotextctrl as atc
+import fsleyes_widgets.autotextctrl as atc
 
 
 log = logging.getLogger(__name__)
+
+
+def complementary_colour(rgb):
+    """Given a RGB colour, estimates a colour which complements it. Used
+    by the :class:`StaticTextTag` class to generate a foreground (text) colour
+    for a specific background colour.
+
+    Taken from the FSLeyes source code (fsleyes.colourmaps.complementaryColour)
+    """
+
+    # if matplotlib doesn't recognise the colour,
+    # assume it is a sequence of numbers in the
+    # range [0, 255], and convert it to a sequence
+    # in the range [0, 1]
+    if not mplcolors.is_color_like(rgb):
+        rgb = np.array(rgb) / 255
+    else:
+        rgb = mplcolors.to_rgb(rgb)
+    h, l, s = colorsys.rgb_to_hls(*(rgb[:3]))
+    nh = 1.0 - h
+    nl = 1.0 - l
+    ns = s
+    if abs(nl - l) < 0.3:
+        if l > 0.5: nl = 0.0
+        else:       nl = 1.0
+    nr, ng, nb = colorsys.hls_to_rgb(nh, nl, ns)
+    return mplcolors.to_hex((nr, ng, nb))
 
 
 class StaticTextTag(wx.Panel):
@@ -87,7 +117,6 @@ class StaticTextTag(wx.Panel):
 
         self           .SetBackgroundColour(bgColour)
         self           .SetBorderColour(    borderColour)
-        self.__closeBtn.SetForegroundColour('#404040')
         self.SetText(text)
 
         self.__closeBtn.Bind(wx.EVT_LEFT_UP,     self.__onCloseButton)
@@ -121,10 +150,18 @@ class StaticTextTag(wx.Panel):
 
 
     def SetBackgroundColour(self, colour):
-        """Sets the background colour of this ``StaticTextTag``. """
+        """Sets the background colour of this ``StaticTextTag``.
+        Also automatically sets the foreground (text) colour to a
+        complementary colour.
+        """
+
+        fgColour = complementary_colour(colour)
 
         wx.Panel.SetBackgroundColour(self,  colour)
+
+        self.__text    .SetForegroundColour(fgColour)
         self.__text    .SetBackgroundColour(colour)
+        self.__closeBtn.SetForegroundColour(fgColour)
         self.__closeBtn.SetBackgroundColour(colour)
 
         self.__bgColour = colour
