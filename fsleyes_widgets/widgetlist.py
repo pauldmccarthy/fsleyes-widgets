@@ -9,8 +9,6 @@ of widgets.
 """
 
 
-from collections import OrderedDict
-
 import wx
 import wx.lib.newevent      as wxevent
 import wx.lib.scrolledpanel as scrolledpanel
@@ -77,7 +75,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         """
 
         odd   = wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOX)
-        even  = odd.ChangeLightness(75)
+        even  = odd.ChangeLightness(90)
         group = odd
 
         if WidgetList._defaultOddColour is None:
@@ -92,8 +90,8 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         self.__sizer       = wx.BoxSizer(wx.VERTICAL)
 
         self.__groupSizer  = wx.BoxSizer(wx.VERTICAL)
-        self.__widgets     = OrderedDict()
-        self.__groups      = OrderedDict()
+        self.__widgets     = {}
+        self.__groups      = {}
 
         self.__oddColour   = WidgetList._defaultOddColour
         self.__evenColour  = WidgetList._defaultEvenColour
@@ -564,12 +562,6 @@ class _Widget:
         self.panel.SetBackgroundColour(colour)
         self.label.SetBackgroundColour(colour)
 
-        if isinstance(self.widget, wx.Sizer):
-            for c in self.widget.GetChildren():
-                c.GetWindow().SetBackgroundColour(colour)
-        else:
-            self.widget.SetBackgroundColour(colour)
-
 
     def SetTooltip(self, tooltip):
 
@@ -620,7 +612,7 @@ class _Group:
         self.colPanel    = colPanel
         self.widgPanel   = widgPanel
         self.sizer       = sizer
-        self.widgets     = OrderedDict()
+        self.widgets     = {}
 
 
 
