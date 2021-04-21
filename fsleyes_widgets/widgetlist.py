@@ -77,8 +77,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         """
 
         odd   = wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOX)
-        even  = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)\
-            .ChangeLightness(75)
+        even  = odd.ChangeLightness(75)
         group = odd
 
         if WidgetList._defaultOddColour is None:

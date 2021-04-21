@@ -103,30 +103,40 @@ class WidgetGrid(wx.ScrolledWindow):
     """
 
 
-    _defaultBorderColour = '#000000'
+    _defaultBorderColour = None
     """The colour of border a border which is shown around every cell in the
-    grid.
+    grid. Initialised in :meth:`__init__`.
     """
 
 
-    _defaultOddColour    = '#ffffff'
-    """Background colour for cells on odd rows."""
+    _defaultOddColour    = None
+    """Background colour for cells on odd rows.
+    Initialised in :meth:`__init__`.
+    """
 
 
-    _defaultEvenColour   = '#eeeeee'
-    """Background colour for cells on even rows."""
+    _defaultEvenColour   = None
+    """Background colour for cells on even rows.
+    Initialised in :meth:`__init__`.
+    """
 
 
-    _defaultLabelColour  = '#dddddd'
-    """Background colour for row and column labels."""
+    _defaultLabelColour  = None
+    """Background colour for row and column labels.
+    Initialised in :meth:`__init__`.
+    """
 
 
-    _defaultSelectedColour = '#cdcdff'
-    """Background colour for selected cells. """
+    _defaultSelectedColour = None
+    """Background colour for selected cells.
+    Initialised in :meth:`__init__`.
+    """
 
 
-    _defaultDragColour = '#ffcdcd'
-    """Background colour for columns being dragged. """
+    _defaultDragColour = None
+    """Background colour for columns being dragged.
+    Initialised in :meth:`__init__`.
+    """
 
 
     def __init__(self, parent, style=None):
@@ -139,6 +149,27 @@ class WidgetGrid(wx.ScrolledWindow):
                      :data:`WG_SELECTABLE_COLUMNS`, :data:`WG_KEY_NAVIGATION`,
                       and :data:`WG_DRAGGABLE_COLUMNS`.
         """
+
+        border = wx.SystemSettings.GetColour(wx.SYS_COLOUR_ACTIVEBORDER)
+        odd    = wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOX)
+        even   = wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOX)\
+                                  .ChangeLightness(75)
+        label  = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
+        select = wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT)
+        drag   = wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT)
+
+        if WidgetGrid._defaultBorderColour is None:
+            WidgetGrid._defaultBorderColour = border
+        if WidgetGrid._defaultOddColour is None:
+            WidgetGrid._defaultOddColour = odd
+        if WidgetGrid._defaultEvenColour is None:
+            WidgetGrid._defaultEvenColour = even
+        if WidgetGrid._defaultLabelColour is None:
+            WidgetGrid._defaultLabelColour = label
+        if WidgetGrid._defaultSelectedColour is None:
+            WidgetGrid._defaultSelecteddColour = select
+        if WidgetGrid._defaultDragColour is None:
+            WidgetGrid._defaultDragColour = drag
 
         if style is None:
             style = wx.HSCROLL | wx.VSCROLL
@@ -1243,7 +1274,6 @@ class WidgetGrid(wx.ScrolledWindow):
             container = self.__widgets[   row][col]
             widget    = self.__widgetRefs[row][col]
             self.__setBackgroundColour(container, colour)
-            self.__setBackgroundColour(widget,    colour)
             widget   .Refresh()
             container.Refresh()
 
