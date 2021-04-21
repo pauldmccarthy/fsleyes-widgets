@@ -80,20 +80,29 @@ class EditableListBox(wx.Panel):
         functionality.  This implementation supports single selection only.
     """
 
-    _selectedFG = '#000000'
-    """Default foreground colour for the currently selected item."""
+
+    _selectedFG = None
+    """Default foreground colour for the currently selected item. Initialised
+    in :meth:`__init__` to a default based on the system appearance.
+    """
 
 
-    _defaultFG = '#000000'
-    """Default foreground colour for unselected items."""
+    _defaultFG = None
+    """Default foreground colour for unselected items. Initialised
+    in :meth:`__init__` to a default based on the system appearance.
+    """
 
 
-    _selectedBG = '#cdcdff'
-    """Background colour for the currently selected item."""
+    _selectedBG = None
+    """Background colour for the currently selected item. Initialised
+    in :meth:`__init__` to a default based on the system appearance.
+    """
 
 
-    _defaultBG  = '#FFFFFF'
-    """Background colour for the unselected items."""
+    _defaultBG  = None
+    """Background colour for the unselected items. Initialised
+    in :meth:`__init__` to a default based on the system appearance.
+    """
 
 
     def __init__(
@@ -127,6 +136,21 @@ class EditableListBox(wx.Panel):
         """
 
         wx.Panel.__init__(self, parent, style=wx.WANTS_CHARS)
+
+        defaultfg = wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOXTEXT)
+        defaultbg = wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOX)
+        selectfg  = wx.SystemSettings.GetColour(
+            wx.SYS_COLOUR_LISTBOXHIGHLIGHTTEXT)
+        selectbg  = wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT)
+
+        if EditableListBox._selectedFG is None:
+            EditableListBox._selectedFG = selectfg
+        if EditableListBox._selectedBG is None:
+            EditableListBox._selectedBG = selectbg
+        if EditableListBox._defaultFG is None:
+            EditableListBox._defaultFG = defaultfg
+        if EditableListBox._defaultBG is None:
+            EditableListBox._defaultBG = defaultbg
 
         reverseOrder  =      style & ELB_REVERSE
         addScrollbar  = not (style & ELB_NO_SCROLL)
@@ -241,9 +265,6 @@ class EditableListBox(wx.Panel):
 
             self.__scrollUp  .Enable(False)
             self.__scrollDown.Enable(False)
-
-            self.__scrollUp  .SetBackgroundColour('#e0e0e0')
-            self.__scrollDown.SetBackgroundColour('#e0e0e0')
 
             self.__scrollUp  .Bind(wx.EVT_LEFT_UP, self.__onScrollButton)
             self.__scrollDown.Bind(wx.EVT_LEFT_UP, self.__onScrollButton)
@@ -1309,7 +1330,7 @@ class EditableListBox(wx.Panel):
                                      (self.__selection != self.GetCount() - 1))
 
 
-class _ListItem(object):
+class _ListItem:
     """Internal class used to represent items in the list."""
 
     def __init__(self,
