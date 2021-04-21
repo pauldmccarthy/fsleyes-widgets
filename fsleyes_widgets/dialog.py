@@ -96,10 +96,11 @@ class SimpleMessageDialog(wx.Dialog):
         self.__sizer.Add(self.__message,
                          border=25,
                          proportion=1,
-                         flag=wx.EXPAND | wx.CENTRE | wx.ALL)
+                         flag=wx.CENTRE | wx.ALL)
 
         self.SetTransparent(240)
-        self.SetBackgroundColour((225, 225, 255))
+        self.SetBackgroundColour(
+            wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK))
 
         self.SetSizer(self.__sizer)
 
@@ -714,7 +715,9 @@ class FSLDirDialog(wx.Dialog):
                 label='Hint: Press \u2318+\u21e7+G in the file '
                       'dialog to manually type in a location.')
 
-            self.__hint.SetForegroundColour('#888888')
+            self.__hint.SetForegroundColour(
+                wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+                .ChangeLightness(75))
 
             self.__contentSizer.Insert(2, self.__hint, flag=wx.EXPAND)
             self.__contentSizer.Insert(3, (1, 20))
@@ -882,7 +885,9 @@ class CheckBoxMessageDialog(wx.Dialog):
 
         if hintText is not None:
             self.__hint = wx.StaticText(self, label=hintText)
-            self.__hint.SetForegroundColour('#888888')
+            self.__hint.SetForegroundColour(
+                wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+                .ChangeLightness(75))
         else:
             self.__hint = None
 

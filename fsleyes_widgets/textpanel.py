@@ -11,16 +11,10 @@ some text, oriented either horizontally or vertically.
 
 import wx
 
-import fsleyes_widgets as fw
 
-
-if fw.wxFlavour() == fw.WX_PHOENIX: TextPanelBase = wx.Panel
-else:                               TextPanelBase = wx.PyPanel
-
-
-class TextPanel(TextPanelBase):
+class TextPanel(wx.Panel):
     """A :class:`wx.PyPanel` which may be used to display a string of
-    text, oriented either horizotnally or vertically.
+    text, oriented either horizontally or vertically.
     """
 
     def __init__(self, parent, text=None, orient=wx.HORIZONTAL, **kwargs):
@@ -37,7 +31,7 @@ class TextPanel(TextPanelBase):
 
         All other arguments are passed through to ``wx.Panel.__init__`` .
         """
-        TextPanelBase.__init__(self, parent, **kwargs)
+        super().__init__(parent, **kwargs)
 
         self.Bind(wx.EVT_PAINT, self.Draw)
         self.Bind(wx.EVT_SIZE,  self.__onSize)
