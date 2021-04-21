@@ -20,8 +20,8 @@ import wx
 def textOverlay(target,
                 text,
                 box=True,
-                bgColour=(205, 205, 255),
-                fgColour=(0, 0, 0)):
+                bgColour=None,
+                fgColour=None):
     """Shows the given ``text`` on the given ``target``.
 
     :arg target:   ``wx.Window`` object
@@ -35,6 +35,11 @@ def textOverlay(target,
 
     :arg fgColour: Colour to draw the text in
     """
+
+    if bgColour is None:
+        bgColour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOBK)
+    if fgColour is None:
+        fgColour = wx.SystemSettings.GetColour(wx.SYS_COLOUR_INFOTEXT)
 
     dc     = wx.ClientDC(target)
     w, h   = dc.GetSize().Get()

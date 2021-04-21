@@ -9,13 +9,11 @@ of widgets.
 """
 
 
-from collections import OrderedDict
-
 import wx
 import wx.lib.newevent      as wxevent
 import wx.lib.scrolledpanel as scrolledpanel
 
-from . import togglepanel
+import fsleyes_widgets.togglepanel as togglepanel
 
 
 class WidgetList(scrolledpanel.ScrolledPanel):
@@ -50,16 +48,22 @@ class WidgetList(scrolledpanel.ScrolledPanel):
     """
 
 
-    _defaultOddColour   = '#eaeaea'
-    """Background colour for widgets on odd rows. """
+    _defaultOddColour   = None
+    """Background colour for widgets on odd rows.
+    Iniitalised in :meth:`__init__`.
+    """
 
 
-    _defaultEvenColour  = '#ffffff'
-    """Background colour for widgets on even rows. """
+    _defaultEvenColour  = None
+    """Background colour for widgets on even rows.
+    Iniitalised in :meth:`__init__`.
+    """
 
 
-    _defaultGroupColour = '#cdcdff'
-    """Border and title background colour for widget groups. """
+    _defaultGroupColour = None
+    """Border and title background colour for widget groups.
+    Iniitalised in :meth:`__init__`.
+    """
 
 
     def __init__(self, parent, style=0, minHeight=-1):
@@ -69,13 +73,25 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         :arg style:     Passed through to ``wx.ScrolledPanel.__init__``
         :arg minHeight: Minimum height of each row
         """
+
+        odd   = wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOX)
+        even  = odd.ChangeLightness(90)
+        group = odd
+
+        if WidgetList._defaultOddColour is None:
+            WidgetList._defaultOddColour = odd
+        if WidgetList._defaultEvenColour is None:
+            WidgetList._defaultEvenColour = even
+        if WidgetList._defaultGroupColour is None:
+            WidgetList._defaultGroupColour = group
+
         self.__minHeight   = minHeight
         self.__widgSizer   = wx.BoxSizer(wx.VERTICAL)
         self.__sizer       = wx.BoxSizer(wx.VERTICAL)
 
         self.__groupSizer  = wx.BoxSizer(wx.VERTICAL)
-        self.__widgets     = OrderedDict()
-        self.__groups      = OrderedDict()
+        self.__widgets     = {}
+        self.__groups      = {}
 
         self.__oddColour   = WidgetList._defaultOddColour
         self.__evenColour  = WidgetList._defaultEvenColour
@@ -95,7 +111,6 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         scrolledpanel.ScrolledPanel.__init__(self, parent)
 
         self.SetSizer(self.__sizer)
-        self.SetBackgroundColour((255, 255, 255))
         self.SetupScrolling()
         self.SetAutoLayout(1)
 
@@ -524,7 +539,7 @@ class WidgetList(scrolledpanel.ScrolledPanel):
         self.__refresh()
 
 
-class _Widget(object):
+class _Widget:
     """The ``_Widget`` class is used internally by the :class:`WidgetList`
     to organise references to each widget in the list.
     """
@@ -546,12 +561,6 @@ class _Widget(object):
     def SetBackgroundColour(self, colour):
         self.panel.SetBackgroundColour(colour)
         self.label.SetBackgroundColour(colour)
-
-        if isinstance(self.widget, wx.Sizer):
-            for c in self.widget.GetChildren():
-                c.GetWindow().SetBackgroundColour(colour)
-        else:
-            self.widget.SetBackgroundColour(colour)
 
 
     def SetTooltip(self, tooltip):
@@ -584,7 +593,7 @@ class _Widget(object):
             self.widget.Destroy()
 
 
-class _Group(object):
+class _Group:
     """The ``_Group`` class is used internally by :class:`WidgetList`
     instances to represent groups of widgets that are in the list.
     """
@@ -603,7 +612,7 @@ class _Group(object):
         self.colPanel    = colPanel
         self.widgPanel   = widgPanel
         self.sizer       = sizer
-        self.widgets     = OrderedDict()
+        self.widgets     = {}
 
 
 

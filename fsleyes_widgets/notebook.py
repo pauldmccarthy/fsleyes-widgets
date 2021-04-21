@@ -77,7 +77,7 @@ class Notebook(wx.Panel):
         self.__textColour         = None
         self.__defaultColour      = None
         self.__disabledTextColour = None
-        self.__selectColour       = '#ffffff'
+        self.__selectColour       = None
         self.__buttonPanel        = wx.Panel(self)
         self.__sizer              = wx.BoxSizer(invbtnorient)
         self.__buttonSizer        = wx.BoxSizer(btnorient)
@@ -112,6 +112,9 @@ class Notebook(wx.Panel):
         self.__pages    = []
         self.__buttons  = []
         self.__selected = None
+
+        # initialise default values for colours
+        self.SetButtonColours()
 
 
     @property
@@ -181,10 +184,15 @@ class Notebook(wx.Panel):
         :arg selected:     Selected background colour.
         """
 
-        text         = kwargs.pop('text',         None)
-        disabledText = kwargs.pop('disabledText', None)
-        default      = kwargs.pop('default',      None)
-        selected     = kwargs.pop('selected',     '#ffffff')
+        defaultbg = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE)
+        selectbg  = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNHIGHLIGHT)
+        defaultfg = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNTEXT)
+        selectfg  = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNTEXT)
+
+        text         = kwargs.pop('text',         selectfg)
+        disabledText = kwargs.pop('disabledText', defaultfg)
+        default      = kwargs.pop('default',      defaultbg)
+        selected     = kwargs.pop('selected',     selectbg)
 
         self.__textColour         = text
         self.__disabledTextColour = disabledText
