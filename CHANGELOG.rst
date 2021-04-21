@@ -2,6 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.12.1 (Wednesday April 21st 2021)
+----------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Removed some hard-coded colours to improve support for dark themes.
+
+
 0.12.0 (Tuesday April 20th 2021)
 --------------------------------
 
