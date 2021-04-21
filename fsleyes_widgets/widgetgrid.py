@@ -153,7 +153,7 @@ class WidgetGrid(wx.ScrolledWindow):
         border = wx.SystemSettings.GetColour(wx.SYS_COLOUR_ACTIVEBORDER)
         odd    = wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOX)
         even   = wx.SystemSettings.GetColour(wx.SYS_COLOUR_LISTBOX)\
-                                  .ChangeLightness(75)
+                                  .ChangeLightness(90)
         label  = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
         select = wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT)
         drag   = wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHT)
@@ -167,7 +167,7 @@ class WidgetGrid(wx.ScrolledWindow):
         if WidgetGrid._defaultLabelColour is None:
             WidgetGrid._defaultLabelColour = label
         if WidgetGrid._defaultSelectedColour is None:
-            WidgetGrid._defaultSelecteddColour = select
+            WidgetGrid._defaultSelectedColour = select
         if WidgetGrid._defaultDragColour is None:
             WidgetGrid._defaultDragColour = drag
 
@@ -1274,6 +1274,7 @@ class WidgetGrid(wx.ScrolledWindow):
             container = self.__widgets[   row][col]
             widget    = self.__widgetRefs[row][col]
             self.__setBackgroundColour(container, colour)
+            self.__setBackgroundColour(widget,    colour)
             widget   .Refresh()
             container.Refresh()
 
