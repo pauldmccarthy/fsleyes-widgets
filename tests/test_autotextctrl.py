@@ -211,3 +211,58 @@ def _test_popup_dblclick():
     realYield()
 
     assert atc.GetValue() == 'aaa'
+
+
+def test_popup_propagate_enter():
+    run_with_wx(_test_popup_propagate_enter)
+def _test_popup_propagate_enter():
+
+    sim    = wx.UIActionSimulator()
+    parent = wx.GetApp().GetTopWindow()
+    atc    = autott.AutoTextCtrl(parent, modal=False)
+
+    called = [False]
+    def atcEnter(ev):
+        called[0] = True
+
+    addall(parent, [atc])
+
+    atc.Bind(autott.EVT_ATC_TEXT_ENTER, atcEnter)
+    atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
+
+    simtext(sim, atc, 'ab', enter=False)
+
+    simkey(sim, atc.popup.textCtrl, wx.WXK_DOWN)
+    simkey(sim, atc.popup.listBox,  wx.WXK_RETURN)
+
+    assert atc.GetValue() == 'aba'
+    assert called[0]
+
+
+def test_popup_no_propagate_enter():
+    run_with_wx(_test_popup_no_propagate_enter)
+def _test_popup_no_propagate_enter():
+
+    sim = wx.UIActionSimulator()
+    parent = wx.GetApp().GetTopWindow()
+    atc = autott.AutoTextCtrl(parent,
+                              modal=False,
+                              style=autott.ATC_NO_PROPAGATE_ENTER)
+
+    called = [False]
+    def atcEnter(ev):
+        called[0] = True
+
+
+    addall(parent, [atc])
+
+    atc.Bind(autott.EVT_ATC_TEXT_ENTER, atcEnter)
+    atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
+
+    simtext(sim, atc, 'ab', enter=False)
+
+    simkey(sim, atc.popup.textCtrl, wx.WXK_DOWN)
+    simkey(sim, atc.popup.listBox,  wx.WXK_RETURN)
+
+    assert atc.GetValue() == 'aba'
+    assert not called[0]
