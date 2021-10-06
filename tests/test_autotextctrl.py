@@ -20,6 +20,7 @@ def sendEvent(target, evType, source=None):
     target.ProcessEvent(wx.CommandEvent(evType, source.GetId()))
     realYield()
 
+
 # Simple test - programmatically
 # set, then retrieve the value
 def test_getSet():
@@ -142,48 +143,6 @@ def _test_popup_select3():
     assert atc.GetValue() == 'aba'
 
 
-def test_popup_cancel():
-    run_with_wx(_test_popup_cancel)
-def _test_popup_cancel():
-
-    sim = wx.UIActionSimulator()
-
-    parent = wx.GetApp().GetTopWindow()
-    atc = autott.AutoTextCtrl(parent, modal=False)
-
-    addall(parent, [atc])
-
-    atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
-
-    simkey(sim, atc.textCtrl,       wx.WXK_RETURN)
-    simkey(sim, atc.popup.textCtrl, wx.WXK_DOWN)
-    simkey(sim, atc.popup.listBox,  wx.WXK_DOWN)
-    simkey(sim, atc.popup.listBox,  wx.WXK_ESCAPE)
-
-    assert atc.GetValue() == ''
-
-
-def test_popup_focusback():
-    run_with_wx(_test_popup_focusback)
-def _test_popup_focusback():
-
-    sim = wx.UIActionSimulator()
-
-    parent = wx.GetApp().GetTopWindow()
-    atc = autott.AutoTextCtrl(parent, modal=False)
-
-    addall(parent, [atc])
-
-    atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
-
-    simkey(sim,  atc.textCtrl, wx.WXK_RETURN)
-    simkey(sim,  atc.popup.textCtrl, wx.WXK_DOWN)
-    simkey(sim,  atc.popup.listBox,  wx.WXK_UP)
-    simtext(sim, atc.popup.textCtrl, 'abc')
-
-    assert atc.GetValue() == 'abc'
-
-
 def test_popup_dblclick():
     run_with_wx(_test_popup_dblclick)
 def _test_popup_dblclick():
@@ -211,6 +170,27 @@ def _test_popup_dblclick():
     realYield()
 
     assert atc.GetValue() == 'aaa'
+
+
+def test_popup_cancel():
+    run_with_wx(_test_popup_cancel)
+def _test_popup_cancel():
+
+    sim = wx.UIActionSimulator()
+
+    parent = wx.GetApp().GetTopWindow()
+    atc = autott.AutoTextCtrl(parent, modal=False)
+
+    addall(parent, [atc])
+
+    atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
+
+    simkey(sim, atc.textCtrl,       wx.WXK_RETURN)
+    simkey(sim, atc.popup.textCtrl, wx.WXK_DOWN)
+    simkey(sim, atc.popup.listBox,  wx.WXK_DOWN)
+    simkey(sim, atc.popup.listBox,  wx.WXK_ESCAPE)
+
+    assert atc.GetValue() == ''
 
 
 def test_popup_propagate_enter():
@@ -266,3 +246,24 @@ def _test_popup_no_propagate_enter():
 
     assert atc.GetValue() == 'aba'
     assert not called[0]
+
+
+def test_popup_focusback():
+    run_with_wx(_test_popup_focusback)
+def _test_popup_focusback():
+
+    sim = wx.UIActionSimulator()
+
+    parent = wx.GetApp().GetTopWindow()
+    atc = autott.AutoTextCtrl(parent, modal=False)
+
+    addall(parent, [atc])
+
+    atc.AutoComplete(['aaa', 'aab', 'aba', 'bcc'])
+
+    simkey(sim,  atc.textCtrl, wx.WXK_RETURN)
+    simkey(sim,  atc.popup.textCtrl, wx.WXK_DOWN)
+    simkey(sim,  atc.popup.listBox,  wx.WXK_UP)
+    simtext(sim, atc.popup.textCtrl, 'abc')
+
+    assert atc.GetValue() == 'abc'
