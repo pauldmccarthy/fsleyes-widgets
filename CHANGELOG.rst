@@ -2,6 +2,19 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+
+0.12.2 (Wednesday October 6th 2021)
+-----------------------------------
+
+
+Added
+^^^^^
+
+
+* New :data:`.ATC_NO_PROPAGATE_ENTER` style flag for the
+  :class:`.AutoTextCtrl`.
+
+
 0.12.1 (Wednesday April 21st 2021)
 ----------------------------------
 

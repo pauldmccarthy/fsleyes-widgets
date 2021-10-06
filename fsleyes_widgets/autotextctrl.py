@@ -32,20 +32,24 @@ class AutoTextCtrl(wx.Panel):
 
 
     def __init__(self, parent, style=0, modal=True):
-        """Create an ``AutoTextCtrl``.
+        """Create an ``AutoTextCtrl``. Supported style flags are:
+
+          - :data:`ATC_CASE_SENSITIVE`: restrict the auto-completion
+            options to case sensitive matches.
+          - :data:`ATC_NO_PROPAGATE_ENTER`: Cause enter events on the
+            :class:`AutoCompletePopup` to *not* be propagated upwards as
+            ``EVT_ATC_TEXT_ENTER`` events.
 
         :arg parent: The ``wx`` parent object.
-        :arg style:  Can be :data:`ATC_CASE_SENSITIVE` to restrict the
-                     auto-completion options to case sensitive matches.
+        :arg style:  Style flags.
         :arg modal:  If ``True`` (the default), the :class:`AutoCompletePopup`
                      is shoown modally. This option is primarily for testing
                      purposes.
         """
 
-        self.__caseSensitive = style & ATC_CASE_SENSITIVE
-
         wx.Panel.__init__(self, parent)
 
+        self.__style    = style
         self.__modal    = modal
         self.__popup    = None
         self.__textCtrl = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
@@ -216,18 +220,13 @@ class AutoTextCtrl(wx.Panel):
         prefix.
         """
 
-        text            = text.strip()
-        style           = 0
-
-        if self.__caseSensitive:
-            style |= ATC_CASE_SENSITIVE
-
+        text  = text.strip()
         popup = AutoCompletePopup(
             self,
             self,
             text,
             self.__options,
-            style)
+            self.__style)
 
         if popup.GetCount() == 0:
             popup.Destroy()
@@ -275,6 +274,13 @@ auto-completion pattern matching will be case sensitive.
 """
 
 
+ATC_NO_PROPAGATE_ENTER = 2
+"""Syle flag for use with the :class:`AutoTextCtrl` class. If set,
+enter events which occur on the :class:`AutoCompletePopup` list will
+*not* be propagated as :attr:`EVT_ATC_TEXT_ENTER` events.
+"""
+
+
 _AutoTextCtrlEnterEvent, _EVT_ATC_TEXT_ENTER = wxevent.NewEvent()
 
 
@@ -297,29 +303,30 @@ class AutoCompletePopup(wx.Dialog):
     """
 
     def __init__(self, parent, atc, text, options, style=0):
-        """Create an ``AutoCompletePopup``.
+        """Create an ``AutoCompletePopup``. Accepts the same style flags as
+        the :class:`AutoTextCtrl`.
 
         :arg parent:  The ``wx`` parent object.
         :arg atc:     The :class:`AutoTextCtrl` that is using this popup.
         :arg text:    Initial text value.
         :arg options: A list of all possible auto-completion options.
-        :arg style:   Set to :data:`ATC_CASE_SENSITIVE` to make the
-                      pattern matching case sensitive.
+        :arg style:   Style flags.
         """
 
         wx.Dialog.__init__(self,
                           parent,
                           style=(wx.NO_BORDER | wx.STAY_ON_TOP))
 
-        self.__alive         = True
-        self.__caseSensitive = style & ATC_CASE_SENSITIVE
-        self.__atc           = atc
-        self.__options       = options
-        self.__textCtrl      = wx.TextCtrl(self,
-                                           value=text,
-                                           style=wx.TE_PROCESS_ENTER)
-        self.__listBox       = wx.ListBox( self,
-                                           style=(wx.LB_SINGLE))
+        self.__alive          = True
+        self.__caseSensitive  =      style & ATC_CASE_SENSITIVE
+        self.__propagateEnter = not (style & ATC_NO_PROPAGATE_ENTER)
+        self.__atc            = atc
+        self.__options        = options
+        self.__textCtrl       = wx.TextCtrl(self,
+                                            value=text,
+                                            style=wx.TE_PROCESS_ENTER)
+        self.__listBox        = wx.ListBox( self,
+                                            style=(wx.LB_SINGLE))
 
         self.__listBox.Set(self.__getMatches(text))
 
@@ -430,9 +437,10 @@ class AutoCompletePopup(wx.Dialog):
 
         self.__alive = False
 
-        value = self.__textCtrl.GetValue()
-        idx   = self.__textCtrl.GetInsertionPoint()
-        atc   = self.__atc
+        genEnter = genEnter and self.__propagateEnter
+        value    = self.__textCtrl.GetValue()
+        idx      = self.__textCtrl.GetInsertionPoint()
+        atc      = self.__atc
 
         # Under wx/GTK, we might still receive focus
         # events, which will trigger another call to

@@ -21,13 +21,10 @@
 #
 #    https://hub.docker.com/u/pauldmccarthy/
 #
-# The test and style stages are executed on all branches of upstream and
-# fork repositories.
+# The test and style stages are executed on all branches.
 #
-# The doc stage is executed on release branches of the upstream repository.
-#
-# The build stage and deploy stages are executed on tags on the upstream
-# repository, and the deploy stage must be manually instantiated.
+# The doc, build, and deploy stages are executed on tags, and the deploy
+# stage must be manually instantiated.
 ###########################################################################
 
 
@@ -73,20 +70,6 @@ variables:
 ####################################
 
 
-.only_upstream: &only_upstream
-  only:
-    - branches@fsl/fsleyes/widgets
-
-
-.only_master: &only_master
-  only:
-    - master@fsl/fsleyes/widgets
-
-
-.only_release_branches: &only_release_branches
-  only:
-    - /^v.+$/@fsl/fsleyes/widgets
-
 
 .only_releases: &only_releases
   only:
@@ -123,9 +106,6 @@ variables:
 
 .test: &test_template
   <<: *setup_ssh
-
-  # Releases are just tags on a release
-  # branch, so we don't need to test them.
   <<: *except_releases
 
   tags:
@@ -181,7 +161,7 @@ style:
 ###########
 
 pages:
-  <<: *only_release_branches
+  <<: *only_releases
 
   tags:
    - docker
