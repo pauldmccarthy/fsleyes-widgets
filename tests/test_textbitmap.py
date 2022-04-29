@@ -25,17 +25,18 @@ def test_textbitmap():
     bgColours = [(0, 0, 0, 0), (0, 0, 0, 1), (1, 0, 0, 1)]
     fgColours = [(0, 0, 0, 1), (1, 0, 0, 1), (1, 1, 1, 1)]
     alphas    = [0.5, 1.0]
+    haligns   = ['left', 'right', 'centre']
 
-    testcases = it.product(texts, fontsizes, bgColours, fgColours, alphas)
+    testcases = it.product(texts, fontsizes, bgColours, fgColours, alphas, haligns)
 
-    for text, size, bg, fg, alpha in testcases:
+    for text, size, bg, fg, alpha, halign in testcases:
 
         if bg == fg:
             continue
 
-        bmp = textbmp.textBitmap(text, 75, 50, size, fg, bg, alpha)
+        bmp = textbmp.textBitmap(text, 75, 50, size, fg, bg, alpha, halign=halign)
 
-        fname = [text, size] + list(bg) + list(fg) + [alpha]
+        fname = [text, size] + list(bg) + list(fg) + [alpha] + [halign]
         fname = '{}.png'.format('_'.join(map(str, fname)))
         fname = op.join(datadir, fname)
 

@@ -10,6 +10,13 @@ some text off-screen using :mod:`matplotlib`, and returns it as an RGBA bitmap.
 """
 
 
+POINT_SIZE = 1 / 72
+"""Size of one point in inches at 72 dpi. Font sizes are specified in points at
+72 dpi - this value is used to convert from font size to inches (and on to
+pixels).
+"""
+
+
 def textBitmap(text,
                width=None,
                height=None,
@@ -18,6 +25,7 @@ def textBitmap(text,
                bgColour=None,
                alpha=1.0,
                fontFamily=None,
+               halign=None,
                dpi=96):
     """Draw some text using :mod:`matplotlib`.
 
@@ -51,6 +59,9 @@ def textBitmap(text,
 
     :arg dpi:        Dots per inch, defaults to 96.
 
+    :arg halign:     Horizontal alignment - one of ``'centre'`` (default),
+                     ``'center'``, ``'left'`` or ``right'``.
+
     :returns:        ``numpy.uint8`` array of size
                      :math:`h \\times w \\times 4`
     """
@@ -61,18 +72,23 @@ def textBitmap(text,
     if (fontSize is None) and (height is None):
         raise ValueError('One of fontSize or height must be specified.')
 
+    if halign in (None, 'centre'):
+        halign = 'center'
+
     # Imports are expensive
     import numpy                           as np
     import matplotlib.backends.backend_agg as mplagg
+    import matplotlib.transforms           as mplxf
     import matplotlib.figure               as mplfig
 
-    # convert points to pixels or vice versa -
-    # one point is 0,0138889 inches. Estimate
-    # width from font size if not provided -
-    # we will crop the result afterwards.
-    crop = width is None
-    if fontSize is None: fontSize = height   / 0.0138889 / dpi
-    if height   is None: height   = fontSize * 0.0138889 * dpi
+    # convert points to pixels or vice versa.
+    # Estimate width from font size if not
+    # provided - we will crop the result
+    # afterwards.
+    crop   = width is None
+    nlines = text.count('\n') + 1
+    if fontSize is None: fontSize =          height   / POINT_SIZE / dpi
+    if height   is None: height   = nlines * fontSize * POINT_SIZE * dpi
     if width    is None: width    = max(fontSize, fontSize * len(text))
     if fgColour is None: fgColour = '#000000'
 
@@ -87,12 +103,16 @@ def textBitmap(text,
     ax.set_xticks([])
     ax.set_yticks([])
 
-    textobj = ax.text(0.5,
+    if   halign == 'left':  tx = 0.0
+    elif halign == 'right': tx = 1.0
+    else:                   tx = 0.5
+
+    textobj = ax.text(tx,
                       0.5,
                       text,
                       fontsize=fontSize,
                       verticalalignment='center',
-                      horizontalalignment='center',
+                      horizontalalignment=halign,
                       transform=ax.transAxes,
                       color=fgColour,
                       alpha=alpha,
@@ -101,16 +121,19 @@ def textBitmap(text,
     # if a width wasn't specified, we auto-
     # fit the bitmap to the rendered text
     if crop:
+        # tight bounding box around text
         bbox = textobj.get_window_extent(renderer=canvas.get_renderer())
-        if bbox.width < width:
-            fig.set_size_inches((bbox.width / dpi, height / dpi))
 
-    # no padding
-    fig.subplots_adjust(
-        bottom=0,
-        top=1,
-        left=0,
-        right=1)
+        # a tiny amount seems to get cropped on the right, for
+        # centre/right aligned text. So we shift the text left
+        # a little, and add some padding to the figure size.
+        if halign == 'left': offset = 0
+        else:                offset = POINT_SIZE * 2
+
+        textobj.set_transform(mplxf.offset_copy(
+            textobj.get_transform(), fig, -offset, 0))
+
+        fig.set_size_inches((offset + bbox.width / dpi, height / dpi))
 
     canvas.draw()
 
