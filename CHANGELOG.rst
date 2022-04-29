@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.12.3 (Friday April 29th 2022)
+-------------------------------
+
+
+Added
+^^^^^
+
+
+* New ``halign`` option for the :func:`.textBitmap` functionm, controlling
+  horizontal alignment.
+* The :func:`.textBitmap` function now accepts multi-line strings.
+
 
 0.12.2 (Wednesday October 6th 2021)
 -----------------------------------
