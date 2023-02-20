@@ -245,11 +245,11 @@ def genColours(cmap, cmapResolution, invert, alpha, gamma=1):
     colour map object/function.
     """
 
-    import numpy         as np
-    import matplotlib.cm as cm
+    import numpy      as np
+    import matplotlib as mpl
 
     ncols = cmapResolution
-    cmap  = cm.get_cmap(cmap)
+    cmap  = mpl.colormaps[cmap]
     idxs  = np.linspace(0.0, 1.0, ncols)
 
     if gamma != 1:
