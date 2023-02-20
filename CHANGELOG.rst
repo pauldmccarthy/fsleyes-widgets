@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.13.0 (Monday February 20th 2023)
+----------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* ``fsleyes-widgets`` now requires ``matplotlib >= 3.5.0``, and has been
+  updated to use the new ``matplotlib.colormaps`` registry.
+
+
 0.12.3 (Friday April 29th 2022)
 -------------------------------
 
