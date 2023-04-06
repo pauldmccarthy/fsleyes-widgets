@@ -140,7 +140,7 @@ def colourBarBitmap(cmap,
     if negCmap is not None:
         ndata  = genColours(negCmap, ncols, not invert, alpha,
                             gamma, interp, logScaleRange)
-        data   = np.concatenate((ndata, data), axis=1)
+        data   = np.concatenate((ndata, data), axis=0)
         ncols *= 2
 
     # Turn from a 1D rgba vector into a 2D RGBA image
@@ -290,7 +290,7 @@ def genColours(cmap,
     else:
         idxs = np.linspace(0.0, 1.0, ncols)
 
-    if gamma != 1:
+    if gamma not in (None, 1):
         idxs = idxs ** gamma
 
     if invert:
