@@ -7,7 +7,7 @@
 
 import wx
 
-import mock
+from unittest import mock
 import pytest
 
 from . import run_with_wx, simclick

@@ -9,7 +9,7 @@ import numpy as np
 
 import wx
 
-import mock
+from unittest import mock
 import pytest
 
 from . import run_with_wx, simtext, simclick, simkey, realYield

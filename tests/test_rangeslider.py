@@ -9,7 +9,7 @@ import numpy as np
 
 import wx
 
-import mock
+from unittest import mock
 import pytest
 
 import fsleyes_widgets.rangeslider as rangeslider
