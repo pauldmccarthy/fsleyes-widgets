@@ -28,7 +28,9 @@ def colourBarBitmap(cmap,
                     fontsize=10,
                     bgColour=None,
                     textColour='#ffffff',
-                    scale=1.0):
+                    scale=1.0,
+                    interp=False,
+                    logScaleRange=None):
     """Plots a colour bar using :mod:`matplotlib`.
 
 
@@ -88,6 +90,15 @@ def colourBarBitmap(cmap,
                          is accepted by :mod:`matplotlib`.
 
     :arg scale:          DPI scaling factor.
+
+    :arg interp:         If true, and the colour map has fewer colours than
+                         ``cmapResolution``, it is linearly interpolated
+                         to have ``cmapResolution``.
+
+    :arg logScaleRange:  Tuple containing ``(min, max)`` display range to which
+                         the colour bar is mapped to. If provided, the colour bar
+                         will be scaled to the natural logarithm of the display
+                         range.
     """
 
     # These imports are expensive, so we're
@@ -98,7 +109,7 @@ def colourBarBitmap(cmap,
 
     if orientation not in ['vertical', 'horizontal']:
         raise ValueError('orientation must be vertical or '
-                         'horizontal ({})'.format(orientation))
+                         f'horizontal ({orientation})')
 
     if orientation == 'horizontal':
         if   labelside == 'left':  labelside = 'top'
@@ -108,8 +119,8 @@ def colourBarBitmap(cmap,
         elif labelside == 'bottom': labelside = 'right'
 
     if labelside not in ['top', 'bottom', 'left', 'right']:
-        raise ValueError('labelside must be top, bottom, left '
-                         'or right ({})'.format(labelside))
+        raise ValueError('labelside must be top, bottom, '
+                         f'left or right ({labelside})')
 
     # vertical plots are rendered horizontally,
     # and then simply rotated at the end
@@ -123,12 +134,17 @@ def colourBarBitmap(cmap,
     hinches   = height / 96.0
     dpi       = scale  * 96.0
     ncols     = cmapResolution
-    data      = genColours(cmap, ncols, invert, alpha, gamma)
+    data      = genColours(cmap, ncols, invert, alpha,
+                           gamma, interp, logScaleRange)
 
     if negCmap is not None:
-        ndata  = genColours(negCmap, ncols, not invert, alpha, gamma)
+        ndata  = genColours(negCmap, ncols, not invert, alpha,
+                            gamma, interp, logScaleRange)
         data   = np.concatenate((ndata, data), axis=1)
         ncols *= 2
+
+    # Turn from a 1D rgba vector into a 2D RGBA image
+    data = np.dstack((data, data)).transpose((2, 0, 1))
 
     # force tick positions to
     # the left edge of the
@@ -240,17 +256,39 @@ def colourBarBitmap(cmap,
     return bitmap
 
 
-def genColours(cmap, cmapResolution, invert, alpha, gamma=1):
-    """Generate an array containing ``cmapResolution`` colours from the given
+def genColours(cmap,
+               ncols,
+               invert,
+               alpha,
+               gamma=1,
+               interp=False,
+               logScaleRange=None):
+    """Generate an array containing ``ncols`` colours from the given
     colour map object/function.
     """
 
-    import numpy      as np
-    import matplotlib as mpl
+    import numpy             as np
+    import matplotlib        as mpl
+    import scipy.interpolate as spint
 
-    ncols = cmapResolution
-    cmap  = mpl.colormaps[cmap]
-    idxs  = np.linspace(0.0, 1.0, ncols)
+    # cmap can be a mpl colormap object or name
+    if isinstance(cmap, str):
+        cmap  = mpl.colormaps[cmap]
+
+    # Map display range to colour map logarithmically
+    if logScaleRange is not None:
+        dmin, dmax    = logScaleRange
+        idxs          = np.linspace(dmin, dmax, ncols)
+        idxs          = np.log(idxs)
+        finite        = np.isfinite(idxs)
+        imax          = idxs[finite].max()
+        imin          = idxs[finite].min()
+        idxs          = (idxs - imin) / (imax - imin)
+        idxs[~finite] = 0
+
+    # Map display range to colour map linearly
+    else:
+        idxs = np.linspace(0.0, 1.0, ncols)
 
     if gamma != 1:
         idxs = idxs ** gamma
@@ -258,7 +296,19 @@ def genColours(cmap, cmapResolution, invert, alpha, gamma=1):
     if invert:
         idxs = idxs[::-1]
 
-    cmap       = cmap(idxs)
-    cmap[:, 3] = alpha
+    # interpolate if requested, and if the
+    # number of colours in the cmap does
+    # not match the requested resolution
+    if interp and (ncols != cmap.N):
+        cidxs   = np.linspace(0, 1, cmap.N)
+        rawrgbs = cmap(cidxs)
+        rgbs    = np.zeros((ncols, 4), dtype=np.float32)
+        for chan in range(3):
+            tck           = spint.splrep(cidxs, rawrgbs[:, chan], k=1)
+            rgbs[:, chan] = spint.splev(idxs, tck)
+    else:
+        rgbs = cmap(idxs)
 
-    return np.dstack((cmap, cmap)).transpose((2, 0, 1))
+    rgbs[:, 3] = alpha
+
+    return rgbs
