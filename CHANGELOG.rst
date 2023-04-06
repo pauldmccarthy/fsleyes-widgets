@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.14.0 (Thursday April 6th 2023)
+--------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Added support for interpolation and logarithmic scaling to the functions in
+  the :mod:`.colourbarbitmap` module.
+
+
 0.13.0 (Monday February 20th 2023)
 ----------------------------------
 
