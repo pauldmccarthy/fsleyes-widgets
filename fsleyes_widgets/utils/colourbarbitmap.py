@@ -267,9 +267,8 @@ def genColours(cmap,
     colour map object/function.
     """
 
-    import numpy             as np
-    import matplotlib        as mpl
-    import scipy.interpolate as spint
+    import numpy      as np
+    import matplotlib as mpl
 
     # cmap can be a mpl colormap object or name
     if isinstance(cmap, str):
@@ -300,12 +299,11 @@ def genColours(cmap,
     # number of colours in the cmap does
     # not match the requested resolution
     if interp and (ncols != cmap.N):
-        cidxs   = np.linspace(0, 1, cmap.N)
-        rawrgbs = cmap(cidxs)
+        rawidxs = np.linspace(0, 1, cmap.N)
+        rawrgbs = cmap(rawidxs)
         rgbs    = np.zeros((ncols, 4), dtype=np.float32)
         for chan in range(3):
-            tck           = spint.splrep(cidxs, rawrgbs[:, chan], k=1)
-            rgbs[:, chan] = spint.splev(idxs, tck)
+            rgbs[:, chan] = np.interp(idxs, rawidxs, rawrgbs[:, chan])
     else:
         rgbs = cmap(idxs)
 
