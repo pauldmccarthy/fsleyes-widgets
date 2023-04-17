@@ -2,6 +2,19 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+
+0.14.1 (Monday April 17th 2023)
+-------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Use ``numpy`` rather than ``scipy`` for interpolation to keep the
+  dependencies of ``fsleyes-widgets`` minimal.
+
+
 0.14.0 (Monday April 17th 2023)
 -------------------------------
 
