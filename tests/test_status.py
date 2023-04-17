@@ -7,7 +7,7 @@
 
 import time
 
-import mock
+from unittest import mock
 import pytest
 
 import fsleyes_widgets.utils.status as status

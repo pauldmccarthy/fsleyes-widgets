@@ -10,7 +10,7 @@ import wx
 
 import numpy as np
 
-import mock
+from unittest import mock
 
 from . import run_with_wx, simclick, simtext, simkey, realYield
 

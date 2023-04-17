@@ -9,7 +9,11 @@
 import os.path   as op
 import itertools as it
 
-import matplotlib.image as mplimg
+import numpy as np
+
+import matplotlib        as mpl
+import matplotlib.colors as colors
+import matplotlib.image  as mplimg
 
 import pytest
 
@@ -25,12 +29,17 @@ def _compare(bmp, fname):
 
     bmp       = bmp.transpose((1, 0, 2))
     fname     = op.join(datadir, fname)
-    benchmark = mplimg.imread(fname) * 255
 
-    result = compare_images(bmp, benchmark, 0.05)
+
+    if op.exists(fname):
+        benchmark = mplimg.imread(fname) * 255
+        result = compare_images(bmp, benchmark, 0.05)
+    else:
+        result = [False]
 
     if not result[0]:
-        print(result)
+        basedir = op.join(op.dirname(__file__), '..')
+        mplimg.imsave(op.join(basedir, op.basename(fname)), bmp)
 
     return result[0]
 
@@ -137,6 +146,45 @@ def test_gamma():
                                       orientation='horizontal',
                                       gamma=gamma,
                                       negCmap=negCmap)
+
+        assert _compare(bmp, fname)
+
+
+def test_logScaleRange_interp():
+
+    # register a low-res colour map to test interpolation
+    rgbs = np.array([[1, 0, 0],
+                     [1, 1, 1],
+                     [0, 1, 0]])
+    cmap = colors.ListedColormap(rgbs, name='MYCMAP')
+    mpl.colormaps.register(cmap, name='MYCMAP')
+
+
+    logScales     = [None, (0, 1), (50, 100)]
+    interps       = [False, True]
+    reses         = [10, 100]
+    cmaps         = ['hot', 'MYCMAP']
+    width, height = 100, 25
+
+    testcases = it.product(logScales, interps, reses, cmaps)
+
+    for logScale, interp, res, cmap in testcases:
+
+        if logScale is None:
+            fname = '_'.join(map(str, [logScale, interp, res, cmap]))
+        else:
+            fname = '_'.join(map(str, [logScale[0], logScale[1], interp, res,
+                                       cmap]))
+
+        fname = 'logScaleRange_interp_{}.png'.format(fname)
+
+        bmp = cbarbmp.colourBarBitmap(cmap,
+                                      width,
+                                      height,
+                                      cmapResolution=res,
+                                      interp=interp,
+                                      logScaleRange=logScale,
+                                      orientation='horizontal')
 
         assert _compare(bmp, fname)
 

@@ -8,7 +8,7 @@
 import time
 
 import wx
-import mock
+from unittest import mock
 
 import fsleyes_widgets.floatspin as floatspin
 
