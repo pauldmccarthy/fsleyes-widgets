@@ -467,7 +467,7 @@ class RangeSliderSpinPanel(wx.Panel):
                           placed to the left of the high slider, containing
                           the label.
 
-        :arg spinWidth:   Desired spin control width. See the
+        :arg spinWidth:   Desired spin control width. Defaults to 6. See the
                           :class:`.FloatSpinCtrl` class.
 
         :arg style:       A combination of :data:`RSSP_INTEGER`,
@@ -476,8 +476,8 @@ class RangeSliderSpinPanel(wx.Panel):
                           Defaults to :data:`RSSP_SHOW_LIMITS`.
         """
 
-        if style is None:
-            style = RSSP_SHOW_LIMITS
+        if spinWidth is None: spinWidth = 6
+        if style     is None: style     = RSSP_SHOW_LIMITS
 
         showLimits =     style & RSSP_SHOW_LIMITS
         editLimits =     style & RSSP_EDIT_LIMITS
