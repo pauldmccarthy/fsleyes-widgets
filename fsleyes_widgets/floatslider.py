@@ -357,23 +357,23 @@ class SliderSpinPanel(wx.Panel):
                        :data:`SSP_INTEGER`. Defaults to
                        :data:`SSP_SHOW_LIMITS`.
 
-        :arg spinWidth: Desired spin control width in characters. See the
-                        :class:`.FloatSpinCtrl` class.
+        :arg spinWidth: Desired spin control width in characters. Defaults to
+                        6. See the :class:`.FloatSpinCtrl` class.
         """
 
         wx.Panel.__init__(self, parent, style=0)
 
-        if style is None: style = SSP_SHOW_LIMITS
+        if value     is None: value     = 0
+        if minValue  is None: minValue  = 0
+        if maxValue  is None: maxValue  = 1
+        if spinWidth is None: spinWidth = 6
+        if style     is None: style     = SSP_SHOW_LIMITS
 
         showLimits = style & SSP_SHOW_LIMITS
         editLimits = style & SSP_EDIT_LIMITS
         noLimits   = style & SSP_NO_LIMITS
         integer    = style & SSP_INTEGER
         mousewheel = style & SSP_MOUSEWHEEL
-
-        if value    is None: value    = 0
-        if minValue is None: minValue = 0
-        if maxValue is None: maxValue = 1
 
         if not showLimits:
             editLimits = False
