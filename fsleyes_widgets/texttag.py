@@ -57,7 +57,7 @@ def complementary_colour(rgb):
     if abs(nl - l) < 0.3:
         if l > 0.5: nl = 0.0
         else:       nl = 1.0
-    nr, ng, nb = colorsys.hls_to_rgb(nh, nl, ns)
+    nr, ng, nb = np.clip(colorsys.hls_to_rgb(nh, nl, ns), 0, 1)
     return mplcolors.to_hex((nr, ng, nb))
 
 
