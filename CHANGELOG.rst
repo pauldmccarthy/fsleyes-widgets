@@ -2,6 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.14.2 (Tuesday June 7th 2023)
+------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Change the default ``spinWidth`` to ``6`` for the :class:`.SliderSpinPanel`
+  and :class:`.RangeSliderSpinPanel`.
+
 
 0.14.1 (Monday April 17th 2023)
 -------------------------------
