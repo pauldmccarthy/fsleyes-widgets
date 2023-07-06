@@ -7,6 +7,13 @@ chronological order.
 -------------------------=-----
 
 
+Changed
+^^^^^^^
+
+* Updated the :class:`.WidgetList` to allow empty/spacer elements within
+  embedded ``Sizer`` objects.
+
+
 Fixed
 ^^^^^
 
