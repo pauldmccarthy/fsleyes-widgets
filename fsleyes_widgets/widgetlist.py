@@ -369,7 +369,9 @@ class WidgetList(scrolledpanel.ScrolledPanel):
 
         if isinstance(widget, wx.Sizer):
             for child in widget.GetChildren():
-                child.GetWindow().Reparent(widgPanel)
+                window = child.GetWindow()
+                if window is not None:
+                    window.Reparent(widgPanel)
         else:
             w, h = widget.GetBestSize().Get()
             if self.__minHeight > h:
@@ -580,7 +582,9 @@ class _Widget:
 
         if isinstance(self.widget, wx.Sizer):
             for c in self.widget.GetChildren():
-                c.GetWindow().Bind(evType, callback)
+                window = c.GetWindow()
+                if window is not None:
+                    window.Bind(evType, callback)
         else:
             self.widget.Bind(evType, callback)
 
