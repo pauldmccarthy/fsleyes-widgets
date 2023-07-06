@@ -121,7 +121,7 @@ def wxFlavour():
 
 
 def wxversion():
-    """Deprecated - use ``wxFlavour``instead. """
+    """Deprecated - use ``wxFlavour`` instead. """
     warnings.warn('wxversion is deprecated - use wxFlavour instead.',
                   category=DeprecationWarning,
                   stacklevel=2)
