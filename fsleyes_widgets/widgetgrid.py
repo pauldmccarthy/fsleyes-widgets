@@ -147,7 +147,7 @@ class WidgetGrid(wx.ScrolledWindow):
                      ``wx.VSCROLL``, :data:`WG_SELECTABLE_CELLS`,
                      :data:`WG_SELECTABLE_ROWS`,
                      :data:`WG_SELECTABLE_COLUMNS`, :data:`WG_KEY_NAVIGATION`,
-                      and :data:`WG_DRAGGABLE_COLUMNS`.
+                     and :data:`WG_DRAGGABLE_COLUMNS`.
         """
 
         border = wx.SystemSettings.GetColour(wx.SYS_COLOUR_ACTIVEBORDER)

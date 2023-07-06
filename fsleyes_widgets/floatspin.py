@@ -22,11 +22,7 @@ import fsleyes_widgets as fw
 log = logging.getLogger(__name__)
 
 
-if fw.wxFlavour() == fw.WX_PHOENIX: FloatSpinBase = wx.Panel
-else:                               FloatSpinBase = wx.PyPanel
-
-
-class FloatSpinCtrl(FloatSpinBase):
+class FloatSpinCtrl(wx.Panel):
     """A ``FloatSpinCtrl`` is a :class:`wx.Panel` which contains a
     :class:`wx.TextCtrl` and a :class:`wx.SpinButton`, allowing the user to
     modify a floating point (or integer) value.
@@ -97,7 +93,7 @@ class FloatSpinCtrl(FloatSpinBase):
                         value. Ignored if the :attr:`FSC_INTEGER` style is
                         active.
         """
-        FloatSpinBase.__init__(self, parent)
+        wx.Panel.__init__(self, parent)
 
         if minValue  is None: minValue  = 0
         if maxValue  is None: maxValue  = 100
