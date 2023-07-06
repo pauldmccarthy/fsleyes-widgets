@@ -93,7 +93,7 @@ class FloatSpinCtrl(wx.Panel):
                         value. Ignored if the :attr:`FSC_INTEGER` style is
                         active.
         """
-        FloatSpinBase.__init__(self, parent)
+        wx.Panel.__init__(self, parent)
 
         if minValue  is None: minValue  = 0
         if maxValue  is None: maxValue  = 100
