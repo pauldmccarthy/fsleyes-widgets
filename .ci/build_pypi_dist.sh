@@ -4,9 +4,8 @@ set -e
 
 source /test.venv/bin/activate
 
-pip install --upgrade pip wheel setuptools twine
-python setup.py sdist
-python setup.py bdist_wheel
+pip install --upgrade pip wheel setuptools twine build
+python -m build
 twine check dist/*
 
 PIPARGS="--retries 10 --timeout 30"
