@@ -1,0 +1,77 @@
+[build-system]
+requires      = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name            = "fsleyes-widgets"
+dynamic         = ["version"]
+description     = "A collection of wxPython widgets used by FSLeyes"
+readme          = {file = "README.rst", content-type="text/x-rst"}
+license         = {text = "Apache License Version 2.0"}
+requires-python = ">=3.8"
+authors         = [{name = "Paul McCarthy", email = "pauldmccarthy@gmail.com"}]
+
+dependencies = [
+ "numpy",
+ "matplotlib >=3.5",
+ "wxPython >=3.0.2.0",
+]
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+
+[project.urls]
+"Repository"    = "https://git.fmrib.ox.ac.uk/fsl/fsleyes/widgets"
+"Documentation" = "https://open.win.ox.ac.uk/pages/fsl/fsleyes/widgets/"
+
+
+[project.optional-dependencies]
+doc = [
+  "sphinx",
+  "sphinx_rtd_theme"
+]
+test = [
+  "pytest",
+  "coverage",
+  "pytest-cov",
+  "tomli; python_version < \"3.11\""
+]
+style = [
+  "pylint",
+  "flake8"
+]
+
+
+[tool.setuptools.packages.find]
+include = ["fsleyes_widgets*"]
+
+
+[tool.setuptools.package-data]
+fsleyes_widgets = ["fsleyes_widgets/tests/testdata/*"]
+
+
+[tool.setuptools.dynamic]
+version = {attr = "fsleyes_widgets.__version__"}
+
+
+[tool.coverage.run]
+include = ["fsleyes_widgets/*"]
+omit    = ["fsleyes_widgets/tests/*"]
+
+
+[tool.pytest.ini_options]
+testpaths = ["fsleyes_widgets/tests"]
+addopts   = "-v --cov=fsleyes_widgets"
+markers   = [
+  "dodgy: Tests which fail because wx.UIActionSimulator is dodgy"
+]
