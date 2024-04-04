@@ -638,7 +638,7 @@ class EditableListBox(wx.Panel):
 
         pos = self.__fixIndex(pos)
 
-        if self.__noLabels:
+        if self.__noLabels or label is None:
             label = ''
 
         # StaticText under Linux/GTK poses problems -
