@@ -72,10 +72,19 @@ variables:
     - tags@fsl/fsleyes/widgets
 
 
-.except_releases: &except_releases
-  except:
-    - tags
-
+.test_rules: &test_rules
+  rules:
+    # Set SKIP_TESTS to skip tests
+    - if:   '$SKIP_TESTS != null'
+      when: never
+    # Don't test if  "[skip-tests]"
+    # is in the commit message
+    - if:   '$CI_COMMIT_MESSAGE =~ /\[skip-tests\]/'
+      when: never
+    - if:   '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+    - if:   '$CI_PIPELINE_SOURCE == "web"'
+      when: on_success
 
 
 ###################################################
@@ -97,18 +106,13 @@ variables:
 
 
 .test: &test_template
-  <<: *except_releases
+  <<: *test_rules
 
   tags:
     - docker
 
   script:
     - bash ./.ci/test_template.sh
-
-test:3.8:
-  stage: test
-  image: pauldmccarthy/fsleyes-py38-wxpy4-gtk3
-  <<: *test_template
 
 test:3.9:
   stage: test
@@ -126,11 +130,16 @@ test:3.11:
   image: pauldmccarthy/fsleyes-py311-wxpy4-gtk3
   <<: *test_template
 
+test:3.12:
+  stage: test
+  image: pauldmccarthy/fsleyes-py312-wxpy4-gtk3
+  <<: *test_template
+
 
 test:build-pypi-dist:
   stage: test
   image: pauldmccarthy/fsleyes-py310-wxpy4-gtk3
-  <<: *except_releases
+  <<: *test_rules
 
   tags:
     - docker
