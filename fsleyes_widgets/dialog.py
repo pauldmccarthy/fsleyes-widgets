@@ -654,24 +654,29 @@ class FSLDirDialog(wx.Dialog):
        :align: center
     """
 
-    def __init__(self, parent, toolName, osxHint):
+    def __init__(self, parent, toolName, osxHint, defaultPath=None):
         """Create a ``FSLDirDialog``.
 
-        :arg parent:   The :mod:`wx` parent object.
+        :arg parent:      The :mod:`wx` parent object.
 
-        :arg toolName: The name of the tool which is running.
+        :arg toolName:    The name of the tool which is running.
 
-        :arg osxHint:  If ``True``, an OSX-specific hint is added to the
-                       dialog.
+        :arg osxHint:     If ``True``, an OSX-specific hint is added to the
+                          dialog.
+
+        :arg defaultPath: Directory to initialise the selection dialog when
+                          prompting the user to select ``$FSLDIR``. Defaults
+                          to ``$HOME``.
         """
 
         wx.Dialog.__init__(self, parent, title='$FSLDIR is not set')
 
-        self.__fsldir  = None
-        self.__icon    = wx.StaticBitmap(self)
-        self.__message = wx.StaticText(  self)
-        self.__locate  = wx.Button(      self, id=wx.ID_OK)
-        self.__skip    = wx.Button(      self, id=wx.ID_CANCEL)
+        self.__fsldir      = None
+        self.__defaultPath = None
+        self.__icon        = wx.StaticBitmap(self)
+        self.__message     = wx.StaticText(  self)
+        self.__locate      = wx.Button(      self, id=wx.ID_OK)
+        self.__skip        = wx.Button(      self, id=wx.ID_CANCEL)
 
         icon = wx.ArtProvider.GetMessageBoxIcon(wx.ICON_EXCLAMATION)
 
@@ -760,10 +765,13 @@ class FSLDirDialog(wx.Dialog):
         FSL installation directory.
         """
 
+        if self.__defaultPath is not None: path = self.__defaultPath
+        else:                              path = op.expanduser('~')
+
         dlg = wx.DirDialog(
             self,
             message='Select the directory in which FSL is installed',
-            defaultPath=op.join(os.sep, 'usr', 'local'),
+            defaultPath=path,
             style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
 
         # If the user cancels the file

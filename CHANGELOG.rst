@@ -2,9 +2,20 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.14.4 (Thursday April 4th 2024)
+--------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Changed the initial directory used by the ``$FSLDIR`` selection dialog to
+  ``$HOME`` (previously ``/usr/local/``).
+
 
 0.14.3 (Thursday July 6th 2023)
--------------------------=-----
+-------------------------------
 
 
 Changed
