@@ -446,6 +446,8 @@ class WidgetList(scrolledpanel.ScrolledPanel):
                 if group.colPanel is not panel:
                     group.colPanel.Collapse()
 
+        wx.PostEvent(self, WidgetListExpandEvent())
+
         self.__refresh()
 
 
@@ -621,14 +623,21 @@ class _Group:
 
 
 _WidgetListChangeEvent, _EVT_WL_CHANGE_EVENT = wxevent.NewEvent()
-
+_WidgetListExpandEvent, _EVT_WL_EXPAND_EVENT = wxevent.NewEvent()
 
 WidgetListChangeEvent = _WidgetListChangeEvent
 """Event emitted by a :class:`WidgetList` when its contents change. """
 
+WidgetListExpandEvent = _WidgetListExpandEvent
+"""Event emitted by a :class:`WidgetList` when a group is expanded or
+collapsed.
+"""
 
 EVT_WL_CHANGE_EVENT = _EVT_WL_CHANGE_EVENT
 """Identifier for the :data:`WidgetListChangeEvent`. """
+
+EVT_WL_EXPAND_EVENT = _EVT_WL_EXPAND_EVENT
+"""Identifier for the :data:`WidgetListExpandEvent`. """
 
 
 WL_ONE_EXPANDED = 1
