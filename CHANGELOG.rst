@@ -2,6 +2,19 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+
+0.14.5 (Monday 24th June 2024)
+------------------------------
+
+
+Changed
+^^^^^^^
+
+
+* The :class:`.WidgetList` class now emits an ``EVT_WL_EXPAND_EVENT`` when a
+  widget group is expanded or collapsed.
+
+
 0.14.4 (Thursday April 4th 2024)
 --------------------------------
 
