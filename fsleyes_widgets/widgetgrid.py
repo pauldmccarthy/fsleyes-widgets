@@ -421,7 +421,8 @@ class WidgetGrid(wx.ScrolledWindow):
             widget = [widget]
 
         for w in widget:
-            w.Reparent(parent)
+            if w is not None:
+                w.Reparent(parent)
 
 
     def __setBackgroundColour(self, widget, colour):
