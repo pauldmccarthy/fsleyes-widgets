@@ -2,7 +2,7 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
-0.14.6 (Wednesday July 10th 2023)
+0.14.6 (Wednesday July 10th 2024)
 ---------------------------------
 
 
