@@ -2,6 +2,17 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.14.6 (Wednesday July 10th 2023)
+---------------------------------
+
+
+Changed
+^^^^^^^
+
+* Updated the :class:`.WidgetGrid` to allow empty/spacer elements within
+  embedded ``Sizer`` objects.
+
+
 
 0.14.5 (Monday 24th June 2024)
 ------------------------------
