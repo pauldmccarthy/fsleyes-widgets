@@ -6,36 +6,28 @@
 #
 
 
-import sys
+import os
+import os.path as op
 
-import six
-
-
-# python 3
-if six.PY3:
-    import unittest.mock as mock
-# python 2
-elif six.PY2:
-    import mock
+import unittest.mock as mock
 
 import fsleyes_widgets.utils.webpage as webpage
+
 
 def test_fileToUrl():
 
     # fname, expected
     testcases = [
-        ('/home/blah/file.html', 'file:///home/blah/file.html'),
-        ('file.html',            'file:///file.html'),
-        ('./file.html',          'file:///file.html'),
-        ('../file.html',         'file:///../file.html'),
+        '/home/blah/file.html'
+        'file.html',
+        './file.html',
+        '../file.html',
     ]
 
-    # urljoin has changed in python3.5 to make paths absolute
-    if six.PY3 and sys.version_info.minor >= 5:
-        testcases[-1] = ('../file.html', 'file:///file.html')
-
-    for fname, expected in testcases:
-        assert webpage.fileToUrl(fname) == expected
+    for fname in testcases:
+        expect = op.abspath(fname)
+        expect = f'file://{expect}'
+        assert webpage.fileToUrl(fname) == expect
 
 
 def test_openPage():

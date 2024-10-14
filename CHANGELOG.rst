@@ -2,6 +2,18 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+
+0.14.7 (Monday 14th October 2024)
+---------------------------------
+
+
+Changed
+^^^^^^^
+
+* Adjusted the :func:`.fileToUrl` function to handle relative paths more
+  robustly.
+
+
 0.14.6 (Wednesday July 10th 2024)
 ---------------------------------
 
