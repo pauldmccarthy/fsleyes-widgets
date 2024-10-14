@@ -17,6 +17,7 @@ The following functions are provided:
    openFile
 """
 
+import os.path        as op
 import                   webbrowser
 import urllib.parse   as urlparse
 import urllib.request as urlrequest
@@ -24,8 +25,9 @@ import urllib.request as urlrequest
 
 def fileToUrl(fileName):
     """Converts a file path to a URL. """
-
-    return urlparse.urljoin('file:', urlrequest.pathname2url(fileName))
+    fileName = op.abspath(fileName)
+    fileName = urlrequest.pathname2url(fileName)
+    return urlparse.urljoin('file:', fileName)
 
 
 def openPage(url):
