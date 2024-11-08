@@ -1077,8 +1077,13 @@ class WidgetGrid(wx.ScrolledWindow):
         row    = widget._wg_row
         col    = widget._wg_col
 
+        # Make sure the panel has focus; this
+        # will result in a call to __onChildFocus,
+        # so tell it not to emit an event
         if not widget.AcceptsFocus():
+            self.__ignoreFocus += 1
             self.SetFocusIgnoringChildren()
+            self.__ignoreFocus -= 1
 
         log.debug('Left mouse down on cell (%s, %s)', row, col)
 
