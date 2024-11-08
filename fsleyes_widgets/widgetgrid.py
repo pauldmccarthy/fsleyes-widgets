@@ -569,7 +569,7 @@ class WidgetGrid(wx.ScrolledWindow):
         """
 
         if nrows < 0 or ncols < 0:
-            raise ValueError('Invalid size ({}, {})'.format(nrows, ncols))
+            raise ValueError(f'Invalid size ({nrows}, {ncols})')
 
         # If the caller has not specified which columns
         # should stretch, then stretch them all so the
@@ -721,12 +721,12 @@ class WidgetGrid(wx.ScrolledWindow):
             raise ValueError('No grid')
 
         if row < 0 or row >= self.__nrows:
-            raise ValueError('Invalid row index {}'.format(row))
+            raise ValueError(f'Invalid row index {row}')
 
-        log.debug('Deleting row {} (sizer indices {} - {})'.format(
+        log.debug('Deleting row %s (sizer indices %s - %s)',
             row,
             (row + 1) * (self.__ncols + 1),
-            (row + 1) * (self.__ncols + 1) + self.__ncols))
+            (row + 1) * (self.__ncols + 1) + self.__ncols)
 
         # Remove from the grid
         for col in reversed(range(self.__ncols + 1)):
@@ -774,12 +774,12 @@ class WidgetGrid(wx.ScrolledWindow):
             raise ValueError('No grid')
 
         if row < 0:
-            raise ValueError('Invalid row index {}'.format(row))
+            raise ValueError(f'Invalid row index {row}')
 
         if row >= self.__nrows:
             row = self.__nrows
 
-        log.debug('Inserting row at {}'.format(row))
+        log.debug('Inserting row at %s', row)
 
         # Add empty label/cell
         # values for the new row
@@ -890,8 +890,8 @@ class WidgetGrid(wx.ScrolledWindow):
            col <  0            or \
            row >= self.__nrows or \
            col >= self.__ncols:
-            raise IndexError('Grid location ({}, {}) out of bounds ({}, {})'.
-                             format(row, col, self.__nrows, self.__ncols))
+            raise IndexError(f'Grid location ({row}, {col}) out of bounds '
+                             f'({self.__nrows}, {self.__ncols})')
 
         # Embed the widget in a panel,
         # as Linux/GTK has trouble
@@ -991,7 +991,7 @@ class WidgetGrid(wx.ScrolledWindow):
         except ValueError:
             return
 
-        log.debug('Posting grid select event ({}, {})'.format(row, col))
+        log.debug('Posting grid select event (%s, %s)', row, col)
 
         # This is a ridiculous workaround to a
         # ridiculous problem. Certain users of
@@ -1064,7 +1064,7 @@ class WidgetGrid(wx.ScrolledWindow):
                 gridWidget = gridWidget.GetParent()
 
         if row is not None and col is not None:
-            log.debug('Focus on cell {}'.format((row, col)))
+            log.debug('Focus on cell (%s, %s)', row, col)
             self.__selectCell(row, col)
 
 
@@ -1080,7 +1080,7 @@ class WidgetGrid(wx.ScrolledWindow):
         if not widget.AcceptsFocus():
             self.SetFocusIgnoringChildren()
 
-        log.debug('Left mouse down on cell {}'.format((row, col)))
+        log.debug('Left mouse down on cell (%s, %s)', row, col)
 
         self.__selectCell(row, col)
 
@@ -1099,7 +1099,7 @@ class WidgetGrid(wx.ScrolledWindow):
         left  = self.__leftKey
         right = self.__rightKey
 
-        log.debug('Keyboard event ({})'.format(key))
+        log.debug('Keyboard event (%s)', key)
 
         # ignore modified keypresses, and all
         # keypresses that are not arrows
@@ -1124,8 +1124,8 @@ class WidgetGrid(wx.ScrolledWindow):
         elif key == left:  col -= 1
         elif key == right: col += 1
 
-        log.debug('Keyboard nav on cell {} ' '(new cell: '
-                  '{})'.format(self.__selected, (row, col)))
+        log.debug('Keyboard nav on cell %s (new cell: '
+                  '(%s, %s))', self.__selected, row, col)
 
         self.__selectCell(row, col)
 
@@ -1160,17 +1160,17 @@ class WidgetGrid(wx.ScrolledWindow):
         if self.__selectable == 'rows':
 
             if col != -1 or row < 0 or row >= nrows:
-                raise ValueError('Invalid row: {}'.format(row))
+                raise ValueError(f'Invalid row: {row}')
 
         elif self.__selectable == 'columns':
 
             if row != -1 or col < 0 or col >= ncols:
-                raise ValueError('Invalid column: {}'.format(col))
+                raise ValueError(f'Invalid column: {col}')
 
         elif self.__selectable == 'cells':
 
             if row < 0 or row >= nrows or col < 0 or col >= ncols:
-                raise ValueError('Invalid cell: {}, {}'.format(row, col))
+                raise ValueError(f'Invalid cell: {row}, {col}')
 
         if self.__selected is not None:
 
@@ -1303,8 +1303,7 @@ class WidgetGrid(wx.ScrolledWindow):
         Raises an :exc:`IndexError` if the row is invalid.
         """
         if row < 0 or row >= self.__nrows:
-            raise IndexError('Row {} out of bounds ({})'.format(
-                row, self.__nrows))
+            raise IndexError(f'Row {row} out of bounds ({self.__nrows})')
 
         self.__rowLabels[row][1].SetLabel(label)
 
@@ -1315,8 +1314,7 @@ class WidgetGrid(wx.ScrolledWindow):
         Raises an :exc:`IndexError` if the column is invalid.
         """
         if col < 0 or col >= self.__ncols:
-            raise IndexError('Column {} out of bounds ({})'.format(
-                col, self.__ncols))
+            raise IndexError(f'Column {col} out of bounds ({self.__ncols})')
 
         self.__colLabels[col][1].SetLabel(label)
 
@@ -1325,8 +1323,8 @@ class WidgetGrid(wx.ScrolledWindow):
         """Sets the label for every row.
         """
         if len(labels) != self.__nrows:
-            raise ValueError('Wrong number of row labels ({} != {})'.format(
-                len(labels), self.__nrows))
+            raise ValueError('Wrong number of row labels '
+                             f'({len(labels)} != {self.__nrows})')
 
         for i, label in enumerate(labels):
             self.__rowLabels[i][1].SetLabel(label)
@@ -1336,8 +1334,8 @@ class WidgetGrid(wx.ScrolledWindow):
         """Sets the label for every column.
         """
         if len(labels) != self.__ncols:
-            raise ValueError('Wrong number of column labels ({} != {})'.format(
-                len(labels), self.__ncols))
+            raise ValueError('Wrong number of column labels '
+                             f'({len(labels)} != {self.__ncols})')
 
         for i, label in enumerate(labels):
             self.__colLabels[i][1].SetLabel(label)
@@ -1373,8 +1371,8 @@ class WidgetGrid(wx.ScrolledWindow):
                     the new column ordering.
         """
         if list(sorted(order)) != list(range(self.__ncols)):
-            raise ValueError('Invalid column order (ncols: {}): {}'.format(
-                self.__ncols, order))
+            raise ValueError('Invalid column order (ncols: '
+                             f'{self.__ncols}): {order}')
 
         self.__colLabels = [self.__colLabels[i] for i in order]
 
