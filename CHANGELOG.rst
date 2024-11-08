@@ -3,6 +3,18 @@ chronological order.
 
 
 
+0.14.8 (Friday 8th November 2024)
+---------------------------------
+
+
+Fixed
+^^^^^
+
+* Fixed a bug in the :class:`.WidgetGrid` class, where clicking on a grid cell
+  could result in two events being emitted.
+
+
+
 0.14.7 (Monday 14th October 2024)
 ---------------------------------
 
