@@ -25,6 +25,18 @@ from . import compare_images
 datadir = op.join(op.dirname(__file__), 'testdata', 'colourbarbitmap')
 
 
+def gen_file_id(*args):
+    """Generate a "safe" string for use in file names. """
+    fid = '_'.join(map(str, args))
+    for c in '[](){}, !@#$%&*;:=<>|/?\\"\'':
+        fid = fid.replace(c, '_')
+
+    while '__' in fid:         fid = fid.replace('__', '_')
+    while fid.endswith('_'):   fid = fid[:-1]
+    while fid.startswith('_'): fid = fid[1:]
+    return fid
+
+
 def _compare(bmp, fname):
 
     bmp       = bmp.transpose((1, 0, 2))
@@ -74,13 +86,9 @@ def test_standard_usage():
                                       orientation=orient,
                                       bgColour=bgColour)
 
-        fname = '_'.join(map(str, [
-            cmap,
-            cmapRes,
-            orient,
-            alpha] + list(bgColour)))
-
-        fname = 'standard_usage_{}.png'.format(fname)
+        fname = gen_file_id('standard_usage',
+                            cmap, cmapRes, orient, alpha, bgColour)
+        fname = f'{fname}.png'
 
         assert _compare(bmp, fname)
 
@@ -103,8 +111,8 @@ def test_negCmap_invert():
 
     for cmap, negCmap, invert, orient in testcases:
 
-        fname = '_'.join(map(str, [cmap, negCmap, invert, orient]))
-        fname = 'negCmap_invert_{}.png'.format(fname)
+        fname = gen_file_id('negCmap_invert', cmap, negCmap, invert, orient)
+        fname = f'{fname}.png'
 
         if orient == 'vertical': height, width = size
         else:                    width, height = size
@@ -136,8 +144,8 @@ def test_gamma():
         if not useNegCmap:
             negCmap = None
 
-        fname = '_'.join(map(str, [gamma, invert, cmap, negCmap]))
-        fname = 'gamma_{}.png'.format(fname)
+        fname = gen_file_id('gamma', gamma, invert, cmap, negCmap)
+        fname = f'{fname}.png'
 
         bmp = cbarbmp.colourBarBitmap(cmap,
                                       width,
@@ -170,13 +178,9 @@ def test_logScaleRange_interp():
 
     for logScale, interp, res, cmap in testcases:
 
-        if logScale is None:
-            fname = '_'.join(map(str, [logScale, interp, res, cmap]))
-        else:
-            fname = '_'.join(map(str, [logScale[0], logScale[1], interp, res,
-                                       cmap]))
-
-        fname = 'logScaleRange_interp_{}.png'.format(fname)
+        fname = gen_file_id('logScaleRange_interp',
+                            logScale, interp, res, cmap)
+        fname = f'{fname}.png'
 
         bmp = cbarbmp.colourBarBitmap(cmap,
                                       width,
@@ -212,8 +216,8 @@ def test_label():
                                       fontsize=size,
                                       textColour=colour)
 
-        fname = '_'.join(map(str, [orient, side, size] + list(colour)))
-        fname = 'label_{}.png'.format(fname)
+        fname = gen_file_id('label', orient, side, size, colour)
+        fname = f'{fname}.png'
 
         assert _compare(bmp, fname)
 
@@ -250,9 +254,8 @@ def test_ticks():
                                       fontsize=size,
                                       textColour=colour)
 
-        fname = [orient, side, size] + list(colour) + labels
-        fname = '_'.join(map(str, fname))
-        fname = 'ticks_{}.png'.format(fname)
+        fname = gen_file_id('ticks', orient, side, size, colour, labels)
+        fname = f'{fname}.png'
 
         assert _compare(bmp, fname)
 
@@ -289,8 +292,8 @@ def test_tickalign():
 
 
         falign = ''.join([a[0] for a in align])
-        fname  = '_'.join([orient, side, falign])
-        fname  = 'tickalign_{}.png'.format(fname)
+        fname  = gen_file_id('tickalign', orient, side, falign)
+        fname  = f'{fname}.png'
 
         assert _compare(bmp, fname)
 
@@ -325,8 +328,8 @@ def test_label_and_ticks():
                                       fontsize=size,
                                       textColour=(0, 0, 0.2, 1))
 
-        fname = '_'.join([orient, side, str(size)])
-        fname = 'label_and_ticks_{}.png'.format(fname)
+        fname = gen_file_id('label_and_ticks', orient, side, size)
+        fname = f'{fname}.png'
 
         assert _compare(bmp, fname)
 
@@ -360,8 +363,8 @@ def test_scale():
                                       scale=scale,
                                       textColour=(0, 0, 0.2, 1))
 
-        fname = '_'.join([str(scale), orient, side])
-        fname = 'scale_{}.png'.format(fname)
+        fname = gen_file_id('scale', scale, orient, side)
+        fname = f'{fname}.png'
         assert _compare(bmp, fname)
 
 
@@ -375,8 +378,8 @@ def test_negCmap_ticks():
 
     for cmap, negCmap, ticks in testcases:
 
-        fname = '_'.join(map(str, [cmap, negCmap] + ticks))
-        fname = 'negCmap_invert_ticks_{}.png'.format(fname)
+        fname = gen_file_id(cmap, negCmap, ticks)
+        fname = f'negCmap_invert_ticks_{fname}.png'
 
         ticklabels = ['{:0.2f}'.format(t) for t in ticks]
         tickalign = ['left'] + ['center'] * (len(ticks) - 2) + ['right']
