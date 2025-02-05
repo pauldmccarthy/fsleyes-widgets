@@ -59,21 +59,20 @@ def _compare(bmp, fname):
 def test_standard_usage():
 
     cmaps           = ['Greys', 'Blues']
-    sizes           = [(100, 25)]
     cmapResolutions = [6, 256]
     orientations    = ['vertical', 'horizontal']
     alphas          = [0.25, 1.0]
     bgColours       = [(0, 0, 0, 0), (0, 0, 0, 1), (1, 0, 0, 1)]
+    size            = (100, 25)
 
     testcases = it.product(cmaps,
-                           sizes,
                            cmapResolutions,
                            orientations,
                            alphas,
                            bgColours)
 
     for testcase in testcases:
-        cmap, size, cmapRes, orient, alpha, bgColour = testcase
+        cmap, cmapRes, orient, alpha, bgColour = testcase
 
         if orient == 'vertical': height, width = size
         else:                    width, height = size
@@ -86,8 +85,7 @@ def test_standard_usage():
                                       orientation=orient,
                                       bgColour=bgColour)
 
-        fname = gen_file_id('standard_usage',
-                            cmap, cmapRes, orient, alpha, bgColour)
+        fname = gen_file_id('standard_usage', *testcase)
         fname = f'{fname}.png'
 
         assert _compare(bmp, fname)
@@ -393,6 +391,44 @@ def test_negCmap_ticks():
                                       ticks=ticks,
                                       tickalign=tickalign,
                                       ticklabels=ticklabels)
+        assert _compare(bmp, fname)
+
+
+def test_modAlpha():
+
+    cmaps         = ['Reds']
+    alphas        = [0.5, 1.0]
+    bgColours     = [(0, 0, 0, 0), (0, 0, 0, 1), (1, 0, 0, 1)]
+    dispRanges    = [(-5, 5)]
+    modRanges     = [(-2.5, 2.5), (-5, 5), (-10, -5), (5, 10)]
+    invModAlphas  = [False, True]
+    width, height = 300, 100
+
+
+    testcases = it.product(cmaps,
+                           alphas,
+                           bgColours,
+                           dispRanges,
+                           modRanges,
+                           invModAlphas)
+
+    for testcase in testcases:
+        cmap, alpha, bgColour, dispRange, modRange, invModAlpha = testcase
+
+        bmp = cbarbmp.colourBarBitmap(cmap,
+                                      width,
+                                      height,
+                                      alpha=alpha,
+                                      bgColour=bgColour,
+                                      orientation='horizontal',
+                                      modAlpha=True,
+                                      invModAlpha=invModAlpha,
+                                      displayRange=dispRange,
+                                      modRange=modRange)
+
+        fname = gen_file_id('modAlpha', *testcase)
+        fname = f'{fname}.png'
+
         assert _compare(bmp, fname)
 
 
