@@ -432,6 +432,45 @@ def test_modAlpha():
         assert _compare(bmp, fname)
 
 
+def test_modAlpha_negCmap():
+
+    cmaps         = ['Reds']
+    negCmaps      = ['Blues']
+    alphas        = [0.5, 1.0]
+    bgColours     = [(0, 0, 0, 0), (0, 0, 0, 1), (1, 0, 0, 1)]
+    dispRanges    = [(0, 5)]
+    modRanges     = [(1.25, 3.75), (0, 5), (5, 10)]
+    invModAlphas  = [False, True]
+    width, height = 300, 100
+
+    testcases = it.product(cmaps,
+                           negCmaps,
+                           alphas,
+                           bgColours,
+                           dispRanges,
+                           modRanges,
+                           invModAlphas)
+
+    for testcase in testcases:
+        cmap, negCmap, alpha, bgColour, dispRange, modRange, invModAlpha = testcase
+
+        bmp = cbarbmp.colourBarBitmap(cmap,
+                                      width,
+                                      height,
+                                      negCmap=negCmap,
+                                      alpha=alpha,
+                                      bgColour=bgColour,
+                                      orientation='horizontal',
+                                      modAlpha=True,
+                                      invModAlpha=invModAlpha,
+                                      displayRange=dispRange,
+                                      modRange=modRange)
+
+        fname = gen_file_id('modAlpha', *testcase)
+        fname = f'{fname}.png'
+        assert _compare(bmp, fname)
+
+
 def test_badargs():
 
     testcases = [
