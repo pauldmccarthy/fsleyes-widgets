@@ -18,7 +18,7 @@ This file is used to store the current ``fsleyes-widgets`` version.
 """
 
 
-__version__ = '0.14.8'
+__version__ = '0.15.0'
 
 
 from fsleyes_widgets.utils import (WX_PYTHON,  # noqa
