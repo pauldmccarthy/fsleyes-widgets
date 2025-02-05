@@ -3,6 +3,28 @@ chronological order.
 
 
 
+
+0.15.0 (Wednesday 5th February 2025)
+------------------------------------
+
+
+Added
+^^^^^
+
+
+* The :func:`.colourBarBitmap` function supports a new ``modAlpha`` option
+  allowing transparency to be modulated according to a display and modulation
+  range.
+
+
+Changed
+^^^^^^^
+
+* The :func:`.colourBarBitmap` function has been changed slightly so that the
+  ``bgColour`` transparency is correctly applied to the background.
+
+
+
 0.14.8 (Friday 8th November 2024)
 ---------------------------------
 

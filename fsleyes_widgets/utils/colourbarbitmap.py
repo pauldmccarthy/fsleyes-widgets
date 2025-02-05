@@ -30,7 +30,11 @@ def colourBarBitmap(cmap,
                     textColour='#ffffff',
                     scale=1.0,
                     interp=False,
-                    logScaleRange=None):
+                    logScaleRange=None,
+                    modAlpha=False,
+                    invModAlpha=False,
+                    displayRange=None,
+                    modRange=None):
     """Plots a colour bar using :mod:`matplotlib`.
 
 
@@ -96,9 +100,24 @@ def colourBarBitmap(cmap,
                          to have ``cmapResolution``.
 
     :arg logScaleRange:  Tuple containing ``(min, max)`` display range to which
-                         the colour bar is mapped to. If provided, the colour bar
-                         will be scaled to the natural logarithm of the display
-                         range.
+                         the colour bar is mapped to. If provided, the colour
+                         bar will be scaled to the natural logarithm of the
+                         display range.
+
+    :arg modAlpha:       If ``True``, modulate the colour bar transparency
+                         according to the modulate and display ranges, so that
+                         colours at or below the low modulation range are
+                         fully transparent, and colours at or above the high
+                         modulation range have transparency set to ``alpha``.
+
+    :arg invModAlpha:    If ``True``, flips the direction in which the colour
+                         bar is modulated by transparency.
+
+    :arg displayRange:   Low/high values corresponding to the low/high colours.
+                         Required when ``modAlpha=True``.
+
+    :arg modRange:       Low/high values between which transparency should be
+                         modulated. Required when ``modAlpha=True``.
     """
 
     # These imports are expensive, so we're
@@ -122,6 +141,14 @@ def colourBarBitmap(cmap,
         raise ValueError('labelside must be top, bottom, '
                          f'left or right ({labelside})')
 
+    if modAlpha:
+        try:
+            _, _ = displayRange
+            _, _ = modRange
+        except Exception:
+            raise ValueError('displayRange and modRange must be '
+                             'provided when modAlpha is True')
+
     # vertical plots are rendered horizontally,
     # and then simply rotated at the end
     if orientation == 'vertical':
@@ -135,11 +162,15 @@ def colourBarBitmap(cmap,
     dpi       = scale  * 96.0
     ncols     = cmapResolution
     data      = genColours(cmap, ncols, invert, alpha,
-                           gamma, interp, logScaleRange)
+                           gamma, interp, logScaleRange,
+                           modAlpha, invModAlpha,
+                           displayRange, modRange)
 
     if negCmap is not None:
         ndata  = genColours(negCmap, ncols, not invert, alpha,
-                            gamma, interp, logScaleRange)
+                            gamma, interp, logScaleRange,
+                            modAlpha, invModAlpha,
+                            displayRange, modRange)
         data   = np.concatenate((ndata, data), axis=0)
         ncols *= 2
 
@@ -158,8 +189,10 @@ def colourBarBitmap(cmap,
 
     if bgColour is not None:
         fig.patch.set_facecolor(bgColour)
+        ax.set_facecolor(bgColour)
     else:
         fig.patch.set_alpha(0)
+        ax.set_alpha(0)
 
     # draw the colour bar
     ax.imshow(data,
@@ -262,7 +295,11 @@ def genColours(cmap,
                alpha,
                gamma=1,
                interp=False,
-               logScaleRange=None):
+               logScaleRange=None,
+               modAlpha=False,
+               invModAlpha=False,
+               displayRange=None,
+               modRange=None):
     """Generate an array containing ``ncols`` colours from the given
     colour map object/function.
     """
@@ -307,6 +344,39 @@ def genColours(cmap,
     else:
         rgbs = cmap(idxs)
 
-    rgbs[:, 3] = alpha
+    if not modAlpha:
+        rgbs[:, 3] = alpha
+
+    else:
+        dmin, dmax = displayRange
+        mmin, mmax = modRange
+        amin, amax = 0, alpha
+
+        if invModAlpha:
+            amin, amax = amax, amin
+
+        # mod range normalised to the range [0, 1]
+        nmmin = (mmin - dmin) / (dmax - dmin)
+        nmmax = (mmax - dmin) / (dmax - dmin)
+        nmmin = np.clip(nmmin, 0, 1)
+        nmmax = np.clip(nmmax, 0, 1)
+
+        # mod range in terms of num colours (ncols)
+        immin = int(np.round(ncols * nmmin))
+        immax = int(np.round(ncols * nmmax))
+
+        # mod range below or above display range
+        if   nmmin == 1: rgbs[:, 3] = amin
+        elif nmmax == 0: rgbs[:, 3] = amax
+
+        # mod range overlapping with display range
+        else:
+            alphas              = np.zeros(ncols, dtype=np.float32)
+            alphas[:immin]      = amin
+            alphas[immax:]      = amax
+            alphas[immin:immax] = np.linspace(amin, amax, abs(immax - immin))
+
+            if invert: rgbs[:, 3] = alphas[::-1]
+            else:      rgbs[:, 3] = alphas
 
     return rgbs
