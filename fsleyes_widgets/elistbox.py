@@ -287,7 +287,7 @@ class EditableListBox(wx.Panel):
             self            .Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
             self.__listPanel.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
 
-        def refresh(ev):
+        def onresize(ev):
             self.__updateScrollbar()
             self.__drawList()
             ev.Skip()
@@ -297,8 +297,7 @@ class EditableListBox(wx.Panel):
         # presses whenever this panel or
         # any of its children has focus.
         self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
-        self.Bind(wx.EVT_PAINT,     refresh)
-        self.Bind(wx.EVT_SIZE,      refresh)
+        self.Bind(wx.EVT_SIZE,      onresize)
 
         for label, data, tooltip in zip(labels, clientData, tooltips):
             self.Append(label, data, tooltip)
@@ -739,6 +738,9 @@ class EditableListBox(wx.Panel):
         # the state of this elistbox.
         container.Enable(self.IsEnabled())
 
+        self.__updateMoveButtons()
+        self.__updateScrollbar()
+        self.__drawList()
         self.Refresh()
 
 
@@ -853,6 +855,7 @@ class EditableListBox(wx.Panel):
 
         self.__updateMoveButtons()
         self.__updateScrollbar()
+        self.__drawList()
         self.Refresh()
 
 
@@ -1052,8 +1055,11 @@ class EditableListBox(wx.Panel):
         for item in self.__listItems:
             item.hidden = filterStr not in item.label.lower()
 
+
+        self.__updateMoveButtons()
         self.__updateScrollbar()
         self.__drawList()
+        self.Refresh()
 
 
     def __getSelection(self, fix=False):
@@ -1152,7 +1158,9 @@ class EditableListBox(wx.Panel):
 
         self.SetSelection(newIdx)
 
-        self.__listSizer.Layout()
+        self.__updateMoveButtons()
+        self.__drawList()
+        self.Refresh()
 
         log.debug('ListMoveEvent (oldIdx: {}; newIdx: {}; label: {})'.format(
             oldIdx, newIdx, label))
