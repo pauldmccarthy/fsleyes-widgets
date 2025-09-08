@@ -287,7 +287,7 @@ class EditableListBox(wx.Panel):
             self            .Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
             self.__listPanel.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
 
-        def refresh(ev):
+        def onresize(ev):
             self.__updateScrollbar()
             self.__drawList()
             ev.Skip()
@@ -297,8 +297,7 @@ class EditableListBox(wx.Panel):
         # presses whenever this panel or
         # any of its children has focus.
         self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
-        self.Bind(wx.EVT_PAINT,     refresh)
-        self.Bind(wx.EVT_SIZE,      refresh)
+        self.Bind(wx.EVT_SIZE,      onresize)
 
         for label, data, tooltip in zip(labels, clientData, tooltips):
             self.Append(label, data, tooltip)
@@ -675,15 +674,20 @@ class EditableListBox(wx.Panel):
         for item, flags in zip(sizerItems, sizerFlags):
             sizer.Add(item, **flags)
 
-        labelWidget.Bind(wx.EVT_LEFT_DOWN, self.__itemClicked)
-        container  .Bind(wx.EVT_LEFT_DOWN, self.__itemClicked)
+
+        evtlisteners = [container, labelWidget]
+        if extraWidget is not None:
+            evtlisteners.append(extraWidget)
+
+        for listener in evtlisteners:
+            listener.Bind(wx.EVT_LEFT_DOWN, self.__itemClicked)
 
         # Under linux/GTK, mouse wheel handlers
         # need to be added to children, not
         # just the top level container
         if self.__scrollbar is not None:
-            labelWidget.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
-            container  .Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
+            for listener in evtlisteners:
+                listener.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
 
         item = _ListItem(label,
                          clientData,
@@ -706,14 +710,14 @@ class EditableListBox(wx.Panel):
         # double clicking will call
         # the __onEdit method
         if self.__editSupport:
-            labelWidget.Bind(wx.EVT_LEFT_DCLICK, onEdit)
-            container  .Bind(wx.EVT_LEFT_DCLICK, onEdit)
+            for listener in evtlisteners:
+                listener.Bind(wx.EVT_LEFT_DCLICK, onEdit)
 
         # Otherwise, double clicking will
         # call the __onDoubleClick method
         else:
-            labelWidget.Bind(wx.EVT_LEFT_DCLICK, onDblClick)
-            container  .Bind(wx.EVT_LEFT_DCLICK, onDblClick)
+            for listener in evtlisteners:
+                listener.Bind(wx.EVT_LEFT_DCLICK, onDblClick)
 
         log.debug('Inserting item ({}) at index {}'.format(label, pos))
 
@@ -739,6 +743,9 @@ class EditableListBox(wx.Panel):
         # the state of this elistbox.
         container.Enable(self.IsEnabled())
 
+        self.__updateMoveButtons()
+        self.__updateScrollbar()
+        self.__drawList()
         self.Refresh()
 
 
@@ -853,6 +860,7 @@ class EditableListBox(wx.Panel):
 
         self.__updateMoveButtons()
         self.__updateScrollbar()
+        self.__drawList()
         self.Refresh()
 
 
@@ -1052,8 +1060,11 @@ class EditableListBox(wx.Panel):
         for item in self.__listItems:
             item.hidden = filterStr not in item.label.lower()
 
+
+        self.__updateMoveButtons()
         self.__updateScrollbar()
         self.__drawList()
+        self.Refresh()
 
 
     def __getSelection(self, fix=False):
@@ -1097,11 +1108,14 @@ class EditableListBox(wx.Panel):
 
         if ev is not None:
             widget = ev.GetEventObject()
+            ev.Skip()
 
         itemIdx = -1
 
         for i, listItem in enumerate(self.__listItems):
-            if widget in (listItem.labelWidget, listItem.container):
+            if widget in (listItem.labelWidget,
+                          listItem.container,
+                          listItem.extraWidget):
                 itemIdx = i
                 break
 
@@ -1152,7 +1166,9 @@ class EditableListBox(wx.Panel):
 
         self.SetSelection(newIdx)
 
-        self.__listSizer.Layout()
+        self.__updateMoveButtons()
+        self.__drawList()
+        self.Refresh()
 
         log.debug('ListMoveEvent (oldIdx: {}; newIdx: {}; label: {})'.format(
             oldIdx, newIdx, label))
