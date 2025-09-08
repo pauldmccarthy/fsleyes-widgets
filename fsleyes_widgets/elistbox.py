@@ -674,15 +674,20 @@ class EditableListBox(wx.Panel):
         for item, flags in zip(sizerItems, sizerFlags):
             sizer.Add(item, **flags)
 
-        labelWidget.Bind(wx.EVT_LEFT_DOWN, self.__itemClicked)
-        container  .Bind(wx.EVT_LEFT_DOWN, self.__itemClicked)
+
+        evtlisteners = [container, labelWidget]
+        if extraWidget is not None:
+            evtlisteners.append(extraWidget)
+
+        for listener in evtlisteners:
+            listener.Bind(wx.EVT_LEFT_DOWN, self.__itemClicked)
 
         # Under linux/GTK, mouse wheel handlers
         # need to be added to children, not
         # just the top level container
         if self.__scrollbar is not None:
-            labelWidget.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
-            container  .Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
+            for listener in evtlisteners:
+                listener.Bind(wx.EVT_MOUSEWHEEL, self.__onMouseWheel)
 
         item = _ListItem(label,
                          clientData,
@@ -705,14 +710,14 @@ class EditableListBox(wx.Panel):
         # double clicking will call
         # the __onEdit method
         if self.__editSupport:
-            labelWidget.Bind(wx.EVT_LEFT_DCLICK, onEdit)
-            container  .Bind(wx.EVT_LEFT_DCLICK, onEdit)
+            for listener in evtlisteners:
+                listener.Bind(wx.EVT_LEFT_DCLICK, onEdit)
 
         # Otherwise, double clicking will
         # call the __onDoubleClick method
         else:
-            labelWidget.Bind(wx.EVT_LEFT_DCLICK, onDblClick)
-            container  .Bind(wx.EVT_LEFT_DCLICK, onDblClick)
+            for listener in evtlisteners:
+                listener.Bind(wx.EVT_LEFT_DCLICK, onDblClick)
 
         log.debug('Inserting item ({}) at index {}'.format(label, pos))
 
@@ -1103,11 +1108,14 @@ class EditableListBox(wx.Panel):
 
         if ev is not None:
             widget = ev.GetEventObject()
+            ev.Skip()
 
         itemIdx = -1
 
         for i, listItem in enumerate(self.__listItems):
-            if widget in (listItem.labelWidget, listItem.container):
+            if widget in (listItem.labelWidget,
+                          listItem.container,
+                          listItem.extraWidget):
                 itemIdx = i
                 break
 
