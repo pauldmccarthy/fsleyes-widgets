@@ -7,6 +7,12 @@ chronological order.
 ----------------------------------
 
 
+Changed
+^^^^^^^
+
+* Switched to ``setuptools-scm`` for version number management.
+
+
 Fixed
 ^^^^^
 
