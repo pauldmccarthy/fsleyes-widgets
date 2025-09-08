@@ -8,7 +8,7 @@ name            = "fsleyes-widgets"
 dynamic         = ["version"]
 description     = "A collection of wxPython widgets used by FSLeyes"
 readme          = {file = "README.rst", content-type="text/x-rst"}
-license         = {text = "Apache License Version 2.0"}
+license-files   = ["LICENSE"]
 requires-python = ">=3.8"
 authors         = [{name = "Paul McCarthy", email = "pauldmccarthy@gmail.com"}]
 
@@ -16,17 +16,6 @@ dependencies = [
  "numpy",
  "matplotlib >=3.5",
  "wxPython >=3.0.2.0",
-]
-
-classifiers = [
-  "Development Status :: 3 - Alpha",
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 
 
@@ -58,10 +47,6 @@ include = ["fsleyes_widgets*"]
 
 [tool.setuptools.package-data]
 fsleyes_widgets = ["fsleyes_widgets/tests/testdata/*"]
-
-
-[tool.setuptools.dynamic]
-version = {attr = "fsleyes_widgets.__version__"}
 
 
 [tool.coverage.run]
