@@ -17,8 +17,7 @@ behaviour in the existing controls.
 This file is used to store the current ``fsleyes-widgets`` version.
 """
 
-
-__version__ = '0.15.0'
+from importlib.metadata import version, PackageNotFoundError
 
 
 from fsleyes_widgets.utils import (WX_PYTHON,  # noqa
@@ -39,3 +38,10 @@ from fsleyes_widgets.utils import (WX_PYTHON,  # noqa
                                    inSSHSession,
                                    inVNCSession,
                                    isalive)
+
+
+
+try:
+    __version__ = version("fsleyes-widgets")
+except PackageNotFoundError:
+    __version__ = '<unknown>'

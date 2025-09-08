@@ -1,5 +1,5 @@
 [build-system]
-requires      = ["setuptools"]
+requires      = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 
@@ -75,3 +75,5 @@ addopts   = "-v --cov=fsleyes_widgets"
 markers   = [
   "dodgy: Tests which fail because wx.UIActionSimulator is dodgy"
 ]
+
+[tool.setuptools_scm]
