@@ -3,6 +3,15 @@ chronological order.
 
 
 
+0.15.1 (Monday 8th September 2025)
+----------------------------------
+
+
+Fixed
+^^^^^
+
+* Fixed a refresh issue in the :class:`.EditableListBox`.
+
 
 0.15.0 (Wednesday 5th February 2025)
 ------------------------------------
