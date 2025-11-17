@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /test.venv/bin/activate
+set -e
 
 PIPARGS="--retries 10 --timeout 30"
 
