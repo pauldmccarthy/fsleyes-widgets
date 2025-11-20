@@ -3,8 +3,8 @@ chronological order.
 
 
 
-X.X.X (Under development)
--------------------------
+0.15.2 (Thursday 20th November 2025)
+------------------------------------
 
 
 Changed
@@ -12,6 +12,12 @@ Changed
 
 
 * Added Python 3.14 to testing.
+
+  
+Fixed
+^^^^^
+
+* Fixed a Python 3.14 incompatibility in the :mod:`.webpage` module.
 
 
 0.15.1 (Monday 8th September 2025)
