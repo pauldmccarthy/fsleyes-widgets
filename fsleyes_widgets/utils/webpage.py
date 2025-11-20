@@ -27,7 +27,7 @@ def fileToUrl(fileName):
     """Converts a file path to a URL. """
     fileName = op.abspath(fileName)
     fileName = urlrequest.pathname2url(fileName)
-    return urlparse.urljoin('file:', fileName)
+    return urlparse.urljoin('file://', fileName)
 
 
 def openPage(url):
