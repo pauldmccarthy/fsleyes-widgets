@@ -3,6 +3,17 @@ chronological order.
 
 
 
+X.X.X (Under development)
+-------------------------
+
+
+Changed
+^^^^^^^
+
+
+* Added Python 3.14 to testing.
+
+
 0.15.1 (Monday 8th September 2025)
 ----------------------------------
 
