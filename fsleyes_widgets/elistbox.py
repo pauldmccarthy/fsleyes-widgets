@@ -1055,10 +1055,14 @@ class EditableListBox(wx.Panel):
         if filterStr is None:
             filterStr = ''
 
-        filterStr = filterStr.strip().lower()
+        if callable(filterStr):
+            for item in self.__listItems:
+                item.hidden = not filterStr(item.data)
+        else:
+            filterStr = filterStr.strip().lower()
 
-        for item in self.__listItems:
-            item.hidden = filterStr not in item.label.lower()
+            for item in self.__listItems:
+                item.hidden = filterStr not in item.label.lower()
 
 
         self.__updateMoveButtons()
