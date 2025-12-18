@@ -1044,26 +1044,34 @@ class EditableListBox(wx.Panel):
         self.Enable(False)
 
 
-    def ApplyFilter(self, filterStr=None, ignoreCase=False):
-        """Hides any items for which the label does not contain the given
-        ``filterStr``.
+    def ApplyFilter(self, predicate=None, ignoreCase=False):
+        """Hides any items for which the given ``predicate`` evaluates
+        to ``True``.
+
+        The ``predicate`` argument may be one of the following:
+          - A string - items with a label that does not contain ``predicate``
+            will be hidden. The ``ignoreCase`` argument can be used to perform
+            case-insensitive matching.
+          - A callable function - the function is passed the ``clientData``
+            for each item. Any items for which ``predicate(clientData)``
+            returns ``False`` will be hiden.
 
         To clear the filter (and hence show all items), pass in
-        ``filterStr=None``.
+        ``predicate=None``.
         """
 
-        if filterStr is None:
-            filterStr = ''
+        if predicate is None:
+            predicate = lambda d: True
 
-        if callable(filterStr):
+        if callable(predicate):
             for item in self.__listItems:
-                item.hidden = not filterStr(item.data)
+                item.hidden = not predicate(item.data)
         else:
-            filterStr = filterStr.strip().lower()
+            if ignoreCase:
+                predicate = predicate.strip().lower()
 
             for item in self.__listItems:
-                item.hidden = filterStr not in item.label.lower()
-
+                item.hidden = predicate not in item.label.lower()
 
         self.__updateMoveButtons()
         self.__updateScrollbar()
