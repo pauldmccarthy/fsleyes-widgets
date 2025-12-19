@@ -296,7 +296,7 @@ class EditableListBox(wx.Panel):
         # because we want to capture key
         # presses whenever this panel or
         # any of its children has focus.
-        self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
+        self.Bind(wx.EVT_CHAR_HOOK, self._onKeyboard)
         self.Bind(wx.EVT_SIZE,      onresize)
 
         for label, data, tooltip in zip(labels, clientData, tooltips):
@@ -324,7 +324,7 @@ class EditableListBox(wx.Panel):
         self.Layout()
 
 
-    def __onKeyboard(self, ev):
+    def _onKeyboard(self, ev):
         """Called when a key is pressed. On up/down arrow key presses,
         changes the selected item, and scrolls if necessary.
         """
@@ -944,6 +944,12 @@ class EditableListBox(wx.Panel):
         return self.__listItems[n].label
 
 
+    def GetItemLabels(self):
+        """Returns a list containing the labels for all list items.
+        """
+        return [i.label for i in self.__listItems]
+
+
     def SetItemWidget(self, n, widget=None):
         """Sets the widget to be displayed alongside the item at index ``n``.
 
@@ -974,6 +980,7 @@ class EditableListBox(wx.Panel):
 
         return self.__listItems[i].extraWidget
 
+
     def SetItemTooltip(self, n, tooltip=None):
         """Sets the tooltip associated with the item at index ``n``."""
         n = self.__fixIndex(n)
@@ -992,10 +999,23 @@ class EditableListBox(wx.Panel):
         self.__listItems[n].data = data
 
 
-    def GetItemData(self, n):
-        """Returns the data associated with the item at index ``n``."""
-        n = self.__fixIndex(n)
-        return self.__listItems[n].data
+    def GetItemData(self, n=None):
+        """Returns the data associated with the item at index ``n``.
+        If ``n is None``, returns a list containing the client data
+        for all items.
+        """
+        if n is None:
+            return [i.data for i in self.__listItems]
+        else:
+            n = self.__fixIndex(n)
+            return self.__listItems[n].data
+
+
+    def GetVisibleItemData(self):
+        """Returns a list containing the client data for all visible list
+        items.
+        """
+        return [i.data for i in self.__listItems if not i.hidden]
 
 
     def SetItemForegroundColour(self,
@@ -1130,7 +1150,7 @@ class EditableListBox(wx.Panel):
 
         This method may be called programmatically, by explicitly passing
         in the target ``widget``.  This functionality is used by the
-        :meth:`__onKeyboard` event.
+        :meth:`_onKeyboard` event.
 
         :arg ev:     A :class:`wx.MouseEvent`.
         :arg widget: The widget on which to simulate a mouse click. Must
