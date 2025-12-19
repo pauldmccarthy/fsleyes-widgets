@@ -1046,9 +1046,10 @@ class EditableListBox(wx.Panel):
           - A string - items with a label that does not contain ``predicate``
             will be hidden. The ``ignoreCase`` argument can be used to perform
             case-insensitive matching.
-          - A callable function - the function is passed the ``clientData``
-            for each item. Any items for which ``predicate(clientData)``
-            returns ``False`` will be hiden.
+
+          - A callable function which accepts ``label`` and ``clientData``
+            as positional arguments. for each item. Any items for which
+            ``predicate(label, clientData)`` returns ``False`` will be hiden.
 
         To clear the filter (and hence show all items), pass in
         ``predicate=None``.
@@ -1059,7 +1060,7 @@ class EditableListBox(wx.Panel):
 
         if callable(predicate):
             for item in self.__listItems:
-                item.hidden = not predicate(item.data)
+                item.hidden = not predicate(item.label, item.data)
         else:
             if ignoreCase:
                 predicate = predicate.strip().lower()
