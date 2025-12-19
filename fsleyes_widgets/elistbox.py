@@ -413,13 +413,7 @@ class EditableListBox(wx.Panel):
         """Returns the number of items in the list which are visible
         (i.e. which have not been hidden via a call to :meth:`ApplyFilter`).
         """
-        nitems = 0
-
-        for item in self.__listItems:
-            if not item.hidden:
-                nitems += 1
-
-        return nitems
+        return len([i for i in self.__listItems if not i.hidden])
 
 
     def __drawList(self, ev=None):
