@@ -1181,17 +1181,54 @@ class EditableListBox(wx.Panel):
 
         oldIdx, label, data = self.__getSelection()
 
-        if oldIdx is None: return
+        if oldIdx is None:
+            return
 
-        newIdx = oldIdx + offset
+        if self.GetCount() == 0:
+            return
 
-        # the selected item is at the top/bottom of the list.
-        if oldIdx < 0 or oldIdx >= self.GetCount(): return
-        if newIdx < 0 or newIdx >= self.GetCount(): return
+        items   = self.__listItems
+        selItem = items[oldIdx]
+
+        # if the selected item is hidden, we
+        # just move naively w.r.t. all items
+        if items[oldIdx].hidden:
+
+            # the selected item is already at
+            # the top/bottom of the list.
+            if offset < 0 and oldIdx <= 0:               return
+            if offset > 0 and oldIdx >= self.GetCount(): return
+
+            newIdx = oldIdx + offset
+
+            if newIdx < 0:           newIdx = 0
+            if newIdx >= len(items): newIdx = len(items) - 1
+
+        # Otherwise we move the item w.r.t.
+        # visible items.
+        else:
+
+            viscount = self.VisibleItemCount()
+            visItems = [it for it in items if not it.hidden]
+            origIdxs = {it : i for i, it in enumerate(items)}
+            visIdxs  = {it : i for i, it in enumerate(visItems)}
+
+            oldVisIdx = visIdxs[selItem]
+            newVisIdx = oldVisIdx + offset
+
+            # item is already at top or
+            # bottom of visible items
+            if offset < 0 and oldVisIdx <= 0:        return
+            if offset > 0 and oldVisIdx >= viscount: return
+
+            if newVisIdx < 0:         newVisIdx = 0
+            if newVisIdx >= viscount: newVisIdx = viscount - 1
+
+            newIdx = origIdxs[visItems[newVisIdx]]
 
         widget = self.__listSizer.GetItem(oldIdx).GetWindow()
 
-        self.__listItems.insert(newIdx, self.__listItems.pop(oldIdx))
+        items.insert(newIdx, items.pop(oldIdx))
 
         self.__listSizer.Detach(oldIdx)
         self.__listSizer.Insert(newIdx, widget, flag=wx.EXPAND)
