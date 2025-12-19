@@ -347,23 +347,50 @@ class EditableListBox(wx.Panel):
         if   key == wx.WXK_UP:   offset = -1
         elif key == wx.WXK_DOWN: offset =  1
 
-        selected = self.__selection + offset
-
-        if any((selected < 0, selected >= self.GetCount())):
+        # no items visible
+        if self.VisibleItemCount() == 0:
             return
+
+        # Some items may be hidden if a filter
+        # is active (see ApplyFilter), and we
+        # want to change the selection w.r.t
+        # the visible items. We generate indices
+        # for each item both in terms of all
+        # items, and in terms of visible items.
+        items    = self.__listItems
+        visItems = [i        for i       in items if not i.hidden]
+        origIdxs = {item : i for i, item in enumerate(items)}
+        visIdxs  = {item : i for i, item in enumerate(visItems)}
+
+        oldIdx = self.__selection
+        if oldIdx is None:
+            oldIdx = 0
+
+        # calculate new index in terms
+        # of visible items
+        oldVisIdx = visIdxs[items[oldIdx]]
+        newVisIdx = oldVisIdx + offset
+
+        # selected item is already the first/last
+        # visible item
+        if newVisIdx < 0 or newVisIdx >= len(visItems):
+            return
+
+        # Map index back to list of all items
+        newIdx = origIdxs[visItems[newVisIdx]]
 
         # Change the selected item, simulating
         # a mouse click so that event listeners
         # are notified
-        self.__itemClicked(None, self.__listItems[selected].labelWidget)
+        self.__itemClicked(None, self.__listItems[newIdx].labelWidget)
 
         # Update the scrollbar position, to make
         # sure the newly selected item is visible
         if self.__scrollbar is not None:
             scrollPos = self.__scrollbar.GetThumbPosition()
 
-            if any((selected <  scrollPos,
-                    selected >= scrollPos + self.__scrollbar.GetPageSize())):
+            if any((newVisIdx <  scrollPos,
+                    newVisIdx >= scrollPos + self.__scrollbar.GetPageSize())):
                 self.__onMouseWheel(None, -offset)
 
 
@@ -1056,7 +1083,8 @@ class EditableListBox(wx.Panel):
         """
 
         if predicate is None:
-            predicate = lambda d: True
+            def predicate(label, data):
+                return True
 
         if callable(predicate):
             for item in self.__listItems:
@@ -1347,10 +1375,21 @@ class EditableListBox(wx.Panel):
 
     def __updateMoveButtons(self):
         if self.__moveSupport:
+
+            # We disable the down button if the current
+            # item is the last _visible_ item. Here we
+            # retrieve all visible items to determine
+            # the index of the last one.
+            visible = [i for i, item in enumerate(self.__listItems)
+                       if not item.hidden]
+
+            if len(visible) == 0: maxidx = 0
+            else:                 maxidx = visible[-1]
+
             self.__upButton  .Enable((self.__selection != wx.NOT_FOUND) and
-                                     (self.__selection != 0))
+                                     (self.__selection > 0))
             self.__downButton.Enable((self.__selection != wx.NOT_FOUND) and
-                                     (self.__selection != self.GetCount() - 1))
+                                     (self.__selection < maxidx))
 
 
 class _ListItem:
