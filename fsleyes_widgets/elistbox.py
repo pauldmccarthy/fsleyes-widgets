@@ -296,7 +296,7 @@ class EditableListBox(wx.Panel):
         # because we want to capture key
         # presses whenever this panel or
         # any of its children has focus.
-        self.Bind(wx.EVT_CHAR_HOOK, self.__onKeyboard)
+        self.Bind(wx.EVT_CHAR_HOOK, self._onKeyboard)
         self.Bind(wx.EVT_SIZE,      onresize)
 
         for label, data, tooltip in zip(labels, clientData, tooltips):
@@ -324,7 +324,7 @@ class EditableListBox(wx.Panel):
         self.Layout()
 
 
-    def __onKeyboard(self, ev):
+    def _onKeyboard(self, ev):
         """Called when a key is pressed. On up/down arrow key presses,
         changes the selected item, and scrolls if necessary.
         """
@@ -347,23 +347,50 @@ class EditableListBox(wx.Panel):
         if   key == wx.WXK_UP:   offset = -1
         elif key == wx.WXK_DOWN: offset =  1
 
-        selected = self.__selection + offset
-
-        if any((selected < 0, selected >= self.GetCount())):
+        # no items visible
+        if self.VisibleItemCount() == 0:
             return
+
+        # Some items may be hidden if a filter
+        # is active (see ApplyFilter), and we
+        # want to change the selection w.r.t
+        # the visible items. We generate indices
+        # for each item both in terms of all
+        # items, and in terms of visible items.
+        items    = self.__listItems
+        visItems = [i        for i       in items if not i.hidden]
+        origIdxs = {item : i for i, item in enumerate(items)}
+        visIdxs  = {item : i for i, item in enumerate(visItems)}
+
+        oldIdx = self.__selection
+        if oldIdx is None:
+            oldIdx = 0
+
+        # calculate new index in terms
+        # of visible items
+        oldVisIdx = visIdxs[items[oldIdx]]
+        newVisIdx = oldVisIdx + offset
+
+        # selected item is already the first/last
+        # visible item
+        if newVisIdx < 0 or newVisIdx >= len(visItems):
+            return
+
+        # Map index back to list of all items
+        newIdx = origIdxs[visItems[newVisIdx]]
 
         # Change the selected item, simulating
         # a mouse click so that event listeners
         # are notified
-        self.__itemClicked(None, self.__listItems[selected].labelWidget)
+        self.__itemClicked(None, self.__listItems[newIdx].labelWidget)
 
         # Update the scrollbar position, to make
         # sure the newly selected item is visible
         if self.__scrollbar is not None:
             scrollPos = self.__scrollbar.GetThumbPosition()
 
-            if any((selected <  scrollPos,
-                    selected >= scrollPos + self.__scrollbar.GetPageSize())):
+            if any((newVisIdx <  scrollPos,
+                    newVisIdx >= scrollPos + self.__scrollbar.GetPageSize())):
                 self.__onMouseWheel(None, -offset)
 
 
@@ -413,13 +440,7 @@ class EditableListBox(wx.Panel):
         """Returns the number of items in the list which are visible
         (i.e. which have not been hidden via a call to :meth:`ApplyFilter`).
         """
-        nitems = 0
-
-        for item in self.__listItems:
-            if not item.hidden:
-                nitems += 1
-
-        return nitems
+        return len([i for i in self.__listItems if not i.hidden])
 
 
     def __drawList(self, ev=None):
@@ -923,6 +944,12 @@ class EditableListBox(wx.Panel):
         return self.__listItems[n].label
 
 
+    def GetItemLabels(self):
+        """Returns a list containing the labels for all list items.
+        """
+        return [i.label for i in self.__listItems]
+
+
     def SetItemWidget(self, n, widget=None):
         """Sets the widget to be displayed alongside the item at index ``n``.
 
@@ -953,6 +980,7 @@ class EditableListBox(wx.Panel):
 
         return self.__listItems[i].extraWidget
 
+
     def SetItemTooltip(self, n, tooltip=None):
         """Sets the tooltip associated with the item at index ``n``."""
         n = self.__fixIndex(n)
@@ -971,10 +999,23 @@ class EditableListBox(wx.Panel):
         self.__listItems[n].data = data
 
 
-    def GetItemData(self, n):
-        """Returns the data associated with the item at index ``n``."""
-        n = self.__fixIndex(n)
-        return self.__listItems[n].data
+    def GetItemData(self, n=None):
+        """Returns the data associated with the item at index ``n``.
+        If ``n is None``, returns a list containing the client data
+        for all items.
+        """
+        if n is None:
+            return [i.data for i in self.__listItems]
+        else:
+            n = self.__fixIndex(n)
+            return self.__listItems[n].data
+
+
+    def GetVisibleItemData(self):
+        """Returns a list containing the client data for all visible list
+        items.
+        """
+        return [i.data for i in self.__listItems if not i.hidden]
 
 
     def SetItemForegroundColour(self,
@@ -1044,22 +1085,36 @@ class EditableListBox(wx.Panel):
         self.Enable(False)
 
 
-    def ApplyFilter(self, filterStr=None, ignoreCase=False):
-        """Hides any items for which the label does not contain the given
-        ``filterStr``.
+    def ApplyFilter(self, predicate=None, ignoreCase=False):
+        """Hides any items for which the given ``predicate`` evaluates
+        to ``True``.
+
+        The ``predicate`` argument may be one of the following:
+          - A string - items with a label that does not contain ``predicate``
+            will be hidden. The ``ignoreCase`` argument can be used to perform
+            case-insensitive matching.
+
+          - A callable function which accepts ``label`` and ``clientData``
+            as positional arguments. for each item. Any items for which
+            ``predicate(label, clientData)`` returns ``False`` will be hiden.
 
         To clear the filter (and hence show all items), pass in
-        ``filterStr=None``.
+        ``predicate=None``.
         """
 
-        if filterStr is None:
-            filterStr = ''
+        if predicate is None:
+            def predicate(label, data):
+                return True
 
-        filterStr = filterStr.strip().lower()
+        if callable(predicate):
+            for item in self.__listItems:
+                item.hidden = not predicate(item.label, item.data)
+        else:
+            if ignoreCase:
+                predicate = predicate.strip().lower()
 
-        for item in self.__listItems:
-            item.hidden = filterStr not in item.label.lower()
-
+            for item in self.__listItems:
+                item.hidden = predicate not in item.label.lower()
 
         self.__updateMoveButtons()
         self.__updateScrollbar()
@@ -1095,7 +1150,7 @@ class EditableListBox(wx.Panel):
 
         This method may be called programmatically, by explicitly passing
         in the target ``widget``.  This functionality is used by the
-        :meth:`__onKeyboard` event.
+        :meth:`_onKeyboard` event.
 
         :arg ev:     A :class:`wx.MouseEvent`.
         :arg widget: The widget on which to simulate a mouse click. Must
@@ -1146,17 +1201,54 @@ class EditableListBox(wx.Panel):
 
         oldIdx, label, data = self.__getSelection()
 
-        if oldIdx is None: return
+        if oldIdx is None:
+            return
 
-        newIdx = oldIdx + offset
+        if self.GetCount() == 0:
+            return
 
-        # the selected item is at the top/bottom of the list.
-        if oldIdx < 0 or oldIdx >= self.GetCount(): return
-        if newIdx < 0 or newIdx >= self.GetCount(): return
+        items   = self.__listItems
+        selItem = items[oldIdx]
+
+        # if the selected item is hidden, we
+        # just move naively w.r.t. all items
+        if items[oldIdx].hidden:
+
+            # the selected item is already at
+            # the top/bottom of the list.
+            if offset < 0 and oldIdx <= 0:               return
+            if offset > 0 and oldIdx >= self.GetCount(): return
+
+            newIdx = oldIdx + offset
+
+            if newIdx < 0:           newIdx = 0
+            if newIdx >= len(items): newIdx = len(items) - 1
+
+        # Otherwise we move the item w.r.t.
+        # visible items.
+        else:
+
+            viscount = self.VisibleItemCount()
+            visItems = [it for it in items if not it.hidden]
+            origIdxs = {it : i for i, it in enumerate(items)}
+            visIdxs  = {it : i for i, it in enumerate(visItems)}
+
+            oldVisIdx = visIdxs[selItem]
+            newVisIdx = oldVisIdx + offset
+
+            # item is already at top or
+            # bottom of visible items
+            if offset < 0 and oldVisIdx <= 0:        return
+            if offset > 0 and oldVisIdx >= viscount: return
+
+            if newVisIdx < 0:         newVisIdx = 0
+            if newVisIdx >= viscount: newVisIdx = viscount - 1
+
+            newIdx = origIdxs[visItems[newVisIdx]]
 
         widget = self.__listSizer.GetItem(oldIdx).GetWindow()
 
-        self.__listItems.insert(newIdx, self.__listItems.pop(oldIdx))
+        items.insert(newIdx, items.pop(oldIdx))
 
         self.__listSizer.Detach(oldIdx)
         self.__listSizer.Insert(newIdx, widget, flag=wx.EXPAND)
@@ -1340,10 +1432,21 @@ class EditableListBox(wx.Panel):
 
     def __updateMoveButtons(self):
         if self.__moveSupport:
+
+            # We disable the down button if the current
+            # item is the last _visible_ item. Here we
+            # retrieve all visible items to determine
+            # the index of the last one.
+            visible = [i for i, item in enumerate(self.__listItems)
+                       if not item.hidden]
+
+            if len(visible) == 0: maxidx = 0
+            else:                 maxidx = visible[-1]
+
             self.__upButton  .Enable((self.__selection != wx.NOT_FOUND) and
-                                     (self.__selection != 0))
+                                     (self.__selection > 0))
             self.__downButton.Enable((self.__selection != wx.NOT_FOUND) and
-                                     (self.__selection != self.GetCount() - 1))
+                                     (self.__selection < maxidx))
 
 
 class _ListItem:
