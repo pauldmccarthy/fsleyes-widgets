@@ -3,6 +3,19 @@ chronological order.
 
 
 
+0.16.0 (Friday 19th December 2025)
+----------------------------------
+
+
+Changed
+^^^^^^^
+
+* Adjust the :meth:`.EditableListBox.ApplyFilter` method so it can be passed
+  either a string, or a predicate function, for hiding/filtering items.
+* Expand the logic for keyboard selection and item movement to take into
+  account (i.e. skip over) hidden items.
+
+
 0.15.2 (Thursday 20th November 2025)
 ------------------------------------
 
@@ -13,7 +26,7 @@ Changed
 
 * Added Python 3.14 to testing.
 
-  
+
 Fixed
 ^^^^^
 
