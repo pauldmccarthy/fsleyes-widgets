@@ -54,6 +54,12 @@ class FilePanel(wx.Panel):
         self.__loadButton.Bind(wx.EVT_BUTTON, self.__onLoad)
 
 
+    @property
+    def loadButton(self):
+        """Return a reference to the load button (for testing). """
+        return self.__loadButton
+
+
     def GetFilePath(self):
         """Return the current file path. """
         return self.__filePath.GetLabel()
@@ -70,6 +76,7 @@ class FilePanel(wx.Panel):
         """Called when the user pushes the "load" button. Opens a file dialog
         allowing the user to select a new file. Emits a :attr:`FilePanelEvent`.
         """
+
         path = self.GetFilePath()
 
         if path is not None and op.exists(path):
