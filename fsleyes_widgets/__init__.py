@@ -91,6 +91,9 @@ from fsleyes_widgets.elistbox             import (EditableListBox,
                                                   ELB_WIDGET_RIGHT,
                                                   ELB_TOOLTIP_DOWN,
                                                   ELB_SCROLL_BUTTONS)
+from fsleyes_widgets.filepanel            import (FilePanel,
+                                                  FilePanelEvent,
+                                                  EVT_FILE_PANEL_EVENT)
 from fsleyes_widgets.floatslider          import (FloatSlider,
                                                   SliderSpinPanel,
                                                   SliderSpinLimitEvent,
