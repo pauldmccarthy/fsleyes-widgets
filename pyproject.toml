@@ -27,7 +27,8 @@ dependencies = [
 [project.optional-dependencies]
 doc = [
   "sphinx",
-  "sphinx_rtd_theme"
+  "sphinx_rtd_theme",
+  "sphinx-rtd-dark-mode"
 ]
 test = [
   "pytest",
