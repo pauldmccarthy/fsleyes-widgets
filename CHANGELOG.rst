@@ -2,6 +2,26 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.17.0 (Under development)
+--------------------------
+
+
+Added
+^^^^^
+
+
+* New :class:`.FilePanel` widget, which simply displays a file path, and
+  allows the user to open a file dialog to select a new file path.
+
+
+Changed
+^^^^^^^
+
+
+* All classes provided by ``fsleyes_widgets`` are now accessible in the
+  top-level package namespace (e.g. `fsleyes_widgets.FloatSlider``
+  instead of ``fsleyeds_widgets.floatslider.FloatSlider``).
+
 
 0.16.0 (Friday 19th December 2025)
 ----------------------------------
