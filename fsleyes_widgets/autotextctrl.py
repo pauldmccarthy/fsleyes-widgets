@@ -24,7 +24,7 @@ import fsleyes_widgets.utils as wutils
 log = logging.getLogger(__name__)
 
 
-class AutoTextCtrl(wx.Panel):
+class AutoTextCtrl(wx.Control):
     """The ``AutoTextCtrl`` class is essentially a ``wx.TextCtrl`` which is able
     to dynamically show a list of options to the user, with a
     :class:`AutoCompletePopup`.
@@ -47,7 +47,7 @@ class AutoTextCtrl(wx.Panel):
                      purposes.
         """
 
-        wx.Panel.__init__(self, parent)
+        wx.Control.__init__(self, parent)
 
         self.__style    = style
         self.__modal    = modal
@@ -80,8 +80,7 @@ class AutoTextCtrl(wx.Panel):
 
         ev.Skip()
 
-        log.debug('Text control gained focus: {}'.format(
-            wx.Window.FindFocus()))
+        log.debug('Text control gained focus: %s', wx.Window.FindFocus())
 
         # Under wx/GTK, when a text control gains focus,
         # it seems to select its entire contents, meaning
@@ -162,7 +161,7 @@ class AutoTextCtrl(wx.Panel):
         enter = wx.WXK_RETURN
         key   = ev.GetKeyCode()
 
-        log.debug('Key event on text control: {}'.format(key))
+        log.debug('Key event on text control: %s', key)
 
         # Make sure the event is propagated
         # up the window hierarchy, if we skip it
@@ -195,7 +194,7 @@ class AutoTextCtrl(wx.Panel):
         """
 
         text = self.__textCtrl.GetValue()
-        log.debug('Text - displaying options matching "{}"'.format(text))
+        log.debug('Text - displaying options matching "%s"', text)
         self.__showPopup(text)
 
 
@@ -207,7 +206,7 @@ class AutoTextCtrl(wx.Panel):
         ev = AutoTextCtrlEnterEvent(text=value)
 
         log.debug('Enter - generating ATC enter '
-                  'event (text: "{}")'.format(value))
+                  'event (text: "%s")', value)
 
         wx.PostEvent(self, ev)
 
@@ -398,7 +397,7 @@ class AutoCompletePopup(wx.Dialog):
 
         ev.Skip()
 
-        log.debug('Popup gained focus: {}'.format(ev.GetWindow()))
+        log.debug('Popup gained focus: %s', ev.GetWindow())
 
         # See note in AutoTextCtrl.__onSetFocus
         text = self.__textCtrl.GetValue()
@@ -415,7 +414,7 @@ class AutoCompletePopup(wx.Dialog):
 
         focused = ev.GetWindow()
 
-        log.debug('Kill focus event on popup: {}'.format(focused))
+        log.debug('Kill focus event on popup: %s', focused)
 
         objs = (self, self.__textCtrl, self.__listBox)
 
@@ -516,7 +515,7 @@ class AutoCompletePopup(wx.Dialog):
         enter = wx.WXK_RETURN
         key   = ev.GetKeyCode()
 
-        log.debug('Key down event on popup text control: {}'.format(key))
+        log.debug('Key down event on popup text control: %s', key)
 
         if key not in (up, down, enter, esc):
             ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
@@ -548,12 +547,12 @@ class AutoCompletePopup(wx.Dialog):
         matches = self.__getMatches(text)
 
         if text == '' or len(matches) == 0:
-            log.debug('Text on popup text control ("{}") - '
-                      'no matches, destroying popup'.format(text))
+            log.debug('Text on popup text control ("%s") - '
+                      'no matches, destroying popup', text)
             self.__destroy(False)
         else:
-            log.debug('Text on popup text control ("{}") - '
-                      'displaying {} matches'.format(text, len(matches)))
+            log.debug('Text on popup text control ("%s") - '
+                      'displaying %s matches', text, len(matches))
             self.__listBox.Set(matches)
 
 
@@ -574,7 +573,7 @@ class AutoCompletePopup(wx.Dialog):
         delete    = wx.WXK_DELETE
         up        = wx.WXK_UP
 
-        log.debug('Key event on popup list box: {}'.format(key))
+        log.debug('Key event on popup list box: %s', key)
 
         if key not in (enter, esc, up, backspace, delete):
             ev.Skip()
@@ -600,15 +599,15 @@ class AutoCompletePopup(wx.Dialog):
         # the current list selection to
         # the text control.
         if key == enter:
-            log.debug('Enter on popup list box ("{}") - destroying '
-                      'popup (and submitting value)'.format(val))
+            log.debug('Enter on popup list box ("%s") - destroying '
+                      'popup (and submitting value)', val)
             self.__textCtrl.ChangeValue(val)
             self.__textCtrl.SetInsertionPointEnd()
             genEnter = True
 
         elif key in (esc, backspace, delete):
-            log.debug('Escape on popup list box ("{}") '
-                      '- destroying popup'.format(val))
+            log.debug('Escape on popup list box ("%s") '
+                      '- destroying popup', val)
             genEnter = False
 
         # The user hitting enter or escape
@@ -632,8 +631,8 @@ class AutoCompletePopup(wx.Dialog):
         sel = self.__listBox.GetSelection()
         val = self.__listBox.GetString(sel)
 
-        log.debug('Double click on popup list box ("{}") - '
-                  'destroying popup (and submitting value)'.format(val))
+        log.debug('Double click on popup list box ("%s") - '
+                  'destroying popup (and submitting value)', val)
 
         self.__textCtrl.ChangeValue(val)
         self.__textCtrl.SetInsertionPointEnd()

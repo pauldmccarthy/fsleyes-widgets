@@ -740,7 +740,7 @@ class EditableListBox(wx.Panel):
             for listener in evtlisteners:
                 listener.Bind(wx.EVT_LEFT_DCLICK, onDblClick)
 
-        log.debug('Inserting item ({}) at index {}'.format(label, pos))
+        log.debug('Inserting item (%s) at index %s', label, pos)
 
         self.__listItems.insert(pos, item)
         self.__listSizer.Insert(pos, container, flag=wx.EXPAND)
@@ -1181,7 +1181,7 @@ class EditableListBox(wx.Panel):
 
         idx, label, data = self.__getSelection(True)
 
-        log.debug('ListSelectEvent (idx: {}; label: {})'.format(idx, label))
+        log.debug('ListSelectEvent (idx: %s; label: %s)', idx, label)
 
         ev = ListSelectEvent(idx=idx, label=label, data=data)
         wx.PostEvent(self, ev)
@@ -1262,8 +1262,8 @@ class EditableListBox(wx.Panel):
         self.__drawList()
         self.Refresh()
 
-        log.debug('ListMoveEvent (oldIdx: {}; newIdx: {}; label: {})'.format(
-            oldIdx, newIdx, label))
+        log.debug('ListMoveEvent (oldIdx: %s; newIdx: %s; label: %s)',
+                  oldIdx, newIdx, label)
 
         if event:
             ev = ListMoveEvent(
@@ -1295,7 +1295,7 @@ class EditableListBox(wx.Panel):
 
         idx, label, data = self.__getSelection(True)
 
-        log.debug('ListAddEvent (idx: {}; label: {})'.format(idx, label))
+        log.debug('ListAddEvent (idx: %s; label: %s)', idx, label)
 
         ev = ListAddEvent(idx=idx, label=label, data=data)
 
@@ -1318,8 +1318,7 @@ class EditableListBox(wx.Panel):
 
         ev = ListRemoveEvent(idx=idx, label=label, data=data)
 
-        log.debug('ListRemoveEvent (idx: {}; label: {})'.format(
-            idx, label))
+        log.debug('ListRemoveEvent (idx: %s; label: %s)', idx, label)
 
         # We use ProcessEvent instead of wx.PostEvent,
         # because the latter processes the event
@@ -1328,8 +1327,7 @@ class EditableListBox(wx.Panel):
         self.GetEventHandler().ProcessEvent(ev)
 
         if ev.GetVeto():
-            log.debug('ListRemoveEvent vetoed (idx: {}; label: {})'.format(
-                idx, label))
+            log.debug('ListRemoveEvent vetoed (idx: %s; label: %s)', idx, label)
             return
 
         self.Delete(idx)
@@ -1389,8 +1387,8 @@ class EditableListBox(wx.Panel):
             listItem.label = newLabel
             listItem.labelWidget.SetLabel(newLabel)
 
-            log.debug('ListEditEvent (idx: {}, oldLabel: {}, newLabel: {})'
-                      .format(idx, oldLabel, newLabel))
+            log.debug('ListEditEvent (idx: %s, oldLabel: %s, newLabel: %s)',
+                      idx, oldLabel, newLabel)
 
             ev = ListEditEvent(idx=idx, label=newLabel, data=listItem.data)
             wx.PostEvent(self, ev)

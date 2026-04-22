@@ -13,8 +13,8 @@ import wx
 import wx.lib.newevent as wxevent
 
 
-class FilePanel(wx.Panel):
-    """The ``FilePanel`` is a ``wx.Panel`` which contains a text label and a
+class FilePanel(wx.Control):
+    """The ``FilePanel`` is a ``wx.Control`` which contains a text label and a
     button.  The text label displays a file path, and the button opens a
     dialog allowing the user to select a new file.
     """

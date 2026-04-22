@@ -16,14 +16,12 @@ import logging
 import                    wx
 import wx.lib.newevent as wxevent
 
-import fsleyes_widgets as fw
-
 
 log = logging.getLogger(__name__)
 
 
-class FloatSpinCtrl(wx.Panel):
-    """A ``FloatSpinCtrl`` is a :class:`wx.Panel` which contains a
+class FloatSpinCtrl(wx.Control):
+    """A ``FloatSpinCtrl`` is a :class:`wx.Control` which contains a
     :class:`wx.TextCtrl` and a :class:`wx.SpinButton`, allowing the user to
     modify a floating point (or integer) value.
 
@@ -93,7 +91,7 @@ class FloatSpinCtrl(wx.Panel):
                         value. Ignored if the :attr:`FSC_INTEGER` style is
                         active.
         """
-        wx.Panel.__init__(self, parent)
+        wx.Control.__init__(self, parent)
 
         if minValue  is None: minValue  = 0
         if maxValue  is None: maxValue  = 100
@@ -351,8 +349,8 @@ class FloatSpinCtrl(wx.Panel):
         down = wx.WXK_DOWN
         key  = ev.GetKeyCode()
 
-        log.debug('Key down event: {} (looking for up [{}] '
-                  'or down [{}])'.format(key, up, down))
+        log.debug('Key down event: %s (looking for up [%s] or down [%s])',
+                  key, up, down)
 
         if   key == up:   self.__onSpinUp()
         elif key == down: self.__onSpinDown()
@@ -377,7 +375,7 @@ class FloatSpinCtrl(wx.Panel):
         val = self.__text.GetValue().strip()
 
         log.debug('Spin text - attempting to change value '
-                  'from {} to {}'.format(self.__value, val))
+                  'from %s to %s', self.__value, val)
 
         try:
             if self.__integer: val = int(  val)
@@ -420,9 +418,8 @@ class FloatSpinCtrl(wx.Panel):
 
             self.__lastEvent = thisEv
 
-        log.debug('Spin down button - attempting to change value '
-                  'from {} to {}'.format(self.__value,
-                                         self.__value - self.__increment))
+        log.debug('Spin down button - attempting to change value from '
+                  '%s to %s', self.__value, self.__value - self.__increment)
 
         if self.SetValue(self.__value - self.__increment):
             wx.PostEvent(self, FloatSpinEvent(value=self.__value))
@@ -444,9 +441,8 @@ class FloatSpinCtrl(wx.Panel):
                 return
             self.__lastEvent = thisEv
 
-        log.debug('Spin up button - attempting to change value '
-                  'from {} to {}'.format(self.__value,
-                                         self.__value + self.__increment))
+        log.debug('Spin up button - attempting to change value from '
+                  '%s to %s', self.__value, self.__value + self.__increment)
 
         if self.SetValue(self.__value + self.__increment):
             wx.PostEvent(self, FloatSpinEvent(value=self.__value))
