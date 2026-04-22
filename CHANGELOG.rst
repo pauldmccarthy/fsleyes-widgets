@@ -21,6 +21,9 @@ Changed
 * All classes provided by ``fsleyes_widgets`` are now accessible in the
   top-level package namespace (e.g. `fsleyes_widgets.FloatSlider``
   instead of ``fsleyeds_widgets.floatslider.FloatSlider``).
+* Several widget classes have been changed to inherit from ``wx.Control``
+  instead of ``wx.Panel``, so they can be used with the ``wx.ToolBar`` and
+  ``wx.aui.AuiToolBar``.
 
 
 0.16.0 (Friday 19th December 2025)
