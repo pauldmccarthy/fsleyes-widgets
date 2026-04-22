@@ -193,6 +193,11 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
             parent._NumberDialog__onCancel(FakeEv(target))
         realYield()
         return
+    if type(parent).__name__ == 'FilePanel' and \
+       type(target).__name__ == 'Button':
+        parent._FilePanel__onLoad(FakeEv(target))
+        realYield()
+        return
 
     w, h = target.GetClientSize().Get()
     x, y = target.GetScreenPosition()
