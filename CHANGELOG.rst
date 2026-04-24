@@ -12,6 +12,8 @@ Added
 
 * New :class:`.FilePanel` widget, which simply displays a file path, and
   allows the user to open a file dialog to select a new file path.
+* New :class:`.SpinButton` widget, a simpler alternative to the
+  ``wx.SpinButton``.
 
 
 Changed
@@ -24,6 +26,8 @@ Changed
 * Several widget classes have been changed to inherit from ``wx.Control``
   instead of ``wx.Panel``, so they can be used with the ``wx.ToolBar`` and
   ``wx.aui.AuiToolBar``.
+* Adjustments to the :class:`.FloatSpinCtrl` class to work around GTK
+  issues.
 
 
 0.16.0 (Friday 19th December 2025)
