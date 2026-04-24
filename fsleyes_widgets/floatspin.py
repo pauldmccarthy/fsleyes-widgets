@@ -10,15 +10,14 @@ modifying a floating point value.
 """
 
 
-import time
 import logging
+import warnings
 
 import                    wx
 import wx.lib.newevent as wxevent
 
 
 log = logging.getLogger(__name__)
-
 
 
 class SpinButton(wx.Control):
@@ -211,6 +210,11 @@ class FloatSpinCtrl(wx.Control):
                         active.
         """
         wx.Control.__init__(self, parent)
+
+        if evDelta is not None:
+            warnings.warn('The evDelta argument is deprecated and has no effect',
+                          category=DeprecationWarning,
+                          stacklevel=2)
 
         if minValue  is None: minValue  = 0
         if maxValue  is None: maxValue  = 100
