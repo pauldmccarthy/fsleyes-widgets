@@ -409,16 +409,14 @@ class FloatSpinCtrl(wx.Control):
         if self.__integer:
             newValue = int(round(newValue))
 
-        if not self.__nolimit:
-            self.__spin.EnableUp(  newValue < self.__max)
-            self.__spin.EnableDown(newValue > self.__min)
-
         oldValue     = self.__value
         self.__value = newValue
 
         self.__text.ChangeValue(self.__format.format(newValue))
-        self.__spin.EnableUp(  newValue < self.__max)
-        self.__spin.EnableDown(newValue > self.__min)
+
+        if not self.__nolimit:
+            self.__spin.EnableUp(  newValue < self.__max)
+            self.__spin.EnableDown(newValue > self.__min)
 
         return newValue != oldValue
 
