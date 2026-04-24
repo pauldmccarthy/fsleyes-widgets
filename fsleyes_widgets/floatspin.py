@@ -20,6 +20,135 @@ import wx.lib.newevent as wxevent
 log = logging.getLogger(__name__)
 
 
+
+class SpinButton(wx.Control):
+    """Replacement for ``wx.SpinButton``.
+
+    A control which contains up and down buttons, and which emits events
+    :attr:`EVT_SPIN_UP`  and :attr:`EVT_SPIN_DOWN` events when they are
+    pressed.
+
+    This is used by the :class:`FloatSpinCtrl` instead of the
+    ``wx.SpinButton`` because:
+
+      - The``wx.SpinButton`` internally stores the current value as a
+        signed 32 bit integer. It is much easier for the ``FloatSpinCtrl``
+        to keep track of it sown value and limits.
+
+      - The ``FloatSpinCtrl`` displays its own text area, but on some GTK
+        versions, the ``wx.SpinButton`` displays a text area, I think due
+        to some latent bugs in wxwidgets - see e.g.
+        https://github.com/wxWidgets/wxWidgets/issues/17847
+    """
+
+
+    def __init__(self,
+                 parent,
+                 style=wx.HORIZONTAL,
+                 upLabel='\u002B',
+                 downLabel='\u2212'):
+        """Create a ``SpinButton``.
+
+        :arg parent:    ``wx`` parent object
+        :arg style:     Button orientation - either ``wx.HORIZONTAL`` or
+                        ``wx.VERTICAL``
+        :arg upLabel:   Up button label
+        :arg downLabel: Down button label
+        """
+        super().__init__(parent)
+
+        if style not in (wx.HORIZONTAL, wx.VERTICAL):
+            raise ValueError('Unknown style - must be one of '
+                             f'wx.HORIZONTAL or wx.VERTICAL: {style}')
+
+        sizer = wx.BoxSizer(style)
+        up    = wx.Button(self, label=upLabel,   style=wx.BU_EXACTFIT)
+        down  = wx.Button(self, label=downLabel, style=wx.BU_EXACTFIT)
+
+        self.__sizer = sizer
+        self.__up    = up
+        self.__down  = down
+
+        self.SetSizer(sizer)
+        up  .SetFont(up  .GetFont().Larger())
+        down.SetFont(down.GetFont().Larger())
+
+        if style == wx.VERTICAL:
+            sizer.Add(up)
+            sizer.Add(down)
+        else:
+            sizer.Add(down)
+            sizer.Add(up)
+
+        up  .Bind(wx.EVT_BUTTON, self.__onUp)
+        down.Bind(wx.EVT_BUTTON, self.__onDown)
+
+
+    @property
+    def upButton(self):
+        """Returns a reference to the up button. """
+        return self.__up
+
+
+    @property
+    def downButton(self):
+        """Returns a reference to the down button. """
+        return self.__down
+
+
+    def EnableUp(self, enable):
+        """Enable/disable the up button. """
+        self.__up.Enable(bool(enable))
+
+
+    def DisableUp(self):
+        """Disable the up button. """
+        self.__up.Disable()
+
+
+    def EnableDown(self, enable):
+        """Enable/disable the down button. """
+        self.__down.Enable(bool(enable))
+
+
+    def DisableDown(self):
+        """Disable the down button. """
+        self.__down.Disable()
+
+
+    def __onUp(self, ev):
+        """Called when the up button is pressed. Emits a ``EVT_SPIN_UP``
+        event.
+        """
+        wx.PostEvent(self, SpinUpEvent())
+
+
+    def __onDown(self, ev):
+        """Called when the down button is pressed. Emits a ``EVT_SPIN_DOWN``
+        event.
+        """
+        wx.PostEvent(self, SpinDownEvent())
+
+
+_SpinUpEvent,   _EVT_SPIN_UP   = wxevent.NewEvent()
+_SpinDownEvent, _EVT_SPIN_DOWN = wxevent.NewEvent()
+
+
+EVT_SPIN_UP = _EVT_SPIN_UP
+"""Identifier for the :data:`SpinUpEvent` event. """
+
+EVT_SPIN_DOWN = _EVT_SPIN_DOWN
+"""Identifier for the :data:`SpinDownEvent` event. """
+
+
+SpinUpEvent = _SpinUpEvent
+"""Event emitted when by a ``SpinButton`` when its up button is pushed. """
+
+
+SpinDownEvent = _SpinDownEvent
+"""Event emitted when by a ``SpinButton`` when its down button is pushed. """
+
+
 class FloatSpinCtrl(wx.Control):
     """A ``FloatSpinCtrl`` is a :class:`wx.Control` which contains a
     :class:`wx.TextCtrl` and a :class:`wx.SpinButton`, allowing the user to
@@ -105,42 +234,22 @@ class FloatSpinCtrl(wx.Control):
 
         self.__value     = value
         self.__increment = increment
-        self.__realMin   = float(minValue)
-        self.__realMax   = float(maxValue)
-        self.__realRange = abs(self.__realMax - self.__realMin)
+        self.__min       = float(minValue)
+        self.__max       = float(maxValue)
+        self.__range     = abs(self.__max - self.__min)
 
         # Attributes used in spin
         # button event rate throttling
         self.__lastEvent  = time.time()
         self.__eventDelta = evDelta
 
-        # We use the full signed 32 bit integer
-        # range offered by the wx.SpinButton class.
-        self.__realSpinMin = -2 ** 31
-        self.__realSpinMax =  2 ** 31 - 1
+        self.__text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
+        self.__spin = SpinButton( self)
 
-        # Unless the no limit style has been
-        # specified, in which case we map the
-        # real data range to 16 bits, and
-        # allow the rest of the 32 bit range
-        # to account for overflow. In either
-        # case, the spin button is configured
-        # to use the full 32 bit range.
-        if  self.__nolimit:
-            self.__spinMin = -2 ** 15
-            self.__spinMax =  2 ** 15 - 1
-        else:
-            self.__spinMin = self.__realSpinMin
-            self.__spinMax = self.__realSpinMax
-
-        self.__spinRange = abs(self.__spinMax - self.__spinMin)
-
-        self.__text = wx.TextCtrl(  self,
-                                    style=wx.TE_PROCESS_ENTER)
-        self.__spin = wx.SpinButton(self,
-                                    style=wx.SP_VERTICAL | wx.SP_ARROW_KEYS)
-
-        self.__spin.SetRange(self.__realSpinMin, self.__realSpinMax)
+        # spinSize = self.__spin.GetSize()
+        # spinSize = (spinSize[0] + 20, spinSize[1] + 20)
+        # print(spinSize)
+        # self.__spin.SetMinSize(spinSize)
 
         if width is not None:
             width = self.__text.GetTextExtent('0' * width)[0]
@@ -159,8 +268,8 @@ class FloatSpinCtrl(wx.Control):
         self.__text.Bind(wx.EVT_KEY_DOWN,   self.__onKeyDown)
         self.__text.Bind(wx.EVT_TEXT_ENTER, self.__onText)
         self.__text.Bind(wx.EVT_KILL_FOCUS, self.__onKillFocus)
-        self.__spin.Bind(wx.EVT_SPIN_UP,    self.__onSpinUp)
-        self.__spin.Bind(wx.EVT_SPIN_DOWN,  self.__onSpinDown)
+        self.__spin.Bind(EVT_SPIN_UP,       self.__onSpinUp)
+        self.__spin.Bind(EVT_SPIN_DOWN,     self.__onSpinDown)
 
         # Event on mousewheel
         # if style enabled
@@ -230,12 +339,12 @@ class FloatSpinCtrl(wx.Control):
 
     def GetMin(self):
         """Returns the current minimum value."""
-        return float(self.__realMin)
+        return float(self.__min)
 
 
     def GetMax(self):
         """Returns the current maximum value."""
-        return float(self.__realMax)
+        return float(self.__max)
 
 
     def GetIncrement(self):
@@ -253,33 +362,33 @@ class FloatSpinCtrl(wx.Control):
         """Returns the current data range, a tuple containing the
         ``(min, max)`` values.
         """
-        return (self.__realMin, self.__realMax)
+        return (self.__min, self.__max)
 
 
     def SetMin(self, minval):
         """Sets the minimum value."""
-        self.SetRange(minval, self.__realMax)
+        self.SetRange(minval, self.__max)
 
 
     def SetMax(self, maxval):
         """Sets the maximum value."""
-        self.SetRange(self.__realMin, maxval)
+        self.SetRange(self.__min, maxval)
 
 
     def SetRange(self, minval, maxval):
         """Sets the minimum and maximum values."""
 
         if minval > maxval:
-            raise ValueError('Min cannot be greater than max '
-                             '({} > {})'.format(minval, maxval))
+            raise ValueError('Min cannot be greater than '
+                             f'max ({minval} > {maxval})')
 
         if self.__integer:
             minval = int(round(minval))
             maxval = int(round(maxval))
 
-        self.__realMin   = float(minval)
-        self.__realMax   = float(maxval)
-        self.__realRange = abs(self.__realMax - self.__realMin)
+        self.__min   = float(minval)
+        self.__max   = float(maxval)
+        self.__range = abs(self.__max - self.__min)
 
         self.SetValue(self.__value)
 
@@ -294,38 +403,22 @@ class FloatSpinCtrl(wx.Control):
         # within the min/max, unless the
         # FSC_NO_LIMIT style flag is set.
         if not self.__nolimit:
-            if newValue < self.__realMin: newValue = self.__realMin
-            if newValue > self.__realMax: newValue = self.__realMax
+            if newValue < self.__min: newValue = self.__min
+            if newValue > self.__max: newValue = self.__max
 
         if self.__integer:
             newValue = int(round(newValue))
+
+        if not self.__nolimit:
+            self.__spin.EnableUp(  newValue < self.__max)
+            self.__spin.EnableDown(newValue > self.__min)
 
         oldValue     = self.__value
         self.__value = newValue
 
         self.__text.ChangeValue(self.__format.format(newValue))
-
-        # The wx.SpinButton is badly behaved. It doesn't have
-        # a ChangeValue method (which would explicitly allow
-        # us to update the stored spin button value without
-        # triggering an event), and under GTK, when the
-        # SetValue method is called from a SPIN_UP/SPIN_DOWN
-        # event, it will trigger another event. So we disable
-        # events from the spin button when setting the value.
-        self.__spin.SetEvtHandlerEnabled(False)
-        self.__spin.SetValue(self.__realToSpin(newValue))
-
-        # We have to re-enable event processing
-        # asynchronously, otherwise the SpinButton
-        # will keep generating events.  We check
-        # the state of this control before doing
-        # so, as the control may get deleted before
-        # this function gets called.
-        def reset():
-            if self and self.__spin:
-                self.__spin.SetEvtHandlerEnabled(True)
-
-        wx.CallAfter(reset)
+        self.__spin.EnableUp(  newValue < self.__max)
+        self.__spin.EnableDown(newValue > self.__min)
 
         return newValue != oldValue
 
@@ -401,7 +494,7 @@ class FloatSpinCtrl(wx.Control):
 
 
     def __onSpinDown(self, ev=None):
-        """Called when the *down* button on the ``wx.SpinButton`` is pushed.
+        """Called when the *down* button on the ``SpinButton`` is pushed.
 
         Decrements the value by the current increment and generates a
         :data:`FloatSpinEvent`.
@@ -472,31 +565,6 @@ class FloatSpinCtrl(wx.Control):
         the entire contents of the ``TextCtrl``.
         """
         self.__text.SelectAll()
-
-
-    def __realToSpin(self, value):
-        """Converts the given value from real space to spin button space."""
-
-        if self.__realRange == 0:
-            return 0
-
-        if self.__integer:
-            value = int(round(value))
-
-        value     = float(value)
-        spinMin   = float(self.__spinMin)
-        realMin   = float(self.__realMin)
-        realRange = float(self.__realRange)
-        spinRange = float(self.__spinRange)
-
-        value     = spinMin + (value - realMin) * (spinRange / realRange)
-
-        # Don't allow the value to flow over
-        # the real wx.SpinButton range.
-        if   value < self.__realSpinMin: value = self.__realSpinMin
-        elif value > self.__realSpinMax: value = self.__realSpinMax
-
-        return int(round(value))
 
 
 _FloatSpinEvent,      _EVT_FLOATSPIN       = wxevent.NewEvent()
