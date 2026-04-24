@@ -125,9 +125,15 @@ from fsleyes_widgets.floatslider           import (FloatSlider,
                                                    EVT_SSP_LIMIT)
 from fsleyes_widgets.floatspin             import (FloatSpinCtrl,
                                                    FloatSpinEvent,
+                                                   SpinButton,
+                                                   SpinDownEvent,
+                                                   SpinUpEvent,
+                                                   EVT_FLOATSPIN,
+                                                   EVT_SPIN_DOWN,
+                                                   EVT_SPIN_UP,
                                                    FSC_MOUSEWHEEL,
                                                    FSC_INTEGER,
-                                                   EVT_FLOATSPIN)
+                                                   FSC_NO_LIMIT)
 from fsleyes_widgets.imagepanel            import (ImagePanel,)
 from fsleyes_widgets.notebook              import (Notebook,
                                                    PageChangeEvent,
