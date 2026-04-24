@@ -200,17 +200,7 @@ class FloatSpinCtrl(wx.Control):
         :arg width:     If provided, desired text control width (in
                         characters).
 
-        :arg evDelta:   Minimum time between consecutive ``wx.SpinButton``
-                        events. On Linux/GTK, the wx.SpinButton is badly
-                        behaved - if, while clicking on the mouse button, the
-                        user moves the mouse even a tiny bit, more than one
-                        spin event will be generated. To work around this
-                        (without having to write my own ``wx.SpinButton``
-                        implementation), the ``evDelta`` parameter allows me
-                        to throttle the maximum rate at which events received
-                        from the spin button can be processed. This is
-                        implemented in the :meth:`__onSpinDown` and
-                        :meth:`__onSpinUp` methods.
+        :arg evDelta:   Deprecated, has no effect.
 
                         This has the side effect that if the user clicks and
                         holds on the spin button, they have to wait <delta>
@@ -227,7 +217,6 @@ class FloatSpinCtrl(wx.Control):
         if value     is None: value     = 0
         if increment is None: increment = 1
         if style     is None: style     = 0
-        if evDelta   is None: evDelta   = 0.5
 
         self.__integer = style & FSC_INTEGER
         self.__nolimit = style & FSC_NO_LIMIT
@@ -237,11 +226,6 @@ class FloatSpinCtrl(wx.Control):
         self.__min       = float(minValue)
         self.__max       = float(maxValue)
         self.__range     = abs(self.__max - self.__min)
-
-        # Attributes used in spin
-        # button event rate throttling
-        self.__lastEvent  = time.time()
-        self.__eventDelta = evDelta
 
         self.__text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.__spin = SpinButton( self)
@@ -498,17 +482,6 @@ class FloatSpinCtrl(wx.Control):
         :data:`FloatSpinEvent`.
         """
 
-        # See comments in __init__
-        if ev is not None:
-
-            lastEv = self.__lastEvent
-            thisEv = time.time()
-
-            if thisEv - lastEv < self.__eventDelta:
-                return
-
-            self.__lastEvent = thisEv
-
         log.debug('Spin down button - attempting to change value from '
                   '%s to %s', self.__value, self.__value - self.__increment)
 
@@ -522,15 +495,6 @@ class FloatSpinCtrl(wx.Control):
         Increments the value by the current increment and generates a
         :data:`FloatSpinEvent`.
         """
-
-        # See comments in __init__
-        if ev is not None:
-            lastEv = self.__lastEvent
-            thisEv = time.time()
-
-            if thisEv - lastEv < self.__eventDelta:
-                return
-            self.__lastEvent = thisEv
 
         log.debug('Spin up button - attempting to change value from '
                   '%s to %s', self.__value, self.__value + self.__increment)
