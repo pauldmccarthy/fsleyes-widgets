@@ -30,6 +30,13 @@ Changed
   issues.
 
 
+Deprecated
+^^^^^^^^^^
+
+
+* The :class:`.FloatSpinCtrl` ``evDelta`` option no longer has any effect.
+
+
 0.16.0 (Friday 19th December 2025)
 ----------------------------------
 
