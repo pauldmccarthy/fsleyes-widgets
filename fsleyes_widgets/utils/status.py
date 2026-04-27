@@ -65,6 +65,7 @@ def setTarget(target):
     be a function which accepts a string as its sole parameter.
     """
     global _statusUpdateTarget
+    log.debug('Setting status target: %s', target)
     _statusUpdateTarget = target
 
 
@@ -91,7 +92,7 @@ def update(message, timeout=1.0):
         linenum = frame[2]
         module  = op.basename(module)
 
-        log.debug('[{}:{}] {}'.format(module, linenum, message))
+        log.debug('[%s:%s] %s', module, linenum, message)
 
     if _statusUpdateTarget is None:
         return
@@ -100,7 +101,7 @@ def update(message, timeout=1.0):
         _statusUpdateTarget(message)
 
     except Exception as e:
-        log.warning('Target raised excepton {}'.format(e), exc_info=True)
+        log.warning('Target raised excepton %s', e, exc_info=True)
         return
 
     if timeout is not None:
@@ -139,7 +140,7 @@ def reportError(title, msg, err):
         wx.MessageBox(msg, title, wx.ICON_ERROR | wx.OK)
 
     except ImportError:
-        log.error('{}: {}'.format(title, msg))
+        log.error('%s: %s', title, msg)
 
 
 @contextlib.contextmanager
@@ -158,7 +159,7 @@ def reportIfError(title, msg, raiseError=True, report=True):
 
     except Exception as e:
 
-        log.error('{}: {}'.format(title, msg))
+        log.error('%s: %s', title, msg)
 
         if report:
             reportError(title, msg, e)

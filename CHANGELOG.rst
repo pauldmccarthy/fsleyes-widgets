@@ -2,6 +2,40 @@ This document contains the ``fsleyes-widgets`` release history in reverse
 chronological order.
 
 
+0.17.0 (Monday 27th April 2026)
+-------------------------------
+
+
+Added
+^^^^^
+
+
+* New :class:`.FilePanel` widget, which simply displays a file path, and
+  allows the user to open a file dialog to select a new file path.
+* New :class:`.SpinButton` widget, a simpler alternative to the
+  ``wx.SpinButton``.
+
+
+Changed
+^^^^^^^
+
+
+* All classes provided by ``fsleyes_widgets`` are now accessible in the
+  top-level package namespace (e.g. `fsleyes_widgets.FloatSlider``
+  instead of ``fsleyeds_widgets.floatslider.FloatSlider``).
+* Several widget classes have been changed to inherit from ``wx.Control``
+  instead of ``wx.Panel``, so they can be used with the ``wx.ToolBar`` and
+  ``wx.aui.AuiToolBar``.
+* Adjustments to the :class:`.FloatSpinCtrl` class to work around GTK
+  issues.
+
+
+Deprecated
+^^^^^^^^^^
+
+
+* The :class:`.FloatSpinCtrl` ``evDelta`` option no longer has any effect.
+
 
 0.16.0 (Friday 19th December 2025)
 ----------------------------------

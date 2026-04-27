@@ -61,7 +61,7 @@ def complementary_colour(rgb):
     return mplcolors.to_hex((nr, ng, nb))
 
 
-class StaticTextTag(wx.Panel):
+class StaticTextTag(wx.Control):
     """The ``StaticTextTag`` class is a ``wx.Panel`` which contains a
     ``StaticText`` control, and a *close* button. The displayed text
     and background colour are configurable.
@@ -87,7 +87,7 @@ class StaticTextTag(wx.Panel):
         self.__bgColour     = None
         self.__borderColour = None
 
-        wx.Panel.__init__(self, parent)
+        wx.Control.__init__(self, parent)
 
         self.__sizer    = wx.BoxSizer(wx.HORIZONTAL)
         self.__closeBtn = wx.StaticText(self,
@@ -214,7 +214,7 @@ class StaticTextTag(wx.Panel):
         :data:`EVT_STT_CLOSE`.
         """
 
-        log.debug('{} close button pressed'.format(str(self)))
+        log.debug('%s close button pressed', str(self))
 
         ev = StaticTextTagCloseEvent()
         ev.SetEventObject(self)
@@ -234,7 +234,7 @@ StaticTextTagCloseEvent = _StaticTextTagCloseEvent
 """Event object created for an :data:`EVT_STT_CLOSE`. """
 
 
-class TextTagPanel(wx.Panel):
+class TextTagPanel(wx.Control):
     """The ``TextTagPanel`` is a panel which contains a control allowing
     the user to add new tags, and a collection of :class:`StaticTextTag`
     controls.
@@ -268,7 +268,7 @@ class TextTagPanel(wx.Panel):
                      ``TTP_ALLOW_NEW_TAGS | TTP_ADD_NEW_TAGS``.
         """
 
-        wx.Panel.__init__(self, parent)
+        wx.Control.__init__(self, parent)
 
         if style is None:
             style = TTP_ALLOW_NEW_TAGS | TTP_ADD_NEW_TAGS
@@ -413,7 +413,7 @@ class TextTagPanel(wx.Panel):
         self.GetParent().Layout()
 
         if self.__addNewTags and tag not in self.__allTags:
-            log.debug('Adding new tag to options: {}'.format(tag))
+            log.debug('Adding new tag to options: %s', tag)
             self.__allTags.append(tag)
             self.__tagDisplays[tag] = origTag
 
@@ -531,7 +531,7 @@ class TextTagPanel(wx.Panel):
         tag = stt.GetText()
         stt.SetFocus()
 
-        log.debug('Posting tag select event ("{}")'.format(tag))
+        log.debug('Posting tag select event ("%s")', tag)
 
         ev = TextTagPanelTagSelectEvent(tag=tag)
         ev.SetEventObject(self)
@@ -547,7 +547,7 @@ class TextTagPanel(wx.Panel):
         stt = ev.GetEventObject()
         tag = stt.GetText()
 
-        log.debug('Mouse down on tag: "{}"'.format(tag))
+        log.debug('Mouse down on tag: "%s"', tag)
         self.__selectTag(stt)
 
 
@@ -571,7 +571,7 @@ class TextTagPanel(wx.Panel):
 
             self.__tagWidgets[idx].SetFocus()
 
-        log.debug('Tag removed: "{}"'.format(tag))
+        log.debug('Tag removed: "%s"', tag)
 
         ev = TextTagPanelTagRemovedEvent(tag=tag)
         ev.SetEventObject(self)
@@ -587,7 +587,7 @@ class TextTagPanel(wx.Panel):
 
         key = ev.GetKeyCode()
 
-        log.debug('TextTagPanel key down [new tag control] ({})'.format(key))
+        log.debug('TextTagPanel key down [new tag control] (%s)', key)
 
         # Only process right arrows if the text
         # control cursor is on the far right
@@ -617,7 +617,7 @@ class TextTagPanel(wx.Panel):
         key       = ev.GetKeyCode()
         stt       = ev.GetEventObject()
 
-        log.debug('TextTagPanel key event ({})'.format(key))
+        log.debug('TextTagPanel key event (%s)', key)
 
         if key not in (left, right, delete, backspace):
             ev.ResumePropagation(wx.EVENT_PROPAGATE_MAX)
@@ -634,8 +634,8 @@ class TextTagPanel(wx.Panel):
         elif key == right: sttIdx += 1
 
         if sttIdx == -1:
-            log.debug('Arrow key on tag ({}) - focusing new '
-                      'tag control'.format(stt.GetText()))
+            log.debug('Arrow key on tag (%s) - focusing new '
+                      'tag control', stt.GetText())
             self.FocusNewTagCtrl()
             return
 
@@ -643,9 +643,9 @@ class TextTagPanel(wx.Panel):
             ev.Skip()
             return
 
-        log.debug('Arrow key on tag ({}) - selecting '
-                  'adjacent tag ({})'.format(
-                      stt.GetText(), self.__tagWidgets[sttIdx].GetText()))
+        log.debug('Arrow key on tag (%s) - selecting '
+                  'adjacent tag (%s)', stt.GetText(),
+                  self.__tagWidgets[sttIdx].GetText())
 
         self.__selectTag(self.__tagWidgets[sttIdx])
 
@@ -672,14 +672,14 @@ class TextTagPanel(wx.Panel):
             origTag = self.__tagDisplays.get(tag, origTag)
 
         if self.__noDuplicates and self.HasTag(tag):
-            log.debug('New tag {} ignored (noDuplicates is True)'.format(tag))
+            log.debug('New tag %s ignored (noDuplicates is True)', tag)
             return
 
         if not self.__allowNewTags and tag not in self.__allTags:
-            log.debug('New tag {} ignored (allowNewTags is False)'.format(tag))
+            log.debug('New tag %s ignored (allowNewTags is False)', tag)
             return
 
-        log.debug('New tag from text control: {}'.format(origTag))
+        log.debug('New tag from text control: %s', origTag)
 
         self.__newTagCtrl.Refresh()
 

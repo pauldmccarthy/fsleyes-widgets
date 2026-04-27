@@ -10,6 +10,7 @@
    fsleyes_widgets.colourbutton
    fsleyes_widgets.dialog
    fsleyes_widgets.elistbox
+   fsleyes_widgets.filepanel
    fsleyes_widgets.floatslider
    fsleyes_widgets.floatspin
    fsleyes_widgets.imagepanel

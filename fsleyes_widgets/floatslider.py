@@ -19,7 +19,7 @@ from . import floatspin
 from . import numberdialog
 
 
-class FloatSlider(wx.Panel):
+class FloatSlider(wx.Control):
     """Floating point slider widget.
 
     This class is an alternative to :class:`wx.Slider`, which supports
@@ -65,7 +65,7 @@ class FloatSlider(wx.Panel):
         self.__sliderRange = abs(self.__sliderMax - self.__sliderMin)
         self.__integer     = style & FS_INTEGER > 0
 
-        wx.Panel.__init__(self, parent)
+        wx.Control.__init__(self, parent)
 
         self.__slider = wx.Slider(self,
                                   minValue=self.__sliderMin,
@@ -303,7 +303,7 @@ class FloatSlider(wx.Panel):
         return self.__sliderToReal(value)
 
 
-class SliderSpinPanel(wx.Panel):
+class SliderSpinPanel(wx.Control):
     """A panel containing a :class:`FloatSlider` and a :class:`.FloatSpinCtrl`.
 
     The slider and spinbox are linked such that changes to one are reflected
@@ -361,7 +361,7 @@ class SliderSpinPanel(wx.Panel):
                         6. See the :class:`.FloatSpinCtrl` class.
         """
 
-        wx.Panel.__init__(self, parent, style=0)
+        wx.Control.__init__(self, parent, style=0)
 
         if value     is None: value     = 0
         if minValue  is None: minValue  = 0

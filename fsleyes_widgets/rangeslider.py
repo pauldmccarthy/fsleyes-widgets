@@ -29,7 +29,7 @@ from . import numberdialog
 log = logging.getLogger(__name__)
 
 
-class RangePanel(wx.Panel):
+class RangePanel(wx.Control):
     """``RangePanel`` is a widget which contains two sliders or spinboxes (either
     :class:`.FloatSlider`, or :class:`.FloatSpinCtrl`), allowing a range to be
     set.
@@ -103,7 +103,7 @@ class RangePanel(wx.Panel):
         if style & RP_SLIDER: widgetType = 'slider'
         else:                 widgetType = 'spin'
 
-        wx.Panel.__init__(self, parent, style=0)
+        wx.Control.__init__(self, parent, style=0)
 
         if minValue    is None: minValue    = 0
         if maxValue    is None: maxValue    = 100
@@ -236,8 +236,8 @@ class RangePanel(wx.Panel):
         if np.isclose(newHigh, highValue): ev = LowRangeEvent
         else:                              ev = RangeEvent
 
-        log.debug('Low range value changed - posting {}: '
-                  '[{} - {}]'.format(ev, newLow, newHigh))
+        log.debug('Low range value changed - posting %s: '
+                  '[%s - %s]', ev, newLow, newHigh)
 
         ev = ev(low=newLow, high=newHigh)
         ev.SetEventObject(self)
@@ -265,8 +265,8 @@ class RangePanel(wx.Panel):
         if np.isclose(newLow, lowValue): ev = HighRangeEvent
         else:                            ev = RangeEvent
 
-        log.debug('High range value changed - posting {}: '
-                  '[{} - {}]'.format(ev, newLow, newHigh))
+        log.debug('High range value changed - posting %s: '
+                  '[%s - %s]', ev, newLow, newHigh)
 
         ev = ev(low=newLow, high=newHigh)
         ev.SetEventObject(self)
@@ -346,7 +346,7 @@ class RangePanel(wx.Panel):
             lowValue  = centre - dist / 2.0
             highValue = centre + dist / 2.0
 
-        log.debug('Setting range: {}'.format((lowValue, highValue)))
+        log.debug('Setting range: %s', (lowValue, highValue))
 
         self.__lowWidget .SetValue(lowValue)
         self.__highWidget.SetValue(highValue)
@@ -363,14 +363,14 @@ class RangePanel(wx.Panel):
         """Sets the current (minimum, maximum) range limit values."""
 
         if not np.isclose(minValue, maxValue) and maxValue < minValue:
-            raise ValueError('max [{}] < min [{}]'.format(maxValue, minValue))
+            raise ValueError(f'max [{maxValue}] < min [{minValue}]')
 
         if maxValue - minValue < self.GetDistance():
             raise ValueError(
-                'Invalid limits (range {} - {} is less than distance '
-                '{})'.format(minValue, maxValue, self.GetDistance()))
+                f'Invalid limits (range {minValue} - {maxValue} is '
+                f'less than distance {self.GetDistance()})')
 
-        log.debug('Setting limits: {}'.format((minValue, maxValue)))
+        log.debug('Setting limits: %s', (minValue, maxValue))
 
         self.__lowWidget .SetRange(minValue, maxValue)
         self.__highWidget.SetRange(minValue, maxValue)
@@ -398,8 +398,8 @@ class RangePanel(wx.Panel):
         self.SetLimits(self.GetMin(), maxValue)
 
 
-class RangeSliderSpinPanel(wx.Panel):
-    """A :class:`wx.Panel` which contains two sliders and two spinboxes.
+class RangeSliderSpinPanel(wx.Control):
+    """A :class:`wx.Control` which contains two sliders and two spinboxes.
 
 
     The sliders and spinboxes are contained within two :class:`RangePanel`
@@ -485,7 +485,7 @@ class RangeSliderSpinPanel(wx.Panel):
         real       = not style & RSSP_INTEGER
         limit      = not style & RSSP_NO_LIMIT
 
-        wx.Panel.__init__(self, parent)
+        wx.Control.__init__(self, parent)
 
         if not showLimits:
             editLimits = False
@@ -624,8 +624,8 @@ class RangeSliderSpinPanel(wx.Panel):
 
         slave.SetRange(*source.GetRange())
 
-        log.debug('Range values changed - posting event: [{}]'.format(
-            source.GetRange()))
+        log.debug('Range values changed - posting event: [%s]',
+                  source.GetRange())
 
         ev.SetEventObject(self)
         wx.PostEvent(self, ev)

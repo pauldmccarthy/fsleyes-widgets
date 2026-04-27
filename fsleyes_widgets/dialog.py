@@ -18,7 +18,6 @@ use throughout ``fslpy``. The available dialogs are:
 """
 
 
-import            os
 import os.path as op
 import            threading
 
@@ -325,7 +324,7 @@ class ProcessingDialog(SimpleMessageDialog):
         if mainThread:
             try:
                 result = self.task(*self.args, **self.kwargs)
-            except:
+            except Exception:
                 self.Close()
                 self.Destroy()
                 raise

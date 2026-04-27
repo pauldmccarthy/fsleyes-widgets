@@ -12,8 +12,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
-import os
 import datetime
 
 date = datetime.date.today()
@@ -36,7 +34,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
-#     'sphinxcontrib.restbuilder',
+    'sphinx_rtd_dark_mode',
 ]
 
 # Configure restructured text output

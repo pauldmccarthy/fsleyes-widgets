@@ -5,7 +5,6 @@
 # Author: Paul McCarthy <pauldmccarthy@gmail.com>
 #
 
-from __future__ import print_function
 
 import gc
 import time
@@ -194,6 +193,11 @@ def simclick(sim, target, btn=wx.MOUSE_BTN_LEFT, pos=None, stype=0):
             parent._NumberDialog__onCancel(FakeEv(target))
         realYield()
         return
+    if type(parent).__name__ == 'FilePanel' and \
+       type(target).__name__ == 'Button':
+        parent._FilePanel__onLoad(FakeEv(target))
+        realYield()
+        return
 
     w, h = target.GetClientSize().Get()
     x, y = target.GetScreenPosition()
@@ -375,3 +379,29 @@ def simfocus(from_, to):
 
     to.SetFocus()
     realYield()
+
+
+@ctxlib.contextmanager
+def MockFileDialog(dirdlg=False):
+    class MockDlg:
+        def __init__(self, *args, **kwargs):
+            pass
+        def ShowModal(self):
+            return MockDlg.ShowModal_retval
+        def GetPath(self):
+            return MockDlg.GetPath_retval
+        def GetPaths(self):
+            return MockDlg.GetPaths_retval
+        def Close(self):
+            pass
+        def Destroy(self):
+            pass
+        ShowModal_retval = wx.ID_OK
+        GetPath_retval   = ''
+        GetPaths_retval  = []
+
+    if dirdlg: patched = 'wx.DirDialog'
+    else:      patched = 'wx.FileDialog'
+
+    with mock.patch(patched, MockDlg):
+        yield MockDlg
