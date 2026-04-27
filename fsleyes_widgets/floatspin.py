@@ -32,7 +32,7 @@ class SpinButton(wx.Control):
 
       - The``wx.SpinButton`` internally stores the current value as a
         signed 32 bit integer. It is much easier for the ``FloatSpinCtrl``
-        to keep track of it sown value and limits.
+        to keep track of its own floating point value and limits.
 
       - The ``FloatSpinCtrl`` displays its own text area, but on some GTK
         versions, the ``wx.SpinButton`` displays a text area, I think due
@@ -233,11 +233,6 @@ class FloatSpinCtrl(wx.Control):
 
         self.__text = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER)
         self.__spin = SpinButton( self)
-
-        # spinSize = self.__spin.GetSize()
-        # spinSize = (spinSize[0] + 20, spinSize[1] + 20)
-        # print(spinSize)
-        # self.__spin.SetMinSize(spinSize)
 
         if width is not None:
             width = self.__text.GetTextExtent('0' * width)[0]
